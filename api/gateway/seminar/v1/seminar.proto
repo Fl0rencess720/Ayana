@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package Wittgenstein.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "Wittgenstein/api/gateway/seminar/v1;v1";
+
+
+service Seminar {
+  rpc CreateTopic (CreateTopicRequest) returns (CreateTopicReply) {
+    option (google.api.http) = {
+      post: "/seminar/topic/creating"
+      body: "*"
+    };
+  }
+}
+
+message CreateTopicRequest {
+  string content = 1;
+  repeated string participants = 2;
+}
+
+message CreateTopicReply {
+  string message = 1;
+}

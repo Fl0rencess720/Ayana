@@ -3,9 +3,27 @@
 
 openapi: 3.0.3
 info:
-    title: User API
+    title: ""
     version: 0.0.1
 paths:
+    /seminar/topic/creating:
+        post:
+            tags:
+                - Seminar
+            operationId: Seminar_CreateTopic
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Wittgenstein.v1.CreateTopicRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Wittgenstein.v1.CreateTopicReply'
     /user/login:
         post:
             tags:
@@ -97,6 +115,20 @@ paths:
                                 $ref: '#/components/schemas/Wittgenstein.v1.RegisterReply'
 components:
     schemas:
+        Wittgenstein.v1.CreateTopicReply:
+            type: object
+            properties:
+                message:
+                    type: string
+        Wittgenstein.v1.CreateTopicRequest:
+            type: object
+            properties:
+                content:
+                    type: string
+                participants:
+                    type: array
+                    items:
+                        type: string
         Wittgenstein.v1.GetProfileReply:
             type: object
             properties:
@@ -158,4 +190,5 @@ components:
                 profile:
                     $ref: '#/components/schemas/Wittgenstein.v1.Profile'
 tags:
+    - name: Seminar
     - name: User
