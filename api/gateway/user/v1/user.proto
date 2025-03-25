@@ -64,7 +64,8 @@ message LoginReply {
 }
 
 message SetProfileRequest{
-  Profile profile = 1;
+  string phone = 1;
+  Profile profile = 2;
 }
 
 message SetProfileReply{
@@ -72,7 +73,7 @@ message SetProfileReply{
 }
 
 message GetProfileRequest {
-
+  string phone = 1;
 }
 
 

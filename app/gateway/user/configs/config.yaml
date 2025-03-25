@@ -1,7 +1,7 @@
 server:
-  grpc:
-    addr: 0.0.0.0:9000
-    timeout: 10s
+  http:
+    addr: 0.0.0.0:8000
+    timeout: 20s
 data:
   database:
     driver: mysql
@@ -15,3 +15,7 @@ data:
     dial_timeout: 1s
 trace:
   endpoint: 127.0.0.1:4318
+
+service:
+  user:
+    endpoint: discovery:///Wittgenstein.service.user

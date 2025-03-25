@@ -15,12 +15,7 @@ import (
 type ContextKey string
 
 var (
-	phoneKey = ContextKey("phone")
-)
-
-var (
-	accessSecret  = viper.GetString("jwtc.accessSecret")
-	refreshSecret = viper.GetString("jwtc.refreshSecret")
+	PhoneKey = ContextKey("phone")
 )
 
 type AuthClaims struct {
@@ -30,15 +25,16 @@ type AuthClaims struct {
 
 func GenAccessToken(phone string) (string, error) {
 	ac := AuthClaims{
-		phone,
-		jwt.RegisteredClaims{
+		Phone: phone,
+		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        time.Now().String(),
 			Issuer:    "Fl0rencess720",
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Hour)),
 		},
 	}
-	accessToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, ac).SignedString(accessSecret)
+	accessSecret := viper.GetString("jwtc.accessSecret")
+	accessToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, ac).SignedString([]byte(accessSecret))
 	if err != nil {
 		return "", err
 	}
@@ -52,7 +48,8 @@ func GenRefreshToken() (string, error) {
 		IssuedAt:  jwt.NewNumericDate(time.Now()),
 		ExpiresAt: jwt.NewNumericDate(time.Now().Add(7 * 24 * time.Hour)),
 	}
-	refreshToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, rc).SignedString(refreshSecret)
+	refreshSecret := viper.GetString("jwtc.refreshSecret")
+	refreshToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, rc).SignedString([]byte(refreshSecret))
 	if err != nil {
 		return "", err
 	}
@@ -62,21 +59,22 @@ func GenRefreshToken() (string, error) {
 func GenToken(phone string) (string, string, error) {
 	accessToken, err := GenAccessToken(phone)
 	if err != nil {
-		return "", "", nil
+		return "", "", err
 	}
 	refreshToken, err := GenRefreshToken()
 	if err != nil {
-		return "", "", nil
+		return "", "", err
 	}
 	return accessToken, refreshToken, nil
 }
 
 func ParseToken(aToken string) (*AuthClaims, bool, error) {
+	accessSecret := viper.GetString("jwtc.accessSecret")
 	accessToken, err := jwt.ParseWithClaims(aToken, &AuthClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(accessSecret), nil
 	})
 	if err != nil {
-		return nil, false, errors.New("invalid token")
+		return nil, false, err
 	}
 	if claims, ok := accessToken.Claims.(*AuthClaims); ok && accessToken.Valid {
 		return claims, false, nil
@@ -85,6 +83,9 @@ func ParseToken(aToken string) (*AuthClaims, bool, error) {
 }
 
 func RefreshToken(aToken, rToken string) (string, error) {
+	accessSecret := viper.GetString("jwtc.accessSecret")
+	refreshSecret := viper.GetString("jwtc.refreshSecret")
+	rToken = strings.TrimPrefix(rToken, "Bearer ")
 	_, err := jwt.Parse(rToken, func(token *jwt.Token) (interface{}, error) {
 		return []byte(refreshSecret), nil
 	})
@@ -96,7 +97,7 @@ func RefreshToken(aToken, rToken string) (string, error) {
 		return []byte(accessSecret), nil
 	})
 	v, _ := err.(*jwt.ValidationError)
-	if v.Errors == jwt.ValidationErrorExpired {
+	if v == nil || v.Errors == jwt.ValidationErrorExpired {
 		return GenAccessToken(claims.Phone)
 	}
 	return "", err
@@ -121,7 +122,7 @@ func Auth() middleware.Middleware {
 				if isExpire {
 					return nil, errors.New("token expired")
 				}
-				ctx = context.WithValue(ctx, phoneKey, parsedToken.Phone)
+				ctx = context.WithValue(ctx, PhoneKey, parsedToken.Phone)
 			}
 			return handler(ctx, req)
 		}

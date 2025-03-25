@@ -29,6 +29,11 @@ paths:
             tags:
                 - User
             operationId: User_GetProfile
+            parameters:
+                - name: phone
+                  in: query
+                  schema:
+                    type: string
             responses:
                 "200":
                     description: OK
@@ -148,6 +153,8 @@ components:
         Wittgenstein.v1.SetProfileRequest:
             type: object
             properties:
+                phone:
+                    type: string
                 profile:
                     $ref: '#/components/schemas/Wittgenstein.v1.Profile'
 tags:

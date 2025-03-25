@@ -4,7 +4,9 @@ import (
 	"context"
 	"flag"
 
-	"github.com/Fl0rencess720/Wittgenstein/app/service/user/internal/conf"
+	"github.com/go-kratos/kratos/v2/transport/http"
+
+	"github.com/Fl0rencess720/Wittgenstein/app/gateway/user/internal/conf"
 	"github.com/Fl0rencess720/Wittgenstein/pkgs/viperConf"
 	"github.com/Fl0rencess720/Wittgenstein/pkgs/zapLogger"
 	"github.com/go-kratos/kratos/v2"
@@ -13,7 +15,6 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/go-kratos/kratos/v2/registry"
-	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
@@ -27,20 +28,20 @@ import (
 // go build -ldflags "-X main.Version=x.y.z"
 var (
 	// Name is the name of the compiled software.
-	Name = "Wittgenstein.service.user"
+	Name = "Wittgenstein.gateway.user"
 	// Version is the version of the compiled software.
 	Version string
 	// flagconf is the config flag.
 	flagconf string
 
-	id = "Fl0rencess720.Wittgenstein.service"
+	id = "Fl0rencess720.Wittgenstein.gateway"
 )
 
 func init() {
 	flag.StringVar(&flagconf, "conf", "../../configs", "config path, eg: -conf config.yaml")
 }
 
-func newApp(logger log.Logger, gs *grpc.Server, rr registry.Registrar) *kratos.App {
+func newApp(logger log.Logger, hs *http.Server, rr registry.Registrar) *kratos.App {
 	return kratos.New(
 		kratos.ID(id),
 		kratos.Name(Name),
@@ -48,7 +49,7 @@ func newApp(logger log.Logger, gs *grpc.Server, rr registry.Registrar) *kratos.A
 		kratos.Metadata(map[string]string{}),
 		kratos.Logger(logger),
 		kratos.Server(
-			gs,
+			hs,
 		),
 		kratos.Registrar(rr),
 	)
@@ -106,7 +107,7 @@ func main() {
 	if err := initTracer(bc.Trace.Endpoint); err != nil {
 		panic(err)
 	}
-	app, cleanup, err := wireApp(bc.Server, bc.Data, &rc, logger)
+	app, cleanup, err := wireApp(bc.Server, bc.Service, bc.Data, &rc, logger)
 	if err != nil {
 		panic(err)
 	}

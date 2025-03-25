@@ -3,11 +3,10 @@ package biz
 import (
 	"context"
 	"errors"
-	"strings"
 
 	"github.com/Fl0rencess720/Wittgenstein/pkgs/jwtc"
+	"github.com/Fl0rencess720/Wittgenstein/pkgs/utils"
 	"github.com/go-kratos/kratos/v2/log"
-	"github.com/go-kratos/kratos/v2/transport"
 )
 
 type Profile struct {
@@ -17,10 +16,12 @@ type Profile struct {
 
 // UserRepo is a User repo.
 type UserRepo interface {
-	GetUser(ctx context.Context, phone string) error
+	ExistUser(ctx context.Context, phone string) (bool, error)
 	CreatUser(ctx context.Context, phone string, password string) error
-	SetUser(ctx context.Context, phone string, profile Profile) error
+	SetProfile(ctx context.Context, phone string, profile Profile) error
+	GetProfile(ctx context.Context, phone string) (Profile, error)
 	VerifyPassword(ctx context.Context, phone string, password string) error
+	ProfileToRedis(ctx context.Context, phone string, profile Profile) error
 }
 
 // UserUsecase is a User usecase.
@@ -35,39 +36,59 @@ func NewUserUsecase(repo UserRepo, logger log.Logger) *UserUsecase {
 }
 
 func (uc *UserUsecase) Register(ctx context.Context, phone, password string) error {
-	if err := uc.repo.CreatUser(ctx, phone, password); err != nil {
+	exist, err := uc.repo.ExistUser(ctx, phone)
+	if err != nil {
+		return err
+	}
+	if exist {
+		return errors.New("phone already exists")
+	}
+	hash, err := utils.GenBcryptHash(password)
+	if err != nil {
+		return err
+	}
+	if err := uc.repo.CreatUser(ctx, phone, hash); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (uc *UserUsecase) Login(ctx context.Context, phone, password string) error {
-	return nil
-}
-
-func (uc *UserUsecase) SetProfile(ctx context.Context, profile Profile) error {
-	return nil
-}
-
-func (uc *UserUsecase) GetProfile(ctx context.Context) (Profile, error) {
-	return Profile{}, nil
-}
-
-func (uc *UserUsecase) RefreshToken(ctx context.Context, refreshToken string) (string, error) {
-	if tr, ok := transport.FromServerContext(ctx); ok {
-		tokenString := tr.RequestHeader().Get("Authorization")
-		if tokenString == "" {
-			return "", errors.New("miss token string")
-		}
-		parts := strings.Split(tokenString, " ")
-		if len(parts) != 2 || parts[0] != "Bearer" {
-			return "", errors.New("wrong token format")
-		}
-		accessToken, err := jwtc.RefreshToken(parts[1], refreshToken)
-		if err != nil {
-			return "", err
-		}
-		return accessToken, nil
+func (uc *UserUsecase) Login(ctx context.Context, phone, password string) (string, string, error) {
+	exist, err := uc.repo.ExistUser(ctx, phone)
+	if err != nil {
+		return "", "", err
 	}
-	return "", errors.New("wrong context")
+	if !exist {
+		return "", "", errors.New("phone not exists")
+	}
+	hash, err := utils.GenBcryptHash(password)
+	if err != nil {
+		return "", "", err
+	}
+	if err := uc.repo.VerifyPassword(ctx, phone, hash); err != nil {
+		return "", "", err
+	}
+	accessToken, refreshToken, err := jwtc.GenToken(phone)
+	if err != nil {
+		return "", "", err
+	}
+	return accessToken, refreshToken, err
+}
+
+func (uc *UserUsecase) SetProfile(ctx context.Context, phone string, profile Profile) error {
+	if err := uc.repo.SetProfile(ctx, phone, profile); err != nil {
+		return err
+	}
+	if err := uc.repo.ProfileToRedis(ctx, phone, profile); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (uc *UserUsecase) GetProfile(ctx context.Context, phone string) (Profile, error) {
+	profile, err := uc.repo.GetProfile(ctx, phone)
+	if err != nil {
+		return Profile{}, err
+	}
+	return profile, nil
 }
