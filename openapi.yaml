@@ -1,0 +1,154 @@
+# Generated with protoc-gen-openapi
+# https://github.com/google/gnostic/tree/master/cmd/protoc-gen-openapi
+
+openapi: 3.0.3
+info:
+    title: User API
+    version: 0.0.1
+paths:
+    /user/login:
+        post:
+            tags:
+                - User
+            operationId: User_Login
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Wittgenstein.v1.LoginRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Wittgenstein.v1.LoginReply'
+    /user/profile:
+        get:
+            tags:
+                - User
+            operationId: User_GetProfile
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Wittgenstein.v1.GetProfileReply'
+    /user/profile/setting:
+        post:
+            tags:
+                - User
+            operationId: User_SetProfile
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Wittgenstein.v1.SetProfileRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Wittgenstein.v1.SetProfileReply'
+    /user/refresh:
+        post:
+            tags:
+                - User
+            operationId: User_RefreshToken
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Wittgenstein.v1.RefreshTokenRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Wittgenstein.v1.RefreshTokenReply'
+    /user/register:
+        post:
+            tags:
+                - User
+            operationId: User_Register
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Wittgenstein.v1.RegisterRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Wittgenstein.v1.RegisterReply'
+components:
+    schemas:
+        Wittgenstein.v1.GetProfileReply:
+            type: object
+            properties:
+                profile:
+                    $ref: '#/components/schemas/Wittgenstein.v1.Profile'
+        Wittgenstein.v1.LoginReply:
+            type: object
+            properties:
+                accessToken:
+                    type: string
+                refreshToken:
+                    type: string
+        Wittgenstein.v1.LoginRequest:
+            type: object
+            properties:
+                phone:
+                    type: string
+                password:
+                    type: string
+        Wittgenstein.v1.Profile:
+            type: object
+            properties:
+                name:
+                    type: string
+                avatar:
+                    type: string
+        Wittgenstein.v1.RefreshTokenReply:
+            type: object
+            properties:
+                accessToken:
+                    type: string
+        Wittgenstein.v1.RefreshTokenRequest:
+            type: object
+            properties:
+                refreshToken:
+                    type: string
+        Wittgenstein.v1.RegisterReply:
+            type: object
+            properties:
+                message:
+                    type: string
+        Wittgenstein.v1.RegisterRequest:
+            type: object
+            properties:
+                phone:
+                    type: string
+                password:
+                    type: string
+        Wittgenstein.v1.SetProfileReply:
+            type: object
+            properties:
+                message:
+                    type: string
+        Wittgenstein.v1.SetProfileRequest:
+            type: object
+            properties:
+                profile:
+                    $ref: '#/components/schemas/Wittgenstein.v1.Profile'
+tags:
+    - name: User

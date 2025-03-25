@@ -1,0 +1,89 @@
+syntax = "proto3";
+
+package Wittgenstein.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "Wittgenstein/api/gateway/user/v1;v1";
+
+
+service User {
+  rpc Register (RegisterRequest) returns (RegisterReply) {
+    option (google.api.http) = {
+      post: "/user/register"
+      body: "*"
+    };
+  }
+  rpc Login (LoginRequest) returns (LoginReply) {
+    option (google.api.http) = {
+      post: "/user/login"
+      body: "*"
+    };
+  }
+  rpc SetProfile (SetProfileRequest) returns (SetProfileReply) {
+    option (google.api.http) = {
+      post: "/user/profile/setting"
+      body: "*"
+    };
+  }
+  rpc GetProfile (GetProfileRequest) returns (GetProfileReply) {
+    option (google.api.http) = {
+      get: "/user/profile"
+    };
+  }
+  rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenReply) {
+    option (google.api.http) = {
+      post: "/user/refresh"
+      body: "*"
+    };
+  }
+}
+
+message Profile {
+  string name = 1;
+  string avatar = 2;
+}
+
+message RegisterRequest {
+  string phone = 1;
+  string password = 2;
+}
+
+message RegisterReply {
+  string message = 1;
+}
+
+message LoginRequest {
+  string phone = 1;
+  string password = 2;
+}
+
+message LoginReply {
+  string accessToken = 1;
+  string refreshToken = 2;
+}
+
+message SetProfileRequest{
+  Profile profile = 1;
+}
+
+message SetProfileReply{
+  string message = 1;
+}
+
+message GetProfileRequest {
+
+}
+
+
+message GetProfileReply {
+  Profile profile = 1;
+}
+
+message RefreshTokenRequest {
+  string refreshToken = 1;
+}
+
+message RefreshTokenReply {
+  string accessToken = 1;
+}
