@@ -1,0 +1,19 @@
+server:
+  grpc:
+    addr: 0.0.0.0:9000
+    timeout: 10s
+
+data:
+  database:
+    driver: mysql
+    source: root:root@tcp(127.0.0.1:3306)/wittgenstein?parseTime=True&loc=Local
+  redis:
+    addr: 127.0.0.1:6379
+    password: "test"
+    db: 0
+    read_timeout: 0.2s
+    write_timeout: 0.2s
+    dial_timeout: 1s
+trace:
+  endpoint: 127.0.0.1:4318
+
