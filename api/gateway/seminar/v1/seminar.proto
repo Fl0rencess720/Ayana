@@ -14,6 +14,18 @@ service Seminar {
       body: "*"
     };
   }
+  rpc DeleteTopic (DeleteTopicRequest) returns (DeleteTopicReply) {
+    option (google.api.http) = {
+      post: "/seminar/topic/deleting"
+      body: "*"
+    };
+  }
+  rpc StartTopic (StartTopicRequest) returns (StartTopicReply) {
+    option (google.api.http) = {
+      post: "/seminar/topic/starting"
+      body: "*"
+    };
+  }
 }
 
 message CreateTopicRequest {
@@ -22,5 +34,21 @@ message CreateTopicRequest {
 }
 
 message CreateTopicReply {
+  string uid = 1;
+}
+
+message DeleteTopicRequest {
+  string uid = 1;
+}
+
+message DeleteTopicReply {
+  string message = 1;
+}
+
+message StartTopicRequest {
+  string topicId = 1;
+}
+
+message StartTopicReply {
   string message = 1;
 }

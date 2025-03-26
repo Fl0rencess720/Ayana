@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package Wittgenstein.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "Wittgenstein/api/gateway/role/v1;v1";
+
+
+service RoleManager {
+  rpc CreateRole (CreateRoleRequest) returns (CreateRoleReply) {
+    option (google.api.http) = {
+      post: "/role/creating"
+      body: "*"
+    };
+  }
+  rpc DeleteRole (DeleteRoleRequest) returns (DeleteRoleReply) {
+    option (google.api.http) = {
+      post: "/role/deleting"
+      body: "*"
+    };
+  }
+  rpc CallRole (CallRoleRequest) returns (stream CallRoleReply) {
+    option (google.api.http) = {
+      post: "/role/calling"
+      body: "*"
+    };
+  }
+}
+
+
+message CreateRoleRequest {
+  string uid = 1;
+  string description = 2;
+  string avatar = 3;
+  string api_path = 4;
+  string api_key = 5;
+  string model = 6;
+  string name =7;
+}
+
+message CreateRoleReply {
+  string uid = 1;
+}
+
+message DeleteRoleRequest {
+  string uid = 1;
+}
+
+message DeleteRoleReply {
+  string message = 1;
+}
+
+message CallRoleRequest {
+  string uid = 1;
+}
+
+message CallRoleReply {
+  string chunk = 1;        
+  int32 index = 2;         
+  bool is_final = 3;       
+}

@@ -6,6 +6,60 @@ info:
     title: ""
     version: 0.0.1
 paths:
+    /role/calling:
+        post:
+            tags:
+                - RoleManager
+            operationId: RoleManager_CallRole
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Wittgenstein.v1.CallRoleRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Wittgenstein.v1.CallRoleReply'
+    /role/creating:
+        post:
+            tags:
+                - RoleManager
+            operationId: RoleManager_CreateRole
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Wittgenstein.v1.CreateRoleRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Wittgenstein.v1.CreateRoleReply'
+    /role/deleting:
+        post:
+            tags:
+                - RoleManager
+            operationId: RoleManager_DeleteRole
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Wittgenstein.v1.DeleteRoleRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Wittgenstein.v1.DeleteRoleReply'
     /seminar/topic/creating:
         post:
             tags:
@@ -24,6 +78,42 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Wittgenstein.v1.CreateTopicReply'
+    /seminar/topic/deleting:
+        post:
+            tags:
+                - Seminar
+            operationId: Seminar_DeleteTopic
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Wittgenstein.v1.DeleteTopicRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Wittgenstein.v1.DeleteTopicReply'
+    /seminar/topic/starting:
+        post:
+            tags:
+                - Seminar
+            operationId: Seminar_StartTopic
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Wittgenstein.v1.StartTopicRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Wittgenstein.v1.StartTopicReply'
     /user/login:
         post:
             tags:
@@ -115,10 +205,47 @@ paths:
                                 $ref: '#/components/schemas/Wittgenstein.v1.RegisterReply'
 components:
     schemas:
+        Wittgenstein.v1.CallRoleReply:
+            type: object
+            properties:
+                chunk:
+                    type: string
+                index:
+                    type: integer
+                    format: int32
+                isFinal:
+                    type: boolean
+        Wittgenstein.v1.CallRoleRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+        Wittgenstein.v1.CreateRoleReply:
+            type: object
+            properties:
+                uid:
+                    type: string
+        Wittgenstein.v1.CreateRoleRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                description:
+                    type: string
+                avatar:
+                    type: string
+                apiPath:
+                    type: string
+                apiKey:
+                    type: string
+                model:
+                    type: string
+                name:
+                    type: string
         Wittgenstein.v1.CreateTopicReply:
             type: object
             properties:
-                message:
+                uid:
                     type: string
         Wittgenstein.v1.CreateTopicRequest:
             type: object
@@ -129,6 +256,26 @@ components:
                     type: array
                     items:
                         type: string
+        Wittgenstein.v1.DeleteRoleReply:
+            type: object
+            properties:
+                message:
+                    type: string
+        Wittgenstein.v1.DeleteRoleRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+        Wittgenstein.v1.DeleteTopicReply:
+            type: object
+            properties:
+                message:
+                    type: string
+        Wittgenstein.v1.DeleteTopicRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
         Wittgenstein.v1.GetProfileReply:
             type: object
             properties:
@@ -189,6 +336,17 @@ components:
                     type: string
                 profile:
                     $ref: '#/components/schemas/Wittgenstein.v1.Profile'
+        Wittgenstein.v1.StartTopicReply:
+            type: object
+            properties:
+                message:
+                    type: string
+        Wittgenstein.v1.StartTopicRequest:
+            type: object
+            properties:
+                topicId:
+                    type: string
 tags:
+    - name: RoleManager
     - name: Seminar
     - name: User

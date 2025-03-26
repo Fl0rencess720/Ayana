@@ -20,14 +20,20 @@ var _ = binding.EncodeURL
 const _ = http.SupportPackageIsVersion1
 
 const OperationSeminarCreateTopic = "/Wittgenstein.v1.Seminar/CreateTopic"
+const OperationSeminarDeleteTopic = "/Wittgenstein.v1.Seminar/DeleteTopic"
+const OperationSeminarStartTopic = "/Wittgenstein.v1.Seminar/StartTopic"
 
 type SeminarHTTPServer interface {
 	CreateTopic(context.Context, *CreateTopicRequest) (*CreateTopicReply, error)
+	DeleteTopic(context.Context, *DeleteTopicRequest) (*DeleteTopicReply, error)
+	StartTopic(context.Context, *StartTopicRequest) (*StartTopicReply, error)
 }
 
 func RegisterSeminarHTTPServer(s *http.Server, srv SeminarHTTPServer) {
 	r := s.Route("/")
 	r.POST("/seminar/topic/creating", _Seminar_CreateTopic0_HTTP_Handler(srv))
+	r.POST("/seminar/topic/deleting", _Seminar_DeleteTopic0_HTTP_Handler(srv))
+	r.POST("/seminar/topic/starting", _Seminar_StartTopic0_HTTP_Handler(srv))
 }
 
 func _Seminar_CreateTopic0_HTTP_Handler(srv SeminarHTTPServer) func(ctx http.Context) error {
@@ -52,8 +58,54 @@ func _Seminar_CreateTopic0_HTTP_Handler(srv SeminarHTTPServer) func(ctx http.Con
 	}
 }
 
+func _Seminar_DeleteTopic0_HTTP_Handler(srv SeminarHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DeleteTopicRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSeminarDeleteTopic)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DeleteTopic(ctx, req.(*DeleteTopicRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DeleteTopicReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Seminar_StartTopic0_HTTP_Handler(srv SeminarHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in StartTopicRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSeminarStartTopic)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.StartTopic(ctx, req.(*StartTopicRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*StartTopicReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type SeminarHTTPClient interface {
 	CreateTopic(ctx context.Context, req *CreateTopicRequest, opts ...http.CallOption) (rsp *CreateTopicReply, err error)
+	DeleteTopic(ctx context.Context, req *DeleteTopicRequest, opts ...http.CallOption) (rsp *DeleteTopicReply, err error)
+	StartTopic(ctx context.Context, req *StartTopicRequest, opts ...http.CallOption) (rsp *StartTopicReply, err error)
 }
 
 type SeminarHTTPClientImpl struct {
@@ -69,6 +121,32 @@ func (c *SeminarHTTPClientImpl) CreateTopic(ctx context.Context, in *CreateTopic
 	pattern := "/seminar/topic/creating"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationSeminarCreateTopic))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SeminarHTTPClientImpl) DeleteTopic(ctx context.Context, in *DeleteTopicRequest, opts ...http.CallOption) (*DeleteTopicReply, error) {
+	var out DeleteTopicReply
+	pattern := "/seminar/topic/deleting"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationSeminarDeleteTopic))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SeminarHTTPClientImpl) StartTopic(ctx context.Context, in *StartTopicRequest, opts ...http.CallOption) (*StartTopicReply, error) {
+	var out StartTopicReply
+	pattern := "/seminar/topic/starting"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationSeminarStartTopic))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {
