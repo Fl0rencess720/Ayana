@@ -22,14 +22,23 @@ func (s *RoleService) CallRole(req *v1.CallRoleRequest, sr grpc.ServerStreamingS
 	return nil
 }
 func (s *RoleService) CreateRole(ctx context.Context, req *v1.CreateRoleRequest) (*v1.CreateRoleReply, error) {
+
 	return nil, nil
 }
-func (s *RoleService) DeleteRolec(ctx context.Context, req *v1.DeleteRoleRequest) (*v1.DeleteRoleReply, error) {
+func (s *RoleService) DeleteRole(ctx context.Context, req *v1.DeleteRoleRequest) (*v1.DeleteRoleReply, error) {
 	return nil, nil
 }
 func (s *RoleService) GetAvailableModels(ctx context.Context, req *v1.GetAvailableModelsRequest) (*v1.GetAvailableModelsReply, error) {
-	return nil, nil
+	reply, err := s.uc.GetAvailableModels(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return reply, nil
 }
 func (s *RoleService) GetRoles(ctx context.Context, req *v1.GetRolesRequest) (*v1.GetRolesReply, error) {
-	return nil, nil
+	reply, err := s.uc.GetRoles(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return reply, nil
 }
