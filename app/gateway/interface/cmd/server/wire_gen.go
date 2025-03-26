@@ -26,15 +26,19 @@ import (
 func wireApp(confServer *conf.Server, confService *conf.Service, confData *conf.Data, registry *conf.Registry, logger log.Logger) (*kratos.App, func(), error) {
 	client := data.NewRedis(confData)
 	discovery := server.NewDiscovery(registry)
-	roleManagerClient := data.NewUserServiceClient(confService, discovery)
-	dataData, cleanup, err := data.NewData(confData, logger, client, roleManagerClient)
+	userClient := data.NewUserServiceClient(confService, discovery)
+	roleManagerClient := data.NewRoleServiceClient(confService, discovery)
+	dataData, cleanup, err := data.NewData(confData, logger, client, userClient, roleManagerClient)
 	if err != nil {
 		return nil, nil, err
 	}
 	roleRepo := data.NewRoleRepo(dataData, logger)
 	roleUsecase := biz.NewRoleUsecase(roleRepo, logger, roleManagerClient)
-	roleService := service.NewUserService(roleUsecase)
-	httpServer := server.NewHTTPServer(confServer, roleService, logger)
+	roleService := service.NewRoleService(roleUsecase)
+	userRepo := data.NewUserRepo(dataData, logger)
+	userUsecase := biz.NewUserUsecase(userRepo, logger, userClient)
+	userService := service.NewUserService(userUsecase)
+	httpServer := server.NewHTTPServer(confServer, roleService, userService, logger)
 	registrar := server.NewRegistrar(registry)
 	app := newApp(logger, httpServer, registrar)
 	return app, func() {

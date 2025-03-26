@@ -3,7 +3,8 @@ package server
 import (
 	"context"
 
-	v1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/role/v1"
+	roleV1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/role/v1"
+	userV1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/user/v1"
 	"github.com/Fl0rencess720/Wittgenstein/app/gateway/interface/internal/conf"
 	"github.com/Fl0rencess720/Wittgenstein/app/gateway/interface/internal/service"
 	"github.com/Fl0rencess720/Wittgenstein/pkgs/jwtc"
@@ -18,6 +19,9 @@ import (
 func NewWhiteListMatcher() selector.MatchFunc {
 
 	whiteList := make(map[string]struct{})
+	whiteList["/Wittgenstein.v1.User/Login"] = struct{}{}
+	whiteList["/Wittgenstein.v1.User/Register"] = struct{}{}
+	whiteList["/Wittgenstein.v1.User/RefreshToken"] = struct{}{}
 	return func(ctx context.Context, operation string) bool {
 		if _, ok := whiteList[operation]; ok {
 			return false
@@ -26,7 +30,7 @@ func NewWhiteListMatcher() selector.MatchFunc {
 	}
 }
 
-func NewHTTPServer(c *conf.Server, role *service.RoleService, logger log.Logger) *http.Server {
+func NewHTTPServer(c *conf.Server, role *service.RoleService, user *service.UserService, logger log.Logger) *http.Server {
 	var opts = []http.ServerOption{
 		http.Middleware(
 			recovery.Recovery(),
@@ -49,6 +53,7 @@ func NewHTTPServer(c *conf.Server, role *service.RoleService, logger log.Logger)
 		opts = append(opts, http.Timeout(c.Http.Timeout.AsDuration()))
 	}
 	srv := http.NewServer(opts...)
-	v1.RegisterRoleManagerHTTPServer(srv, role)
+	roleV1.RegisterRoleManagerHTTPServer(srv, role)
+	userV1.RegisterUserHTTPServer(srv, user)
 	return srv
 }

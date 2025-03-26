@@ -8,7 +8,7 @@ data:
     source: root:root@tcp(127.0.0.1:3306)/wittgenstein?parseTime=True&loc=Local
   redis:
     addr: 127.0.0.1:6379
-    password: test
+    password: "test"
     db: 0
     read_timeout: 0.2s
     write_timeout: 0.2s
@@ -18,4 +18,7 @@ trace:
 
 service:
   user:
+    endpoint: discovery:///Wittgenstein.service.user
+  role:
     endpoint: discovery:///Wittgenstein.service.role
+  

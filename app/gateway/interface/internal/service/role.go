@@ -14,7 +14,7 @@ type RoleService struct {
 	uc *biz.RoleUsecase
 }
 
-func NewUserService(uc *biz.RoleUsecase) *RoleService {
+func NewRoleService(uc *biz.RoleUsecase) *RoleService {
 	return &RoleService{uc: uc}
 }
 

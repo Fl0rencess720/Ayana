@@ -5,6 +5,7 @@ import (
 	"time"
 
 	roleV1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/role/v1"
+	userV1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/user/v1"
 	"github.com/Fl0rencess720/Wittgenstein/app/gateway/interface/internal/conf"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
@@ -18,20 +19,21 @@ import (
 )
 
 // ProviderSet is data providers.
-var ProviderSet = wire.NewSet(NewData, NewRoleRepo, NewRedis, NewUserServiceClient)
+var ProviderSet = wire.NewSet(NewData, NewRoleRepo, NewUserRepo, NewRedis, NewRoleServiceClient, NewUserServiceClient)
 
 // Data .
 type Data struct {
 	redisClient *redis.Client
 	rc          roleV1.RoleManagerClient
+	uc          userV1.UserClient
 }
 
 // NewData .
-func NewData(c *conf.Data, logger log.Logger, redisClient *redis.Client, rc roleV1.RoleManagerClient) (*Data, func(), error) {
+func NewData(c *conf.Data, logger log.Logger, redisClient *redis.Client, uc userV1.UserClient, rc roleV1.RoleManagerClient) (*Data, func(), error) {
 	cleanup := func() {
 		log.NewHelper(logger).Info("closing the data resources")
 	}
-	return &Data{rc: rc, redisClient: redisClient}, cleanup, nil
+	return &Data{uc: uc, rc: rc, redisClient: redisClient}, cleanup, nil
 }
 
 func NewRedis(c *conf.Data) *redis.Client {
@@ -47,7 +49,26 @@ func NewRedis(c *conf.Data) *redis.Client {
 	return rdb
 }
 
-func NewUserServiceClient(sr *conf.Service, rr registry.Discovery) roleV1.RoleManagerClient {
+func NewUserServiceClient(sr *conf.Service, rr registry.Discovery) userV1.UserClient {
+	conn, err := grpc.DialInsecure(
+		context.Background(),
+		grpc.WithEndpoint(sr.User.Endpoint),
+		grpc.WithDiscovery(rr),
+		grpc.WithMiddleware(
+			tracing.Client(),
+			recovery.Recovery(),
+		),
+		grpc.WithTimeout(2*time.Second),
+		grpc.WithOptions(grpcx.WithStatsHandler(&tracing.ClientHandler{})),
+	)
+	if err != nil {
+		panic(err)
+	}
+	c := userV1.NewUserClient(conn)
+	return c
+}
+
+func NewRoleServiceClient(sr *conf.Service, rr registry.Discovery) roleV1.RoleManagerClient {
 	conn, err := grpc.DialInsecure(
 		context.Background(),
 		grpc.WithEndpoint(sr.Role.Endpoint),

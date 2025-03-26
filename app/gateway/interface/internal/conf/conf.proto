@@ -68,5 +68,9 @@ message Service {
   message Role {
     string endpoint = 1;
   } 
-  Role role = 1;
+  message User {
+    string endpoint = 1;
+  } 
+  User user = 1;
+  Role role = 2;
 }
