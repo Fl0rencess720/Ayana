@@ -21,16 +21,22 @@ const _ = http.SupportPackageIsVersion1
 
 const OperationRoleManagerCreateRole = "/Wittgenstein.v1.RoleManager/CreateRole"
 const OperationRoleManagerDeleteRole = "/Wittgenstein.v1.RoleManager/DeleteRole"
+const OperationRoleManagerGetAvailableModels = "/Wittgenstein.v1.RoleManager/GetAvailableModels"
+const OperationRoleManagerGetRoles = "/Wittgenstein.v1.RoleManager/GetRoles"
 
 type RoleManagerHTTPServer interface {
 	CreateRole(context.Context, *CreateRoleRequest) (*CreateRoleReply, error)
 	DeleteRole(context.Context, *DeleteRoleRequest) (*DeleteRoleReply, error)
+	GetAvailableModels(context.Context, *GetAvailableModelsRequest) (*GetAvailableModelsReply, error)
+	GetRoles(context.Context, *GetRolesRequest) (*GetRolesReply, error)
 }
 
 func RegisterRoleManagerHTTPServer(s *http.Server, srv RoleManagerHTTPServer) {
 	r := s.Route("/")
 	r.POST("/role/creating", _RoleManager_CreateRole0_HTTP_Handler(srv))
 	r.POST("/role/deleting", _RoleManager_DeleteRole0_HTTP_Handler(srv))
+	r.POST("/role/getting", _RoleManager_GetRoles0_HTTP_Handler(srv))
+	r.POST("/role/model/getting", _RoleManager_GetAvailableModels0_HTTP_Handler(srv))
 }
 
 func _RoleManager_CreateRole0_HTTP_Handler(srv RoleManagerHTTPServer) func(ctx http.Context) error {
@@ -77,9 +83,55 @@ func _RoleManager_DeleteRole0_HTTP_Handler(srv RoleManagerHTTPServer) func(ctx h
 	}
 }
 
+func _RoleManager_GetRoles0_HTTP_Handler(srv RoleManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetRolesRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationRoleManagerGetRoles)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetRoles(ctx, req.(*GetRolesRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetRolesReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _RoleManager_GetAvailableModels0_HTTP_Handler(srv RoleManagerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetAvailableModelsRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationRoleManagerGetAvailableModels)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetAvailableModels(ctx, req.(*GetAvailableModelsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetAvailableModelsReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type RoleManagerHTTPClient interface {
 	CreateRole(ctx context.Context, req *CreateRoleRequest, opts ...http.CallOption) (rsp *CreateRoleReply, err error)
 	DeleteRole(ctx context.Context, req *DeleteRoleRequest, opts ...http.CallOption) (rsp *DeleteRoleReply, err error)
+	GetAvailableModels(ctx context.Context, req *GetAvailableModelsRequest, opts ...http.CallOption) (rsp *GetAvailableModelsReply, err error)
+	GetRoles(ctx context.Context, req *GetRolesRequest, opts ...http.CallOption) (rsp *GetRolesReply, err error)
 }
 
 type RoleManagerHTTPClientImpl struct {
@@ -108,6 +160,32 @@ func (c *RoleManagerHTTPClientImpl) DeleteRole(ctx context.Context, in *DeleteRo
 	pattern := "/role/deleting"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationRoleManagerDeleteRole))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *RoleManagerHTTPClientImpl) GetAvailableModels(ctx context.Context, in *GetAvailableModelsRequest, opts ...http.CallOption) (*GetAvailableModelsReply, error) {
+	var out GetAvailableModelsReply
+	pattern := "/role/model/getting"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationRoleManagerGetAvailableModels))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *RoleManagerHTTPClientImpl) GetRoles(ctx context.Context, in *GetRolesRequest, opts ...http.CallOption) (*GetRolesReply, error) {
+	var out GetRolesReply
+	pattern := "/role/getting"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationRoleManagerGetRoles))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

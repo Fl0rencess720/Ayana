@@ -60,6 +60,42 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Wittgenstein.v1.DeleteRoleReply'
+    /role/getting:
+        post:
+            tags:
+                - RoleManager
+            operationId: RoleManager_GetRoles
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Wittgenstein.v1.GetRolesRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Wittgenstein.v1.GetRolesReply'
+    /role/model/getting:
+        post:
+            tags:
+                - RoleManager
+            operationId: RoleManager_GetAvailableModels
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Wittgenstein.v1.GetAvailableModelsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Wittgenstein.v1.GetAvailableModelsReply'
     /seminar/topic/creating:
         post:
             tags:
@@ -228,20 +264,10 @@ components:
         Wittgenstein.v1.CreateRoleRequest:
             type: object
             properties:
-                uid:
+                phone:
                     type: string
-                description:
-                    type: string
-                avatar:
-                    type: string
-                apiPath:
-                    type: string
-                apiKey:
-                    type: string
-                model:
-                    type: string
-                name:
-                    type: string
+                role:
+                    $ref: '#/components/schemas/Wittgenstein.v1.Role'
         Wittgenstein.v1.CreateTopicReply:
             type: object
             properties:
@@ -276,11 +302,42 @@ components:
             properties:
                 uid:
                     type: string
+        Wittgenstein.v1.GetAvailableModelsReply:
+            type: object
+            properties:
+                models:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Wittgenstein.v1.GetAvailableModelsReply_Model'
+        Wittgenstein.v1.GetAvailableModelsReply_Model:
+            type: object
+            properties:
+                provider:
+                    type: string
+                name:
+                    type: string
+        Wittgenstein.v1.GetAvailableModelsRequest:
+            type: object
+            properties:
+                phone:
+                    type: string
         Wittgenstein.v1.GetProfileReply:
             type: object
             properties:
                 profile:
                     $ref: '#/components/schemas/Wittgenstein.v1.Profile'
+        Wittgenstein.v1.GetRolesReply:
+            type: object
+            properties:
+                roles:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Wittgenstein.v1.Role'
+        Wittgenstein.v1.GetRolesRequest:
+            type: object
+            properties:
+                phone:
+                    type: string
         Wittgenstein.v1.LoginReply:
             type: object
             properties:
@@ -323,6 +380,23 @@ components:
                 phone:
                     type: string
                 password:
+                    type: string
+        Wittgenstein.v1.Role:
+            type: object
+            properties:
+                uid:
+                    type: string
+                description:
+                    type: string
+                avatar:
+                    type: string
+                apiPath:
+                    type: string
+                apiKey:
+                    type: string
+                model:
+                    type: string
+                name:
                     type: string
         Wittgenstein.v1.SetProfileReply:
             type: object

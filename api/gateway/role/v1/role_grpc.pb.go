@@ -19,9 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	RoleManager_CreateRole_FullMethodName = "/Wittgenstein.v1.RoleManager/CreateRole"
-	RoleManager_DeleteRole_FullMethodName = "/Wittgenstein.v1.RoleManager/DeleteRole"
-	RoleManager_CallRole_FullMethodName   = "/Wittgenstein.v1.RoleManager/CallRole"
+	RoleManager_CreateRole_FullMethodName         = "/Wittgenstein.v1.RoleManager/CreateRole"
+	RoleManager_DeleteRole_FullMethodName         = "/Wittgenstein.v1.RoleManager/DeleteRole"
+	RoleManager_CallRole_FullMethodName           = "/Wittgenstein.v1.RoleManager/CallRole"
+	RoleManager_GetRoles_FullMethodName           = "/Wittgenstein.v1.RoleManager/GetRoles"
+	RoleManager_GetAvailableModels_FullMethodName = "/Wittgenstein.v1.RoleManager/GetAvailableModels"
 )
 
 // RoleManagerClient is the client API for RoleManager service.
@@ -31,6 +33,8 @@ type RoleManagerClient interface {
 	CreateRole(ctx context.Context, in *CreateRoleRequest, opts ...grpc.CallOption) (*CreateRoleReply, error)
 	DeleteRole(ctx context.Context, in *DeleteRoleRequest, opts ...grpc.CallOption) (*DeleteRoleReply, error)
 	CallRole(ctx context.Context, in *CallRoleRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[CallRoleReply], error)
+	GetRoles(ctx context.Context, in *GetRolesRequest, opts ...grpc.CallOption) (*GetRolesReply, error)
+	GetAvailableModels(ctx context.Context, in *GetAvailableModelsRequest, opts ...grpc.CallOption) (*GetAvailableModelsReply, error)
 }
 
 type roleManagerClient struct {
@@ -80,6 +84,26 @@ func (c *roleManagerClient) CallRole(ctx context.Context, in *CallRoleRequest, o
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type RoleManager_CallRoleClient = grpc.ServerStreamingClient[CallRoleReply]
 
+func (c *roleManagerClient) GetRoles(ctx context.Context, in *GetRolesRequest, opts ...grpc.CallOption) (*GetRolesReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetRolesReply)
+	err := c.cc.Invoke(ctx, RoleManager_GetRoles_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *roleManagerClient) GetAvailableModels(ctx context.Context, in *GetAvailableModelsRequest, opts ...grpc.CallOption) (*GetAvailableModelsReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAvailableModelsReply)
+	err := c.cc.Invoke(ctx, RoleManager_GetAvailableModels_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RoleManagerServer is the server API for RoleManager service.
 // All implementations must embed UnimplementedRoleManagerServer
 // for forward compatibility.
@@ -87,6 +111,8 @@ type RoleManagerServer interface {
 	CreateRole(context.Context, *CreateRoleRequest) (*CreateRoleReply, error)
 	DeleteRole(context.Context, *DeleteRoleRequest) (*DeleteRoleReply, error)
 	CallRole(*CallRoleRequest, grpc.ServerStreamingServer[CallRoleReply]) error
+	GetRoles(context.Context, *GetRolesRequest) (*GetRolesReply, error)
+	GetAvailableModels(context.Context, *GetAvailableModelsRequest) (*GetAvailableModelsReply, error)
 	mustEmbedUnimplementedRoleManagerServer()
 }
 
@@ -105,6 +131,12 @@ func (UnimplementedRoleManagerServer) DeleteRole(context.Context, *DeleteRoleReq
 }
 func (UnimplementedRoleManagerServer) CallRole(*CallRoleRequest, grpc.ServerStreamingServer[CallRoleReply]) error {
 	return status.Errorf(codes.Unimplemented, "method CallRole not implemented")
+}
+func (UnimplementedRoleManagerServer) GetRoles(context.Context, *GetRolesRequest) (*GetRolesReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRoles not implemented")
+}
+func (UnimplementedRoleManagerServer) GetAvailableModels(context.Context, *GetAvailableModelsRequest) (*GetAvailableModelsReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAvailableModels not implemented")
 }
 func (UnimplementedRoleManagerServer) mustEmbedUnimplementedRoleManagerServer() {}
 func (UnimplementedRoleManagerServer) testEmbeddedByValue()                     {}
@@ -174,6 +206,42 @@ func _RoleManager_CallRole_Handler(srv interface{}, stream grpc.ServerStream) er
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type RoleManager_CallRoleServer = grpc.ServerStreamingServer[CallRoleReply]
 
+func _RoleManager_GetRoles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRolesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RoleManagerServer).GetRoles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RoleManager_GetRoles_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RoleManagerServer).GetRoles(ctx, req.(*GetRolesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RoleManager_GetAvailableModels_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAvailableModelsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RoleManagerServer).GetAvailableModels(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RoleManager_GetAvailableModels_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RoleManagerServer).GetAvailableModels(ctx, req.(*GetAvailableModelsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RoleManager_ServiceDesc is the grpc.ServiceDesc for RoleManager service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -188,6 +256,14 @@ var RoleManager_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteRole",
 			Handler:    _RoleManager_DeleteRole_Handler,
+		},
+		{
+			MethodName: "GetRoles",
+			Handler:    _RoleManager_GetRoles_Handler,
+		},
+		{
+			MethodName: "GetAvailableModels",
+			Handler:    _RoleManager_GetAvailableModels_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

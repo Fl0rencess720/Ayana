@@ -26,10 +26,21 @@ service RoleManager {
       body: "*"
     };
   }
+  rpc GetRoles (GetRolesRequest) returns (GetRolesReply) {
+    option (google.api.http) = {
+      post: "/role/getting"
+      body: "*"
+    };
+  }
+  rpc GetAvailableModels (GetAvailableModelsRequest) returns (GetAvailableModelsReply) {
+    option (google.api.http) = {
+      post: "/role/model/getting"
+      body: "*"
+    };
+  }
 }
 
-
-message CreateRoleRequest {
+message Role {
   string uid = 1;
   string description = 2;
   string avatar = 3;
@@ -37,6 +48,14 @@ message CreateRoleRequest {
   string api_key = 5;
   string model = 6;
   string name =7;
+}
+
+
+
+
+message CreateRoleRequest {
+  string phone = 1;
+  Role role = 2;
 }
 
 message CreateRoleReply {
@@ -60,3 +79,24 @@ message CallRoleReply {
   int32 index = 2;         
   bool is_final = 3;       
 }
+
+message GetRolesRequest {
+  string phone = 1;
+}
+
+message GetRolesReply {
+  repeated Role roles = 1;
+}
+
+message GetAvailableModelsRequest{
+  string phone = 1;
+}
+
+message GetAvailableModelsReply{
+  message Model {
+    string provider = 1;
+    string name = 2;
+  }
+  repeated Model models = 1;
+}
+
