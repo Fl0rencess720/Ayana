@@ -308,19 +308,10 @@ components:
                 models:
                     type: array
                     items:
-                        $ref: '#/components/schemas/Wittgenstein.v1.GetAvailableModelsReply_Model'
-        Wittgenstein.v1.GetAvailableModelsReply_Model:
-            type: object
-            properties:
-                provider:
-                    type: string
-                name:
-                    type: string
+                        $ref: '#/components/schemas/Wittgenstein.v1.Model'
         Wittgenstein.v1.GetAvailableModelsRequest:
             type: object
-            properties:
-                phone:
-                    type: string
+            properties: {}
         Wittgenstein.v1.GetProfileReply:
             type: object
             properties:
@@ -351,6 +342,13 @@ components:
                 phone:
                     type: string
                 password:
+                    type: string
+        Wittgenstein.v1.Model:
+            type: object
+            properties:
+                provider:
+                    type: string
+                name:
                     type: string
         Wittgenstein.v1.Profile:
             type: object

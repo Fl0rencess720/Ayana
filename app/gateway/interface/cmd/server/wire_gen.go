@@ -7,11 +7,11 @@
 package main
 
 import (
-	"github.com/Fl0rencess720/Wittgenstein/app/gateway/role/internal/biz"
-	"github.com/Fl0rencess720/Wittgenstein/app/gateway/role/internal/conf"
-	"github.com/Fl0rencess720/Wittgenstein/app/gateway/role/internal/data"
-	"github.com/Fl0rencess720/Wittgenstein/app/gateway/role/internal/server"
-	"github.com/Fl0rencess720/Wittgenstein/app/gateway/role/internal/service"
+	"github.com/Fl0rencess720/Wittgenstein/app/gateway/interface/internal/biz"
+	"github.com/Fl0rencess720/Wittgenstein/app/gateway/interface/internal/conf"
+	"github.com/Fl0rencess720/Wittgenstein/app/gateway/interface/internal/data"
+	"github.com/Fl0rencess720/Wittgenstein/app/gateway/interface/internal/server"
+	"github.com/Fl0rencess720/Wittgenstein/app/gateway/interface/internal/service"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/log"
 )
@@ -31,7 +31,7 @@ func wireApp(confServer *conf.Server, confService *conf.Service, confData *conf.
 	if err != nil {
 		return nil, nil, err
 	}
-	roleRepo := data.NewUserRepo(dataData, logger)
+	roleRepo := data.NewRoleRepo(dataData, logger)
 	roleUsecase := biz.NewRoleUsecase(roleRepo, logger, roleManagerClient)
 	roleService := service.NewUserService(roleUsecase)
 	httpServer := server.NewHTTPServer(confServer, roleService, logger)

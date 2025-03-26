@@ -5,7 +5,7 @@ import (
 	"time"
 
 	roleV1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/role/v1"
-	"github.com/Fl0rencess720/Wittgenstein/app/gateway/role/internal/conf"
+	"github.com/Fl0rencess720/Wittgenstein/app/gateway/interface/internal/conf"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
@@ -18,7 +18,7 @@ import (
 )
 
 // ProviderSet is data providers.
-var ProviderSet = wire.NewSet(NewData, NewUserRepo, NewRedis, NewUserServiceClient)
+var ProviderSet = wire.NewSet(NewData, NewRoleRepo, NewRedis, NewUserServiceClient)
 
 // Data .
 type Data struct {

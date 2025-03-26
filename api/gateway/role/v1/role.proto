@@ -50,7 +50,10 @@ message Role {
   string name =7;
 }
 
-
+message Model {
+  string provider = 1;
+  string name = 2;
+}
 
 
 message CreateRoleRequest {
@@ -89,14 +92,9 @@ message GetRolesReply {
 }
 
 message GetAvailableModelsRequest{
-  string phone = 1;
 }
 
 message GetAvailableModelsReply{
-  message Model {
-    string provider = 1;
-    string name = 2;
-  }
   repeated Model models = 1;
 }
 

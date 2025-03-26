@@ -4,8 +4,8 @@ import (
 	"context"
 
 	v1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/role/v1"
-	"github.com/Fl0rencess720/Wittgenstein/app/gateway/role/internal/conf"
-	"github.com/Fl0rencess720/Wittgenstein/app/gateway/role/internal/service"
+	"github.com/Fl0rencess720/Wittgenstein/app/gateway/interface/internal/conf"
+	"github.com/Fl0rencess720/Wittgenstein/app/gateway/interface/internal/service"
 	"github.com/Fl0rencess720/Wittgenstein/pkgs/jwtc"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"

@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-kratos/kratos/v2/transport/http"
 
-	"github.com/Fl0rencess720/Wittgenstein/app/gateway/role/internal/conf"
+	"github.com/Fl0rencess720/Wittgenstein/app/gateway/interface/internal/conf"
 	"github.com/Fl0rencess720/Wittgenstein/pkgs/viperConf"
 	"github.com/Fl0rencess720/Wittgenstein/pkgs/zapLogger"
 	"github.com/go-kratos/kratos/v2"
