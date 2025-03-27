@@ -31,18 +31,18 @@ type Model struct {
 type RoleUsecase struct {
 	repo       RoleRepo
 	log        *log.Helper
-	userClient roleV1.RoleManagerClient
+	roleClient roleV1.RoleManagerClient
 }
 
-func NewRoleUsecase(repo RoleRepo, logger log.Logger, userClient roleV1.RoleManagerClient) *RoleUsecase {
-	return &RoleUsecase{repo: repo, log: log.NewHelper(logger), userClient: userClient}
+func NewRoleUsecase(repo RoleRepo, logger log.Logger, roleClient roleV1.RoleManagerClient) *RoleUsecase {
+	return &RoleUsecase{repo: repo, log: log.NewHelper(logger), roleClient: roleClient}
 }
 
 func (uc *RoleUsecase) CallRole() {
 }
 
 func (uc *RoleUsecase) CreateRole(ctx context.Context, req *roleV1.CreateRoleRequest) (*roleV1.CreateRoleReply, error) {
-	return uc.userClient.CreateRole(ctx, req)
+	return uc.roleClient.CreateRole(ctx, req)
 }
 
 func (uc *RoleUsecase) GetRoles(ctx context.Context, req *roleV1.GetRolesRequest) (*roleV1.GetRolesReply, error) {
@@ -66,11 +66,13 @@ func (uc *RoleUsecase) GetRoles(ctx context.Context, req *roleV1.GetRolesRequest
 		}, nil
 	}
 	req.Phone = phone
-	return uc.userClient.GetRoles(ctx, req)
+	return uc.roleClient.GetRoles(ctx, req)
 }
 
 func (uc *RoleUsecase) DeleteRole(ctx context.Context, req *roleV1.DeleteRoleRequest) (*roleV1.DeleteRoleReply, error) {
-	return uc.userClient.DeleteRole(ctx, req)
+	phone := utils.GetPhoneFromContext(ctx)
+	req.Phone = phone
+	return uc.roleClient.DeleteRole(ctx, req)
 
 }
 
@@ -88,5 +90,5 @@ func (uc *RoleUsecase) GetAvailableModels(ctx context.Context, req *roleV1.GetAv
 			Models: ms,
 		}, nil
 	}
-	return uc.userClient.GetAvailableModels(ctx, req)
+	return uc.roleClient.GetAvailableModels(ctx, req)
 }

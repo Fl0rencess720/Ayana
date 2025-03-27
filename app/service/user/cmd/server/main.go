@@ -33,7 +33,7 @@ var (
 	// flagconf is the config flag.
 	flagconf string
 
-	id = "Fl0rencess720.Wittgenstein.service"
+	id = "Wittgenstein.service.user"
 )
 
 func init() {

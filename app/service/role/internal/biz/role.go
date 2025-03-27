@@ -10,7 +10,8 @@ import (
 type RoleRepo interface {
 	CreateRole(ctx context.Context, phone string, role Role) (string, error)
 	GetRoles(ctx context.Context, phone string) ([]Role, error)
-	RoleToRedis(ctx context.Context, phone string, roles []Role) error
+	DeleteRole(ctx context.Context, uid string) error
+	RolesToRedis(ctx context.Context, phone string, roles []Role) error
 }
 
 type AIModel struct {
@@ -50,12 +51,34 @@ func (uc *RoleUsecase) CreateRole(ctx context.Context, phone string, role Role) 
 	if err != nil {
 		return "", err
 	}
-	if err = uc.repo.RoleToRedis(ctx, phone, roles); err != nil {
+	if err = uc.repo.RolesToRedis(ctx, phone, roles); err != nil {
 		uc.log.Error(err)
 	}
 	return uid, nil
 }
 
 func (uc *RoleUsecase) GetRoles(ctx context.Context, phone string) ([]Role, error) {
-	return uc.repo.GetRoles(ctx, phone)
+	roles, err := uc.repo.GetRoles(ctx, phone)
+	if err != nil {
+		return nil, err
+	}
+	if err = uc.repo.RolesToRedis(ctx, phone, roles); err != nil {
+		uc.log.Error(err)
+	}
+	return roles, nil
+}
+
+func (uc *RoleUsecase) DeleteRole(ctx context.Context, phone, uid string) error {
+	if err := uc.repo.DeleteRole(ctx, uid); err != nil {
+		return err
+	}
+	roles, err := uc.repo.GetRoles(ctx, phone)
+	if err != nil {
+		uc.log.Error(err)
+		return nil
+	}
+	if err = uc.repo.RolesToRedis(ctx, phone, roles); err != nil {
+		uc.log.Error(err)
+	}
+	return nil
 }

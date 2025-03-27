@@ -40,9 +40,13 @@ func (s *RoleService) CreateRole(ctx context.Context, req *v1.CreateRoleRequest)
 	}, nil
 }
 func (s *RoleService) DeleteRole(ctx context.Context, req *v1.DeleteRoleRequest) (*v1.DeleteRoleReply, error) {
-	return nil, nil
+	if err := s.uc.DeleteRole(ctx, req.Phone, req.Uid); err != nil {
+		return nil, err
+	}
+	return &v1.DeleteRoleReply{Message: "success"}, nil
 }
 func (s *RoleService) GetAvailableModels(ctx context.Context, req *v1.GetAvailableModelsRequest) (*v1.GetAvailableModelsReply, error) {
+
 	return nil, nil
 }
 func (s *RoleService) GetRoles(ctx context.Context, req *v1.GetRolesRequest) (*v1.GetRolesReply, error) {

@@ -43,7 +43,14 @@ func (r *roleRepo) GetRoles(ctx context.Context, phone string) ([]biz.Role, erro
 	return roles, nil
 }
 
-func (r *roleRepo) RoleToRedis(ctx context.Context, phone string, roles []biz.Role) error {
+func (r *roleRepo) DeleteRole(ctx context.Context, uid string) error {
+	if err := r.data.mysqlClient.Delete(&biz.Role{}, "uid = ?", uid).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *roleRepo) RolesToRedis(ctx context.Context, phone string, roles []biz.Role) error {
 	serializedRole, err := json.Marshal(roles)
 	if err != nil {
 		return err

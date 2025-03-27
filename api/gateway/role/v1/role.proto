@@ -66,7 +66,8 @@ message CreateRoleReply {
 }
 
 message DeleteRoleRequest {
-  string uid = 1;
+  string phone = 1;
+  string uid = 2;
 }
 
 message DeleteRoleReply {

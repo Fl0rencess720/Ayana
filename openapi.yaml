@@ -290,6 +290,8 @@ components:
         Wittgenstein.v1.DeleteRoleRequest:
             type: object
             properties:
+                phone:
+                    type: string
                 uid:
                     type: string
         Wittgenstein.v1.DeleteTopicReply:

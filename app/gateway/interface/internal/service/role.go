@@ -29,7 +29,11 @@ func (s *RoleService) CreateRole(ctx context.Context, req *v1.CreateRoleRequest)
 	return reply, nil
 }
 func (s *RoleService) DeleteRole(ctx context.Context, req *v1.DeleteRoleRequest) (*v1.DeleteRoleReply, error) {
-	return nil, nil
+	reply, err := s.uc.DeleteRole(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return reply, nil
 }
 func (s *RoleService) GetAvailableModels(ctx context.Context, req *v1.GetAvailableModelsRequest) (*v1.GetAvailableModelsReply, error) {
 	reply, err := s.uc.GetAvailableModels(ctx, req)
