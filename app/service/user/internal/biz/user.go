@@ -80,7 +80,7 @@ func (uc *UserUsecase) SetProfile(ctx context.Context, phone string, profile Pro
 		return err
 	}
 	if err := uc.repo.ProfileToRedis(ctx, phone, profile); err != nil {
-		return err
+		uc.log.Error(err)
 	}
 	return nil
 }

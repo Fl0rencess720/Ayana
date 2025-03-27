@@ -58,7 +58,7 @@ func (uc *RoleUsecase) GetRoles(ctx context.Context, req *roleV1.GetRolesRequest
 				Avatar:      r.Avatar,
 				ApiPath:     r.Api_key,
 				ApiKey:      r.Api_key,
-				Model:       r.Model.Name,
+				Model:       &roleV1.Model{Provider: r.Model.Provider, Name: r.Model.Name},
 			})
 		}
 		return &roleV1.GetRolesReply{

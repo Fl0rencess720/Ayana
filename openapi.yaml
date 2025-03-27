@@ -393,7 +393,7 @@ components:
                 apiKey:
                     type: string
                 model:
-                    type: string
+                    $ref: '#/components/schemas/Wittgenstein.v1.Model'
                 name:
                     type: string
         Wittgenstein.v1.SetProfileReply:

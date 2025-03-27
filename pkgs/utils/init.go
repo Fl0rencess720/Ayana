@@ -1,4 +1,4 @@
-package genid
+package utils
 
 import (
 	"github.com/bwmarrin/snowflake"

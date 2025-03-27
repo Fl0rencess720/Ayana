@@ -1,6 +1,7 @@
 package data
 
 import (
+	"github.com/Fl0rencess720/Wittgenstein/app/service/role/internal/biz"
 	"github.com/Fl0rencess720/Wittgenstein/app/service/role/internal/conf"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-redis/redis/extra/redisotel"
@@ -34,7 +35,12 @@ func NewMysql(c *conf.Data) *gorm.DB {
 	if err != nil {
 		panic("failed to connect mysql")
 	}
-	db.AutoMigrate(User{})
+	if err := db.AutoMigrate(biz.AIModel{}); err != nil {
+		panic("failed to migrate mysql")
+	}
+	if err := db.AutoMigrate(biz.Role{}); err != nil {
+		panic("failed to migrate mysql")
+	}
 	return db
 }
 

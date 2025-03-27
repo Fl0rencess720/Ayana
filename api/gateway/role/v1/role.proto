@@ -46,7 +46,7 @@ message Role {
   string avatar = 3;
   string api_path = 4;
   string api_key = 5;
-  string model = 6;
+  Model model = 6;
   string name =7;
 }
 
