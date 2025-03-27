@@ -6,24 +6,6 @@ info:
     title: ""
     version: 0.0.1
 paths:
-    /role/calling:
-        post:
-            tags:
-                - RoleManager
-            operationId: RoleManager_CallRole
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/Wittgenstein.v1.CallRoleRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Wittgenstein.v1.CallRoleReply'
     /role/creating:
         post:
             tags:
@@ -241,21 +223,6 @@ paths:
                                 $ref: '#/components/schemas/Wittgenstein.v1.RegisterReply'
 components:
     schemas:
-        Wittgenstein.v1.CallRoleReply:
-            type: object
-            properties:
-                chunk:
-                    type: string
-                index:
-                    type: integer
-                    format: int32
-                isFinal:
-                    type: boolean
-        Wittgenstein.v1.CallRoleRequest:
-            type: object
-            properties:
-                uid:
-                    type: string
         Wittgenstein.v1.CreateRoleReply:
             type: object
             properties:

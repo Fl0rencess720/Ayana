@@ -20,17 +20,13 @@ service RoleManager {
       body: "*"
     };
   }
-  rpc CallRole (CallRoleRequest) returns (stream CallRoleReply) {
-    option (google.api.http) = {
-      post: "/role/calling"
-      body: "*"
-    };
-  }
   rpc GetRoles (GetRolesRequest) returns (GetRolesReply) {
     option (google.api.http) = {
       post: "/role/getting"
       body: "*"
     };
+  }
+  rpc GetRolesByUIDs (GetRolesByUIDsRequest) returns (GetRolesByUIDsReply) {
   }
   rpc GetAvailableModels (GetAvailableModelsRequest) returns (GetAvailableModelsReply) {
     option (google.api.http) = {
@@ -74,15 +70,6 @@ message DeleteRoleReply {
   string message = 1;
 }
 
-message CallRoleRequest {
-  string uid = 1;
-}
-
-message CallRoleReply {
-  string chunk = 1;        
-  int32 index = 2;         
-  bool is_final = 3;       
-}
 
 message GetRolesRequest {
   string phone = 1;
@@ -99,3 +86,12 @@ message GetAvailableModelsReply{
   repeated Model models = 1;
 }
 
+
+message GetRolesByUIDsRequest {
+  string phone = 1;
+  repeated string uids = 2;
+}
+
+message GetRolesByUIDsReply {
+  repeated Role roles = 1;
+}

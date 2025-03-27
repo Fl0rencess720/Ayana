@@ -10,6 +10,7 @@ import (
 type RoleRepo interface {
 	CreateRole(ctx context.Context, phone string, role Role) (string, error)
 	GetRoles(ctx context.Context, phone string) ([]Role, error)
+	GetSeminarRolesFromRedis(ctx context.Context, uids []string) ([]Role, []string, error)
 	DeleteRole(ctx context.Context, uid string) error
 	RolesToRedis(ctx context.Context, phone string, roles []Role) error
 }

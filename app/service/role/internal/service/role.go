@@ -5,7 +5,6 @@ import (
 
 	v1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/role/v1"
 	"github.com/Fl0rencess720/Wittgenstein/app/service/role/internal/biz"
-	"google.golang.org/grpc"
 )
 
 type RoleService struct {
@@ -18,9 +17,6 @@ func NewRoleService(uc *biz.RoleUsecase) *RoleService {
 	return &RoleService{uc: uc}
 }
 
-func (s *RoleService) CallRole(req *v1.CallRoleRequest, sr grpc.ServerStreamingServer[v1.CallRoleReply]) error {
-	return nil
-}
 func (s *RoleService) CreateRole(ctx context.Context, req *v1.CreateRoleRequest) (*v1.CreateRoleReply, error) {
 	uid, err := s.uc.CreateRole(ctx, req.Phone, biz.Role{
 		Uid:         req.Role.Uid,
