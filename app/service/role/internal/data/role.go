@@ -46,6 +46,14 @@ func (r *roleRepo) GetRoles(ctx context.Context, phone string) ([]biz.Role, erro
 	return roles, nil
 }
 
+func (r *roleRepo) GetRolesByUIDs(ctx context.Context, phone string, uids []string) ([]biz.Role, error) {
+	roles := []biz.Role{}
+	if err := r.data.mysqlClient.Where("uid IN ?", uids).Find(&roles).Error; err != nil {
+		return nil, err
+	}
+	return roles, nil
+}
+
 func (r *roleRepo) DeleteRole(ctx context.Context, uid string) error {
 	if err := r.data.mysqlClient.Delete(&biz.Role{}, "uid = ?", uid).Error; err != nil {
 		return err
@@ -61,7 +69,7 @@ func (r *roleRepo) RolesToRedis(ctx context.Context, phone string, roles []biz.R
 	return r.data.redisClient.Set(ctx, "roles:"+phone, serializedRole, 3*24*time.Hour).Err()
 }
 
-func (r *roleRepo) GetSeminarRolesFromRedis(ctx context.Context, uids []string) ([]biz.Role, []string, error) {
+func (r *roleRepo) GetRolesByUIDsFromRedis(ctx context.Context, uids []string) ([]biz.Role, []string, error) {
 	roles, notFounds, err := fetchValuesAndNotFound(r.data.redisClient, uids)
 	if err != nil {
 		return nil, nil, err

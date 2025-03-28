@@ -66,3 +66,25 @@ func (s *RoleService) GetRoles(ctx context.Context, req *v1.GetRolesRequest) (*v
 	}
 	return reply, nil
 }
+
+func (s *RoleService) GetRolesByUIDs(ctx context.Context, req *v1.GetRolesByUIDsRequest) (*v1.GetRolesByUIDsReply, error) {
+	roles, err := s.uc.GetRolesByUIDs(ctx, req.Phone, req.Uids)
+	if err != nil {
+		return nil, err
+	}
+	reply := &v1.GetRolesByUIDsReply{}
+	for _, role := range roles {
+		reply.Roles = append(reply.Roles, &v1.Role{
+			Uid:         role.Uid,
+			Name:        role.RoleName,
+			Description: role.Description,
+			ApiPath:     role.ApiPath,
+			ApiKey:      role.ApiKey,
+			Model: &v1.Model{
+				Name:     role.ModelName,
+				Provider: role.Provider,
+			},
+		})
+	}
+	return reply, nil
+}
