@@ -7,5 +7,5 @@ type Seminar struct {
 }
 
 func NewSeminar() {
-	
+
 }
