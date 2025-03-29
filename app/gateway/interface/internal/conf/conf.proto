@@ -71,6 +71,10 @@ message Service {
   message User {
     string endpoint = 1;
   } 
+  message Seminar {
+    string endpoint = 1;
+  }
   User user = 1;
   Role role = 2;
+  Seminar seminar = 3;
 }

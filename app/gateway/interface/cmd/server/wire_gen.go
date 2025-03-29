@@ -28,7 +28,8 @@ func wireApp(confServer *conf.Server, confService *conf.Service, confData *conf.
 	discovery := server.NewDiscovery(registry)
 	userClient := data.NewUserServiceClient(confService, discovery)
 	roleManagerClient := data.NewRoleServiceClient(confService, discovery)
-	dataData, cleanup, err := data.NewData(confData, logger, client, userClient, roleManagerClient)
+	seminarClient := data.NewSeminarServiceClient(confService, discovery)
+	dataData, cleanup, err := data.NewData(confData, logger, client, userClient, roleManagerClient, seminarClient)
 	if err != nil {
 		return nil, nil, err
 	}
