@@ -114,6 +114,44 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Wittgenstein.v1.DeleteTopicReply'
+    /seminar/topic/getting:
+        post:
+            tags:
+                - Seminar
+            description: 获取讨论主题的详细信息，进入讨论时加载
+            operationId: Seminar_GetTopic
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Wittgenstein.v1.GetTopicRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Wittgenstein.v1.GetTopicReply'
+    /seminar/topic/metadata:
+        post:
+            tags:
+                - Seminar
+            description: 获取用户所有讨论主题的元信息，用于前端展示
+            operationId: Seminar_GetTopicsMetadata
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Wittgenstein.v1.GetTopicsMetadataRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Wittgenstein.v1.GetTopicsMetadataReply'
     /seminar/topic/starting:
         post:
             tags:
@@ -298,6 +336,29 @@ components:
             properties:
                 phone:
                     type: string
+        Wittgenstein.v1.GetTopicReply:
+            type: object
+            properties:
+                topic:
+                    $ref: '#/components/schemas/Wittgenstein.v1.Topic'
+        Wittgenstein.v1.GetTopicRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+            description: 获取讨论主题的详细信息，进入讨论时加载
+        Wittgenstein.v1.GetTopicsMetadataReply:
+            type: object
+            properties:
+                topics:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Wittgenstein.v1.TopicMetadata'
+        Wittgenstein.v1.GetTopicsMetadataRequest:
+            type: object
+            properties:
+                phone:
+                    type: string
         Wittgenstein.v1.LoginReply:
             type: object
             properties:
@@ -377,6 +438,15 @@ components:
                     type: string
                 profile:
                     $ref: '#/components/schemas/Wittgenstein.v1.Profile'
+        Wittgenstein.v1.Speech:
+            type: object
+            properties:
+                uid:
+                    type: string
+                roleUid:
+                    type: string
+                content:
+                    type: string
         Wittgenstein.v1.StartTopicReply:
             type: object
             properties:
@@ -387,6 +457,32 @@ components:
             properties:
                 topicId:
                     type: string
+        Wittgenstein.v1.Topic:
+            type: object
+            properties:
+                uid:
+                    type: string
+                participants:
+                    type: array
+                    items:
+                        type: string
+                speeches:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Wittgenstein.v1.Speech'
+                title:
+                    type: string
+                titleImage:
+                    type: string
+        Wittgenstein.v1.TopicMetadata:
+            type: object
+            properties:
+                uid:
+                    type: string
+                participants:
+                    type: array
+                    items:
+                        type: string
 tags:
     - name: RoleManager
     - name: Seminar

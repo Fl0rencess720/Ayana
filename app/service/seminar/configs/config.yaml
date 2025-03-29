@@ -17,3 +17,7 @@ data:
 trace:
   endpoint: 127.0.0.1:4318
 
+service:
+  role:
+    endpoint: discovery:///Wittgenstein.service.role
+  

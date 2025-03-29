@@ -14,6 +14,20 @@ service Seminar {
       body: "*"
     };
   }
+  // 获取用户所有讨论主题的元信息，用于前端展示
+  rpc GetTopicsMetadata (GetTopicsMetadataRequest) returns (GetTopicsMetadataReply) {
+    option (google.api.http) = {
+      post: "/seminar/topic/metadata"
+      body: "*"
+    };
+  }
+  // 获取讨论主题的详细信息，进入讨论时加载
+  rpc GetTopic (GetTopicRequest) returns (GetTopicReply) {
+    option (google.api.http) = {
+      post: "/seminar/topic/getting"
+      body: "*"
+    };
+  };
   rpc DeleteTopic (DeleteTopicRequest) returns (DeleteTopicReply) {
     option (google.api.http) = {
       post: "/seminar/topic/deleting"
@@ -27,6 +41,26 @@ service Seminar {
     };
   }
 }
+
+message TopicMetadata {
+  string uid = 1;
+  repeated string participants = 2;
+}
+
+message Speech {
+  string uid = 1;
+  string role_uid = 2;
+  string content = 3;
+}
+
+
+message Topic {
+  string uid = 1;
+  repeated string participants = 2;
+  repeated Speech speeches = 3;
+  string title = 4;
+  string title_image = 5;
+} 
 
 message CreateTopicRequest {
   string content = 1;
@@ -51,4 +85,24 @@ message StartTopicRequest {
 
 message StartTopicReply {
   string message = 1;
+}
+
+
+
+message GetTopicsMetadataRequest {
+  string phone = 1;
+}
+
+message GetTopicsMetadataReply {
+  repeated TopicMetadata topics = 1;
+}
+
+
+// 获取讨论主题的详细信息，进入讨论时加载
+message GetTopicRequest {
+  string uid = 1;
+}
+
+message GetTopicReply {
+  Topic topic = 1;
 }

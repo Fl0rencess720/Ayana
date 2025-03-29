@@ -10,6 +10,7 @@ message Bootstrap {
   Data data = 2;
   Jwtc jwtc = 3;
   Trace trace = 4;
+  Service service = 5;
 }
 
 message Server {
@@ -61,4 +62,11 @@ message Registry {
     string scheme = 2;
   }
   Consul consul = 1;
+}
+
+message Service {
+  message Role {
+    string endpoint = 1;
+  } 
+  Role role = 2;
 }

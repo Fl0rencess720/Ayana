@@ -19,9 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Seminar_CreateTopic_FullMethodName = "/Wittgenstein.v1.Seminar/CreateTopic"
-	Seminar_DeleteTopic_FullMethodName = "/Wittgenstein.v1.Seminar/DeleteTopic"
-	Seminar_StartTopic_FullMethodName  = "/Wittgenstein.v1.Seminar/StartTopic"
+	Seminar_CreateTopic_FullMethodName       = "/Wittgenstein.v1.Seminar/CreateTopic"
+	Seminar_GetTopicsMetadata_FullMethodName = "/Wittgenstein.v1.Seminar/GetTopicsMetadata"
+	Seminar_GetTopic_FullMethodName          = "/Wittgenstein.v1.Seminar/GetTopic"
+	Seminar_DeleteTopic_FullMethodName       = "/Wittgenstein.v1.Seminar/DeleteTopic"
+	Seminar_StartTopic_FullMethodName        = "/Wittgenstein.v1.Seminar/StartTopic"
 )
 
 // SeminarClient is the client API for Seminar service.
@@ -29,6 +31,10 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SeminarClient interface {
 	CreateTopic(ctx context.Context, in *CreateTopicRequest, opts ...grpc.CallOption) (*CreateTopicReply, error)
+	// 获取用户所有讨论主题的元信息，用于前端展示
+	GetTopicsMetadata(ctx context.Context, in *GetTopicsMetadataRequest, opts ...grpc.CallOption) (*GetTopicsMetadataReply, error)
+	// 获取讨论主题的详细信息，进入讨论时加载
+	GetTopic(ctx context.Context, in *GetTopicRequest, opts ...grpc.CallOption) (*GetTopicReply, error)
 	DeleteTopic(ctx context.Context, in *DeleteTopicRequest, opts ...grpc.CallOption) (*DeleteTopicReply, error)
 	StartTopic(ctx context.Context, in *StartTopicRequest, opts ...grpc.CallOption) (*StartTopicReply, error)
 }
@@ -45,6 +51,26 @@ func (c *seminarClient) CreateTopic(ctx context.Context, in *CreateTopicRequest,
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreateTopicReply)
 	err := c.cc.Invoke(ctx, Seminar_CreateTopic_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *seminarClient) GetTopicsMetadata(ctx context.Context, in *GetTopicsMetadataRequest, opts ...grpc.CallOption) (*GetTopicsMetadataReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetTopicsMetadataReply)
+	err := c.cc.Invoke(ctx, Seminar_GetTopicsMetadata_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *seminarClient) GetTopic(ctx context.Context, in *GetTopicRequest, opts ...grpc.CallOption) (*GetTopicReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetTopicReply)
+	err := c.cc.Invoke(ctx, Seminar_GetTopic_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -76,6 +102,10 @@ func (c *seminarClient) StartTopic(ctx context.Context, in *StartTopicRequest, o
 // for forward compatibility.
 type SeminarServer interface {
 	CreateTopic(context.Context, *CreateTopicRequest) (*CreateTopicReply, error)
+	// 获取用户所有讨论主题的元信息，用于前端展示
+	GetTopicsMetadata(context.Context, *GetTopicsMetadataRequest) (*GetTopicsMetadataReply, error)
+	// 获取讨论主题的详细信息，进入讨论时加载
+	GetTopic(context.Context, *GetTopicRequest) (*GetTopicReply, error)
 	DeleteTopic(context.Context, *DeleteTopicRequest) (*DeleteTopicReply, error)
 	StartTopic(context.Context, *StartTopicRequest) (*StartTopicReply, error)
 	mustEmbedUnimplementedSeminarServer()
@@ -90,6 +120,12 @@ type UnimplementedSeminarServer struct{}
 
 func (UnimplementedSeminarServer) CreateTopic(context.Context, *CreateTopicRequest) (*CreateTopicReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateTopic not implemented")
+}
+func (UnimplementedSeminarServer) GetTopicsMetadata(context.Context, *GetTopicsMetadataRequest) (*GetTopicsMetadataReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTopicsMetadata not implemented")
+}
+func (UnimplementedSeminarServer) GetTopic(context.Context, *GetTopicRequest) (*GetTopicReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTopic not implemented")
 }
 func (UnimplementedSeminarServer) DeleteTopic(context.Context, *DeleteTopicRequest) (*DeleteTopicReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteTopic not implemented")
@@ -132,6 +168,42 @@ func _Seminar_CreateTopic_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SeminarServer).CreateTopic(ctx, req.(*CreateTopicRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Seminar_GetTopicsMetadata_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTopicsMetadataRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SeminarServer).GetTopicsMetadata(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Seminar_GetTopicsMetadata_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SeminarServer).GetTopicsMetadata(ctx, req.(*GetTopicsMetadataRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Seminar_GetTopic_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTopicRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SeminarServer).GetTopic(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Seminar_GetTopic_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SeminarServer).GetTopic(ctx, req.(*GetTopicRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -182,6 +254,14 @@ var Seminar_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateTopic",
 			Handler:    _Seminar_CreateTopic_Handler,
+		},
+		{
+			MethodName: "GetTopicsMetadata",
+			Handler:    _Seminar_GetTopicsMetadata_Handler,
+		},
+		{
+			MethodName: "GetTopic",
+			Handler:    _Seminar_GetTopic_Handler,
 		},
 		{
 			MethodName: "DeleteTopic",

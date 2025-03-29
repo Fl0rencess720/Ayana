@@ -106,7 +106,7 @@ func main() {
 	if err := initTracer(bc.Trace.Endpoint); err != nil {
 		panic(err)
 	}
-	app, cleanup, err := wireApp(bc.Server, bc.Data, &rc, logger)
+	app, cleanup, err := wireApp(bc.Server, bc.Service, bc.Data, &rc, logger)
 	if err != nil {
 		panic(err)
 	}
