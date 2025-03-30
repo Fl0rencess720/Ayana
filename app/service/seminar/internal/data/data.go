@@ -5,6 +5,7 @@ import (
 	"time"
 
 	roleV1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/role/v1"
+	"github.com/Fl0rencess720/Wittgenstein/app/service/seminar/internal/biz"
 	"github.com/Fl0rencess720/Wittgenstein/app/service/seminar/internal/conf"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
@@ -43,6 +44,12 @@ func NewMysql(c *conf.Data) *gorm.DB {
 	})
 	if err != nil {
 		panic("failed to connect mysql")
+	}
+	if err := db.AutoMigrate(biz.Topic{}); err != nil {
+		panic("failed to migrate mysql")
+	}
+	if err := db.AutoMigrate(biz.Speech{}); err != nil {
+		panic("failed to migrate mysql")
 	}
 	return db
 }

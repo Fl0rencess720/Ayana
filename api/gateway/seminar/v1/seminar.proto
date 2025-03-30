@@ -63,8 +63,9 @@ message Topic {
 } 
 
 message CreateTopicRequest {
-  string content = 1;
-  repeated string participants = 2;
+  string phone = 1;
+  string content = 2;
+  repeated string participants = 3;
 }
 
 message CreateTopicReply {
@@ -87,8 +88,6 @@ message StartTopicReply {
   string message = 1;
 }
 
-
-
 message GetTopicsMetadataRequest {
   string phone = 1;
 }
@@ -96,7 +95,6 @@ message GetTopicsMetadataRequest {
 message GetTopicsMetadataReply {
   repeated TopicMetadata topics = 1;
 }
-
 
 // 获取讨论主题的详细信息，进入讨论时加载
 message GetTopicRequest {

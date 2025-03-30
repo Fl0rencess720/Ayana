@@ -4,6 +4,7 @@ import (
 	"context"
 
 	roleV1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/role/v1"
+	seminarV1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/seminar/v1"
 	userV1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/user/v1"
 	"github.com/Fl0rencess720/Wittgenstein/app/gateway/interface/internal/conf"
 	"github.com/Fl0rencess720/Wittgenstein/app/gateway/interface/internal/service"
@@ -30,7 +31,7 @@ func NewWhiteListMatcher() selector.MatchFunc {
 	}
 }
 
-func NewHTTPServer(c *conf.Server, role *service.RoleService, user *service.UserService, logger log.Logger) *http.Server {
+func NewHTTPServer(c *conf.Server, role *service.RoleService, user *service.UserService, seminar *service.SeminarService, logger log.Logger) *http.Server {
 	var opts = []http.ServerOption{
 		http.Middleware(
 			recovery.Recovery(),
@@ -55,5 +56,6 @@ func NewHTTPServer(c *conf.Server, role *service.RoleService, user *service.User
 	srv := http.NewServer(opts...)
 	roleV1.RegisterRoleManagerHTTPServer(srv, role)
 	userV1.RegisterUserHTTPServer(srv, user)
+	seminarV1.RegisterSeminarHTTPServer(srv, seminar)
 	return srv
 }

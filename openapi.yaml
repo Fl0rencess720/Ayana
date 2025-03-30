@@ -281,6 +281,8 @@ components:
         Wittgenstein.v1.CreateTopicRequest:
             type: object
             properties:
+                phone:
+                    type: string
                 content:
                     type: string
                 participants:

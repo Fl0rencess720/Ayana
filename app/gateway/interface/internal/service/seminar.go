@@ -17,18 +17,22 @@ func NewSeminarService(uc *biz.SeminarUsecase) *SeminarService {
 	return &SeminarService{uc: uc}
 }
 
-func (s *SeminarService) CreateTopic(context.Context, *v1.CreateTopicRequest) (*v1.CreateTopicReply, error) {
+func (s *SeminarService) CreateTopic(ctx context.Context, req *v1.CreateTopicRequest) (*v1.CreateTopicReply, error) {
+	reply, err := s.uc.CreateTopic(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return reply, nil
+}
+func (s *SeminarService) DeleteTopic(ctx context.Context, req *v1.DeleteTopicRequest) (*v1.DeleteTopicReply, error) {
 	return nil, nil
 }
-func (s *SeminarService) DeleteTopic(context.Context, *v1.DeleteTopicRequest) (*v1.DeleteTopicReply, error) {
+func (s *SeminarService) GetTopic(ctx context.Context, req *v1.GetTopicRequest) (*v1.GetTopicReply, error) {
 	return nil, nil
 }
-func (s *SeminarService) GetTopic(context.Context, *v1.GetTopicRequest) (*v1.GetTopicReply, error) {
+func (s *SeminarService) GetTopicsMetadata(ctx context.Context, req *v1.GetTopicsMetadataRequest) (*v1.GetTopicsMetadataReply, error) {
 	return nil, nil
 }
-func (s *SeminarService) GetTopicsMetadata(context.Context, *v1.GetTopicsMetadataRequest) (*v1.GetTopicsMetadataReply, error) {
-	return nil, nil
-}
-func (s *SeminarService) StartTopic(context.Context, *v1.StartTopicRequest) (*v1.StartTopicReply, error) {
+func (s *SeminarService) StartTopic(ctx context.Context, req *v1.StartTopicRequest) (*v1.StartTopicReply, error) {
 	return nil, nil
 }

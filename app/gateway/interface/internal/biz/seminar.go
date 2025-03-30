@@ -4,6 +4,7 @@ import (
 	"context"
 
 	v1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/seminar/v1"
+	"github.com/Fl0rencess720/Wittgenstein/pkgs/utils"
 	"github.com/go-kratos/kratos/v2/log"
 )
 
@@ -19,6 +20,10 @@ func NewSeminarUsecase(repo UserRepo, logger log.Logger, seminarClient v1.Semina
 }
 
 func (uc *SeminarUsecase) CreateTopic(ctx context.Context, req *v1.CreateTopicRequest) (*v1.CreateTopicReply, error) {
-
-	return &v1.CreateTopicReply{}, nil
+	req.Phone = utils.GetPhoneFromContext(ctx)
+	reply, err := uc.seminarClient.CreateTopic(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return reply, nil
 }

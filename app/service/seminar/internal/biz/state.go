@@ -33,7 +33,7 @@ func (p *PreparingState) resume(topic *Topic) error {
 }
 
 func (p *PreparingState) nextState(topic *Topic) {
-	topic.state = &RunningState{}
+	topic.State = &RunningState{}
 }
 
 func (p *RunningState) getState() string {
@@ -52,7 +52,7 @@ func (r *RunningState) resume(topic *Topic) error {
 }
 
 func (r *RunningState) nextState(topic *Topic) {
-	topic.state = &PausedState{}
+	topic.State = &PausedState{}
 }
 
 func (p *PausedState) getState() string {
@@ -72,5 +72,5 @@ func (p *PausedState) resume(topic *Topic) error {
 }
 
 func (p *PausedState) nextState(topic *Topic) {
-	topic.state = &RunningState{}
+	topic.State = &RunningState{}
 }

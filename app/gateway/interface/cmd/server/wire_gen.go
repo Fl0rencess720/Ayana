@@ -39,7 +39,9 @@ func wireApp(confServer *conf.Server, confService *conf.Service, confData *conf.
 	userRepo := data.NewUserRepo(dataData, logger)
 	userUsecase := biz.NewUserUsecase(userRepo, logger, userClient)
 	userService := service.NewUserService(userUsecase)
-	httpServer := server.NewHTTPServer(confServer, roleService, userService, logger)
+	seminarUsecase := biz.NewSeminarUsecase(userRepo, logger, seminarClient)
+	seminarService := service.NewSeminarService(seminarUsecase)
+	httpServer := server.NewHTTPServer(confServer, roleService, userService, seminarService, logger)
 	registrar := server.NewRegistrar(registry)
 	app := newApp(logger, httpServer, registrar)
 	return app, func() {

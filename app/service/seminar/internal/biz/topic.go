@@ -1,34 +1,51 @@
 package biz
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"time"
 
 	"github.com/Fl0rencess720/Wittgenstein/pkgs/utils"
+	"gorm.io/gorm"
 )
 
-type Speech struct {
-	Uid     string
-	RoleUid string
-	Content string
-	Time    time.Time
-}
-
 type Topic struct {
-	state        State
-	UID          string
-	Participants []string
-	Speeches     []Speech
-	Title        string
-	TitleImage   string
+	gorm.Model
+	UID          string   `gorm:"primaryKey;column:uid;size:255"`
+	Content      string   `gorm:"column:content;type:text"`
+	State        State    `gorm:"-;"`
+	Participants []string `gorm:"column:participants;type:json;serializer:json"`
+	Speeches     []Speech `gorm:"foreignKey:TopicUID"`
+	Title        string   `gorm:"column:title;type:varchar(255)"`
+	TitleImage   string   `gorm:"column:title_image;type:varchar(255)"`
+	Phone        string   `gorm:"column:phone;type:varchar(255)"`
 }
 
-func NewTopic(participants []string) (*Topic, error) {
+type Speech struct {
+	gorm.Model
+	UID      string    `gorm:"primaryKey;column:uid;size:255"`
+	TopicUID string    `gorm:"column:topic_uid;size:255;index"`
+	RoleUID  string    `gorm:"column:role_uid;size:255"`
+	Content  string    `gorm:"column:content;type:text"`
+	Time     time.Time `gorm:"column:time"`
+}
+
+func (t *Topic) Scan(value interface{}) error {
+	return json.Unmarshal(value.([]byte), &t.Participants)
+}
+
+func (t Topic) Value() (driver.Value, error) {
+	return json.Marshal(t.Participants)
+}
+
+func NewTopic(content string, participants []string) (*Topic, error) {
 	uid, err := utils.GetSnowflakeID(0)
 	if err != nil {
 		return nil, err
 	}
 	return &Topic{
-		state:        &PreparingState{},
+		Content:      content,
+		State:        &PreparingState{},
 		UID:          uid,
 		Participants: participants,
 		Speeches:     []Speech{},
@@ -37,17 +54,17 @@ func NewTopic(participants []string) (*Topic, error) {
 }
 
 func (topic *Topic) GetState() string {
-	return topic.state.getState()
+	return topic.State.getState()
 }
 
 func (topic *Topic) Start() error {
-	return topic.state.start(topic)
+	return topic.State.start(topic)
 }
 
 func (topic *Topic) Pause() error {
-	return topic.state.pause(topic)
+	return topic.State.pause(topic)
 }
 
 func (topic *Topic) Resume() error {
-	return topic.state.resume(topic)
+	return topic.State.resume(topic)
 }
