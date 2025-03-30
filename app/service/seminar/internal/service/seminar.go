@@ -26,10 +26,31 @@ func (s *SeminarService) CreateTopic(ctx context.Context, req *v1.CreateTopicReq
 	return &v1.CreateTopicReply{Uid: topic.UID}, nil
 }
 func (s *SeminarService) DeleteTopic(ctx context.Context, req *v1.DeleteTopicRequest) (*v1.DeleteTopicReply, error) {
-	return nil, nil
+	if err := s.uc.DeleteTopic(ctx, req.Uid); err != nil {
+		return nil, err
+	}
+	return &v1.DeleteTopicReply{Message: "success"}, nil
 }
 func (s *SeminarService) GetTopic(ctx context.Context, req *v1.GetTopicRequest) (*v1.GetTopicReply, error) {
-	return nil, nil
+	topic, err := s.uc.GetTopic(ctx, req.Uid)
+	if err != nil {
+		return nil, err
+	}
+	reply := &v1.GetTopicReply{Topic: &v1.Topic{
+		Uid:          topic.UID,
+		Content:      topic.Content,
+		Participants: topic.Participants,
+		Title:        topic.Title,
+		TitleImage:   topic.TitleImage,
+	}}
+	for _, speech := range topic.Speeches {
+		reply.Topic.Speeches = append(reply.Topic.Speeches, &v1.Speech{
+			Uid:     speech.UID,
+			RoleUid: speech.RoleUID,
+			Content: speech.Content,
+		})
+	}
+	return reply, nil
 }
 func (s *SeminarService) GetTopicsMetadata(ctx context.Context, req *v1.GetTopicsMetadataRequest) (*v1.GetTopicsMetadataReply, error) {
 	return nil, nil

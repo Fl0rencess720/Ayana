@@ -476,6 +476,8 @@ components:
                     type: string
                 titleImage:
                     type: string
+                content:
+                    type: string
         Wittgenstein.v1.TopicMetadata:
             type: object
             properties:

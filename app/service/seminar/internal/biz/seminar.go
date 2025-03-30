@@ -8,6 +8,8 @@ import (
 
 type SeminarRepo interface {
 	CreateTopic(ctx context.Context, phone string, topic *Topic) error
+	DeleteTopic(ctx context.Context, topicUID string) error
+	GetTopic(ctx context.Context, topicUID string) (Topic, error)
 }
 
 type SeminarUsecase struct {
@@ -24,4 +26,19 @@ func (uc *SeminarUsecase) CreateTopic(ctx context.Context, phone string, topic *
 		return err
 	}
 	return nil
+}
+
+func (uc *SeminarUsecase) DeleteTopic(ctx context.Context, topicUID string) error {
+	if err := uc.repo.DeleteTopic(ctx, topicUID); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (uc *SeminarUsecase) GetTopic(ctx context.Context, topicUID string) (Topic, error) {
+	topic, err := uc.repo.GetTopic(ctx, topicUID)
+	if err != nil {
+		return Topic{}, err
+	}
+	return topic, nil
 }

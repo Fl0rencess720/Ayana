@@ -27,3 +27,19 @@ func (uc *SeminarUsecase) CreateTopic(ctx context.Context, req *v1.CreateTopicRe
 	}
 	return reply, nil
 }
+
+func (uc *SeminarUsecase) DeleteTopic(ctx context.Context, req *v1.DeleteTopicRequest) (*v1.DeleteTopicReply, error) {
+	reply, err := uc.seminarClient.DeleteTopic(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return reply, nil
+}
+
+func (uc *SeminarUsecase) GetTopic(ctx context.Context, req *v1.GetTopicRequest) (*v1.GetTopicReply, error) {
+	reply, err := uc.seminarClient.GetTopic(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return reply, nil
+}

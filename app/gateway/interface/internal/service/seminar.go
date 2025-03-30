@@ -25,10 +25,18 @@ func (s *SeminarService) CreateTopic(ctx context.Context, req *v1.CreateTopicReq
 	return reply, nil
 }
 func (s *SeminarService) DeleteTopic(ctx context.Context, req *v1.DeleteTopicRequest) (*v1.DeleteTopicReply, error) {
-	return nil, nil
+	reply, err := s.uc.DeleteTopic(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return reply, nil
 }
 func (s *SeminarService) GetTopic(ctx context.Context, req *v1.GetTopicRequest) (*v1.GetTopicReply, error) {
-	return nil, nil
+	reply, err := s.uc.GetTopic(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return reply, nil
 }
 func (s *SeminarService) GetTopicsMetadata(ctx context.Context, req *v1.GetTopicsMetadataRequest) (*v1.GetTopicsMetadataReply, error) {
 	return nil, nil

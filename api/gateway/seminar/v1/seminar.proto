@@ -60,6 +60,7 @@ message Topic {
   repeated Speech speeches = 3;
   string title = 4;
   string title_image = 5;
+  string content = 6;
 } 
 
 message CreateTopicRequest {
