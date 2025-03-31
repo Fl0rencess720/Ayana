@@ -34,12 +34,12 @@ service Seminar {
       body: "*"
     };
   }
-  rpc StartTopic (StartTopicRequest) returns (StartTopicReply) {
-    option (google.api.http) = {
-      post: "/seminar/topic/starting"
-      body: "*"
-    };
-  }
+  // rpc StartTopic (StartTopicRequest) returns (StartTopicReply) {
+  //   option (google.api.http) = {
+  //     post: "/seminar/topic/starting"
+  //     body: "*"
+  //   };
+  // }
 }
 
 message TopicMetadata {

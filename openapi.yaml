@@ -152,24 +152,6 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Wittgenstein.v1.GetTopicsMetadataReply'
-    /seminar/topic/starting:
-        post:
-            tags:
-                - Seminar
-            operationId: Seminar_StartTopic
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/Wittgenstein.v1.StartTopicRequest'
-                required: true
-            responses:
-                "200":
-                    description: OK
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/Wittgenstein.v1.StartTopicReply'
     /user/login:
         post:
             tags:
@@ -448,16 +430,6 @@ components:
                 roleUid:
                     type: string
                 content:
-                    type: string
-        Wittgenstein.v1.StartTopicReply:
-            type: object
-            properties:
-                message:
-                    type: string
-        Wittgenstein.v1.StartTopicRequest:
-            type: object
-            properties:
-                topicId:
                     type: string
         Wittgenstein.v1.Topic:
             type: object
