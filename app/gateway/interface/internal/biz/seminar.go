@@ -6,7 +6,6 @@ import (
 	v1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/seminar/v1"
 	"github.com/Fl0rencess720/Wittgenstein/pkgs/utils"
 	"github.com/go-kratos/kratos/v2/log"
-	"github.com/go-kratos/kratos/v2/transport/http"
 )
 
 type HttpC struct {
@@ -61,18 +60,6 @@ func (uc *SeminarUsecase) GetTopicsMetadata(ctx context.Context, req *v1.GetTopi
 }
 
 func (uc *SeminarUsecase) StartTopic(ctx context.Context, req *v1.StartTopicRequest) (*v1.StartTopicReply, error) {
-	hctx, ok := FromContext(ctx)
-	if ok {
-		reply := hctx.Response()
-		reply.Header().Set("Content-Type", "text/event-stream")
-		reply.Header().Set("Cache-Control", "no-cache")
-		reply.Header().Set("Connection", "keep-alive")
-	}
 
 	return nil, nil
-}
-
-func FromContext(ctx context.Context) (http.Context, bool) {
-	h, ok := ctx.Value(HttpC{}).(http.Context)
-	return h, ok
 }
