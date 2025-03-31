@@ -53,7 +53,19 @@ func (s *SeminarService) GetTopic(ctx context.Context, req *v1.GetTopicRequest) 
 	return reply, nil
 }
 func (s *SeminarService) GetTopicsMetadata(ctx context.Context, req *v1.GetTopicsMetadataRequest) (*v1.GetTopicsMetadataReply, error) {
-	return nil, nil
+	topics, err := s.uc.GetTopicsMetadata(ctx, req.Phone)
+	if err != nil {
+		return nil, err
+	}
+	reply := &v1.GetTopicsMetadataReply{}
+	for _, topic := range topics {
+		reply.Topics = append(reply.Topics, &v1.TopicMetadata{
+			Uid:          topic.UID,
+			Participants: topic.Participants,
+			Content:      topic.Content,
+		})
+	}
+	return reply, nil
 }
 func (s *SeminarService) StartTopic(ctx context.Context, req *v1.StartTopicRequest) (*v1.StartTopicReply, error) {
 	return nil, nil

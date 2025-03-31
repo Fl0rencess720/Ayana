@@ -43,3 +43,11 @@ func (uc *SeminarUsecase) GetTopic(ctx context.Context, req *v1.GetTopicRequest)
 	}
 	return reply, nil
 }
+
+func (uc *SeminarUsecase) GetTopicsMetadata(ctx context.Context, req *v1.GetTopicsMetadataRequest) (*v1.GetTopicsMetadataReply, error) {
+	reply, err := uc.seminarClient.GetTopicsMetadata(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return reply, nil
+}

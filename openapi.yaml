@@ -483,6 +483,8 @@ components:
             properties:
                 uid:
                     type: string
+                content:
+                    type: string
                 participants:
                     type: array
                     items:

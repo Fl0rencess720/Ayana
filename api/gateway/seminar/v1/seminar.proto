@@ -44,7 +44,8 @@ service Seminar {
 
 message TopicMetadata {
   string uid = 1;
-  repeated string participants = 2;
+  string content = 2;
+  repeated string participants = 3;
 }
 
 message Speech {

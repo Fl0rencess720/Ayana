@@ -41,3 +41,11 @@ func (r *seminarRepo) GetTopic(ctx context.Context, uid string) (biz.Topic, erro
 	}
 	return topic, nil
 }
+
+func (r *seminarRepo) GetTopicsMetadata(ctx context.Context, phone string) ([]biz.Topic, error) {
+	var topics []biz.Topic
+	if err := r.data.mysqlClient.Model(&biz.Topic{}).Where("phone = ?", phone).Find(&topics).Error; err != nil {
+		return nil, err
+	}
+	return topics, nil
+}

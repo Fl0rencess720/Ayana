@@ -39,7 +39,11 @@ func (s *SeminarService) GetTopic(ctx context.Context, req *v1.GetTopicRequest) 
 	return reply, nil
 }
 func (s *SeminarService) GetTopicsMetadata(ctx context.Context, req *v1.GetTopicsMetadataRequest) (*v1.GetTopicsMetadataReply, error) {
-	return nil, nil
+	reply, err := s.uc.GetTopicsMetadata(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return reply, nil
 }
 func (s *SeminarService) StartTopic(ctx context.Context, req *v1.StartTopicRequest) (*v1.StartTopicReply, error) {
 	return nil, nil

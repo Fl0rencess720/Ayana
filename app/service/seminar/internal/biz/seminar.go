@@ -10,6 +10,7 @@ type SeminarRepo interface {
 	CreateTopic(ctx context.Context, phone string, topic *Topic) error
 	DeleteTopic(ctx context.Context, topicUID string) error
 	GetTopic(ctx context.Context, topicUID string) (Topic, error)
+	GetTopicsMetadata(ctx context.Context, phone string) ([]Topic, error)
 }
 
 type SeminarUsecase struct {
@@ -41,4 +42,12 @@ func (uc *SeminarUsecase) GetTopic(ctx context.Context, topicUID string) (Topic,
 		return Topic{}, err
 	}
 	return topic, nil
+}
+
+func (uc *SeminarUsecase) GetTopicsMetadata(ctx context.Context, phone string) ([]Topic, error) {
+	topics, err := uc.repo.GetTopicsMetadata(ctx, phone)
+	if err != nil {
+		return nil, err
+	}
+	return topics, nil
 }
