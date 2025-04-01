@@ -34,7 +34,8 @@ func wireApp(confServer *conf.Server, confService *conf.Service, confData *conf.
 	}
 	seminarRepo := data.NewSeminarRepo(dataData, logger)
 	topicCache := biz.NewTopicCache()
-	seminarUsecase := biz.NewSeminarUsecase(seminarRepo, topicCache, logger)
+	roleCache := biz.NewRoleCache()
+	seminarUsecase := biz.NewSeminarUsecase(seminarRepo, topicCache, roleCache, roleManagerClient, logger)
 	seminarService := service.NewSeminarService(seminarUsecase)
 	grpcServer := server.NewGRPCServer(confServer, seminarService, logger)
 	registrar := server.NewRegistrar(registry)
