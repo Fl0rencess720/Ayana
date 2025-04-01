@@ -5,6 +5,7 @@ import (
 
 	v1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/seminar/v1"
 	"github.com/Fl0rencess720/Wittgenstein/app/service/seminar/internal/biz"
+	"google.golang.org/grpc"
 )
 
 type SeminarService struct {
@@ -67,6 +68,9 @@ func (s *SeminarService) GetTopicsMetadata(ctx context.Context, req *v1.GetTopic
 	}
 	return reply, nil
 }
-func (s *SeminarService) StartTopic(ctx context.Context, req *v1.StartTopicRequest) (*v1.StartTopicReply, error) {
-	return nil, nil
+func (s *SeminarService) StartTopic(req *v1.StartTopicRequest, stream grpc.ServerStreamingServer[v1.StartTopicReply]) error {
+	if err := s.uc.StartTopic(req.TopicId, stream); err != nil {
+		return err
+	}
+	return nil
 }

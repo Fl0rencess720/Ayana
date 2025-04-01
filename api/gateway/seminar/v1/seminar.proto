@@ -34,12 +34,8 @@ service Seminar {
       body: "*"
     };
   }
-  // rpc StartTopic (StartTopicRequest) returns (StartTopicReply) {
-  //   option (google.api.http) = {
-  //     post: "/seminar/topic/starting"
-  //     body: "*"
-  //   };
-  // }
+  rpc StartTopic (StartTopicRequest) returns (stream StartTopicReply) {
+  }
 }
 
 message TopicMetadata {
@@ -87,7 +83,10 @@ message StartTopicRequest {
 }
 
 message StartTopicReply {
-  string message = 1;
+  oneof content {
+    string reasoning = 1;
+    string text = 2;
+  }
 }
 
 message GetTopicsMetadataRequest {

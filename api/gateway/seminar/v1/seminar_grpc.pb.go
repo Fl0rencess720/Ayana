@@ -23,6 +23,7 @@ const (
 	Seminar_GetTopicsMetadata_FullMethodName = "/Wittgenstein.v1.Seminar/GetTopicsMetadata"
 	Seminar_GetTopic_FullMethodName          = "/Wittgenstein.v1.Seminar/GetTopic"
 	Seminar_DeleteTopic_FullMethodName       = "/Wittgenstein.v1.Seminar/DeleteTopic"
+	Seminar_StartTopic_FullMethodName        = "/Wittgenstein.v1.Seminar/StartTopic"
 )
 
 // SeminarClient is the client API for Seminar service.
@@ -35,6 +36,7 @@ type SeminarClient interface {
 	// 获取讨论主题的详细信息，进入讨论时加载
 	GetTopic(ctx context.Context, in *GetTopicRequest, opts ...grpc.CallOption) (*GetTopicReply, error)
 	DeleteTopic(ctx context.Context, in *DeleteTopicRequest, opts ...grpc.CallOption) (*DeleteTopicReply, error)
+	StartTopic(ctx context.Context, in *StartTopicRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StartTopicReply], error)
 }
 
 type seminarClient struct {
@@ -85,6 +87,25 @@ func (c *seminarClient) DeleteTopic(ctx context.Context, in *DeleteTopicRequest,
 	return out, nil
 }
 
+func (c *seminarClient) StartTopic(ctx context.Context, in *StartTopicRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StartTopicReply], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Seminar_ServiceDesc.Streams[0], Seminar_StartTopic_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[StartTopicRequest, StartTopicReply]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Seminar_StartTopicClient = grpc.ServerStreamingClient[StartTopicReply]
+
 // SeminarServer is the server API for Seminar service.
 // All implementations must embed UnimplementedSeminarServer
 // for forward compatibility.
@@ -95,6 +116,7 @@ type SeminarServer interface {
 	// 获取讨论主题的详细信息，进入讨论时加载
 	GetTopic(context.Context, *GetTopicRequest) (*GetTopicReply, error)
 	DeleteTopic(context.Context, *DeleteTopicRequest) (*DeleteTopicReply, error)
+	StartTopic(*StartTopicRequest, grpc.ServerStreamingServer[StartTopicReply]) error
 	mustEmbedUnimplementedSeminarServer()
 }
 
@@ -116,6 +138,9 @@ func (UnimplementedSeminarServer) GetTopic(context.Context, *GetTopicRequest) (*
 }
 func (UnimplementedSeminarServer) DeleteTopic(context.Context, *DeleteTopicRequest) (*DeleteTopicReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteTopic not implemented")
+}
+func (UnimplementedSeminarServer) StartTopic(*StartTopicRequest, grpc.ServerStreamingServer[StartTopicReply]) error {
+	return status.Errorf(codes.Unimplemented, "method StartTopic not implemented")
 }
 func (UnimplementedSeminarServer) mustEmbedUnimplementedSeminarServer() {}
 func (UnimplementedSeminarServer) testEmbeddedByValue()                 {}
@@ -210,6 +235,17 @@ func _Seminar_DeleteTopic_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Seminar_StartTopic_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StartTopicRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SeminarServer).StartTopic(m, &grpc.GenericServerStream[StartTopicRequest, StartTopicReply]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Seminar_StartTopicServer = grpc.ServerStreamingServer[StartTopicReply]
+
 // Seminar_ServiceDesc is the grpc.ServiceDesc for Seminar service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -234,6 +270,12 @@ var Seminar_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Seminar_DeleteTopic_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "StartTopic",
+			Handler:       _Seminar_StartTopic_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "gateway/seminar/v1/seminar.proto",
 }

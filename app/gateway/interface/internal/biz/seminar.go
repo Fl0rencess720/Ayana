@@ -2,14 +2,15 @@ package biz
 
 import (
 	"context"
+	"fmt"
+	"io"
+	nethttp "net/http"
 
 	v1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/seminar/v1"
 	"github.com/Fl0rencess720/Wittgenstein/pkgs/utils"
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/go-kratos/kratos/v2/transport/http"
 )
-
-type HttpC struct {
-}
 
 type SeminarUsecase struct {
 	repo UserRepo
@@ -18,12 +19,13 @@ type SeminarUsecase struct {
 	seminarClient v1.SeminarClient
 }
 
-type StartTopicRequest struct {
-	TopicId string
-}
+var globalSeminarUsecase *SeminarUsecase
 
 func NewSeminarUsecase(repo UserRepo, logger log.Logger, seminarClient v1.SeminarClient) *SeminarUsecase {
-	return &SeminarUsecase{repo: repo, log: log.NewHelper(logger), seminarClient: seminarClient}
+	seminarUsecase := &SeminarUsecase{repo: repo, log: log.NewHelper(logger), seminarClient: seminarClient}
+	globalSeminarUsecase = seminarUsecase
+	return seminarUsecase
+
 }
 
 func (uc *SeminarUsecase) CreateTopic(ctx context.Context, req *v1.CreateTopicRequest) (*v1.CreateTopicReply, error) {
@@ -59,7 +61,40 @@ func (uc *SeminarUsecase) GetTopicsMetadata(ctx context.Context, req *v1.GetTopi
 	return reply, nil
 }
 
-func (uc *SeminarUsecase) StartTopic(ctx context.Context, req *v1.StartTopicRequest) (*v1.StartTopicReply, error) {
-
-	return nil, nil
+func StartTopic(ctx http.Context) (interface{}, error) {
+	req := v1.StartTopicRequest{}
+	if err := ctx.Bind(&req); err != nil {
+		return nil, err
+	}
+	stream, err := globalSeminarUsecase.seminarClient.StartTopic(ctx, &req)
+	if err != nil {
+		return nil, err
+	}
+	w := ctx.Response()
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+	w.Header().Set("Transfer-Encoding", "chunked")
+	ctx.Response().WriteHeader(nethttp.StatusOK)
+	flusher, _ := w.(http.Flusher)
+	for {
+		resp, err := stream.Recv()
+		if err == io.EOF {
+			fmt.Fprintf(w, "event: end\ndata: %s\n\n", "end")
+			flusher.Flush()
+			return nil, nil
+		}
+		if err != nil {
+			fmt.Fprintf(w, "event: error\ndata: %s\n\n", err.Error())
+			flusher.Flush()
+			return nil, nil
+		}
+		switch content := resp.Content.(type) {
+		case *v1.StartTopicReply_Reasoning:
+			fmt.Fprintf(w, "event: reasoning\ndata: %s\n\n", content.Reasoning)
+		case *v1.StartTopicReply_Text:
+			fmt.Fprintf(w, "event: text\ndata: %s\n\n", content.Text)
+		}
+		flusher.Flush()
+	}
 }
