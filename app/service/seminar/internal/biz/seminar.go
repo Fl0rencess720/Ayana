@@ -22,10 +22,12 @@ type SeminarRepo interface {
 type SeminarUsecase struct {
 	repo SeminarRepo
 	log  *log.Helper
+
+	topicCache *TopicCache
 }
 
-func NewSeminarUsecase(repo SeminarRepo, logger log.Logger) *SeminarUsecase {
-	return &SeminarUsecase{repo: repo, log: log.NewHelper(logger)}
+func NewSeminarUsecase(repo SeminarRepo, topicCache *TopicCache, logger log.Logger) *SeminarUsecase {
+	return &SeminarUsecase{repo: repo, topicCache: topicCache, log: log.NewHelper(logger)}
 }
 
 func (uc *SeminarUsecase) CreateTopic(ctx context.Context, phone string, topic *Topic) error {

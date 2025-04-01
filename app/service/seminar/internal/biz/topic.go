@@ -3,11 +3,17 @@ package biz
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"sync"
 	"time"
 
 	"github.com/Fl0rencess720/Wittgenstein/pkgs/utils"
 	"gorm.io/gorm"
 )
+
+type TopicCache struct {
+	sync.RWMutex
+	Topics map[string]*Topic
+}
 
 type Topic struct {
 	gorm.Model
@@ -67,4 +73,31 @@ func (topic *Topic) Pause() error {
 
 func (topic *Topic) Resume() error {
 	return topic.State.resume(topic)
+}
+
+func NewTopicCache() *TopicCache {
+	return &TopicCache{
+		Topics: make(map[string]*Topic),
+	}
+}
+
+func (tc *TopicCache) GetTopic(topicUID string) (*Topic, error) {
+	tc.RLock()
+	defer tc.RUnlock()
+	if topic, ok := tc.Topics[topicUID]; ok {
+		return topic, nil
+	}
+	return nil, nil
+}
+
+func (tc *TopicCache) SetTopic(topic *Topic) {
+	tc.Lock()
+	defer tc.Unlock()
+	tc.Topics[topic.UID] = topic
+}
+
+func (tc *TopicCache) DeleteTopic(topicUID string) {
+	tc.Lock()
+	defer tc.Unlock()
+	delete(tc.Topics, topicUID)
 }
