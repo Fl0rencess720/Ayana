@@ -5,6 +5,7 @@ import (
 
 	roleV1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/role/v1"
 	v1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/seminar/v1"
+	"github.com/cloudwego/eino/schema"
 	"github.com/go-kratos/kratos/v2/log"
 	"google.golang.org/grpc"
 )
@@ -12,7 +13,7 @@ import (
 type SeminarRepo interface {
 	CreateTopic(ctx context.Context, phone string, topic *Topic) error
 	DeleteTopic(ctx context.Context, topicUID string) error
-	GetTopic(ctx context.Context, topicUID string) (Topic, error)
+	GetTopic(ctx context.Context, topicUID string) (*Topic, error)
 	GetTopicsMetadata(ctx context.Context, phone string) ([]Topic, error)
 }
 
@@ -49,7 +50,7 @@ func (uc *SeminarUsecase) GetTopic(ctx context.Context, topicUID string) (Topic,
 	if err != nil {
 		return Topic{}, err
 	}
-	return topic, nil
+	return *topic, nil
 }
 
 func (uc *SeminarUsecase) GetTopicsMetadata(ctx context.Context, phone string) ([]Topic, error) {
@@ -64,6 +65,12 @@ func (uc *SeminarUsecase) StartTopic(topicID string, stream grpc.ServerStreaming
 	topic, err := uc.topicCache.GetTopic(topicID)
 	if err != nil {
 		return err
+	}
+	if topic == nil {
+		topic, err = uc.repo.GetTopic(context.Background(), topicID)
+		if err != nil {
+			return err
+		}
 	}
 	rolesReply, err := uc.roleClient.GetRolesByUIDs(context.Background(), &roleV1.GetRolesByUIDsRequest{Uids: topic.Participants})
 	if err != nil {
@@ -84,12 +91,17 @@ func (uc *SeminarUsecase) StartTopic(topicID string, stream grpc.ServerStreaming
 	uc.roleCache.SetRoles(topicID, roles)
 	roleScheduler := RoleScheduler{roles: roles}
 	role := roleScheduler.NextRole()
-
+	topic.State = &PreparingState{}
 	topic.State.nextState(topic)
 
+	messages := []*schema.Message{}
+	messages = append(messages, &schema.Message{
+		Role:    schema.User,
+		Content: topic.Content,
+	})
 	maxTurn := 10
 	for i := 0; i < maxTurn; i++ {
-		role.Call(nil, stream)
+		role.Call(messages, stream)
 		role = roleScheduler.NextRole()
 	}
 	return nil

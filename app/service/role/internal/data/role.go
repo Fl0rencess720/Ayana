@@ -136,6 +136,10 @@ func fetchValuesAndNotFound(rdb *redis.Client, uids []string) ([]biz.Role, []str
 		keysSlice = append(keysSlice, key)
 	}
 
+	if len(keysSlice) == 0 {
+		return nil, notFound, nil
+	}
+
 	values, err := rdb.MGet(ctx, keysSlice...).Result()
 	if err != nil {
 		return nil, nil, fmt.Errorf("MGet error: %v", err)
@@ -150,7 +154,6 @@ func fetchValuesAndNotFound(rdb *redis.Client, uids []string) ([]biz.Role, []str
 			resultValues = append(resultValues, r)
 		}
 	}
-
 	return resultValues, notFound, nil
 }
 

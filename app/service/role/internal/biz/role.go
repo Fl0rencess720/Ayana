@@ -71,23 +71,26 @@ func (uc *RoleUsecase) GetRoles(ctx context.Context, phone string) ([]Role, erro
 }
 
 func (uc *RoleUsecase) GetRolesByUIDs(ctx context.Context, phone string, uids []string) ([]Role, error) {
-	rolesFromRedis, notFound, err := uc.repo.GetRolesByUIDsFromRedis(ctx, uids)
-	if err == nil {
-		if len(notFound) == 0 {
-			return rolesFromRedis, nil
-		}
-	} else {
-		uc.log.Error(err)
-	}
-	rolesFromDB, err := uc.repo.GetRolesByUIDs(ctx, phone, notFound)
+	// rolesFromRedis, notFound, err := uc.repo.GetRolesByUIDsFromRedis(ctx, uids)
+	// if err == nil {
+	// 	if len(notFound) == 0 {
+	// 		return rolesFromRedis, nil
+	// 	}
+	// } else {
+	// 	uc.log.Error(err)
+	// }
+
+	// rolesFromDB, err := uc.repo.GetRolesByUIDs(ctx, phone, notFound)
+	rolesFromDB, err := uc.repo.GetRolesByUIDs(ctx, phone, uids)
 	if err != nil {
 		return nil, err
 	}
 	if err = uc.repo.RolesToRedis(ctx, phone, rolesFromDB); err != nil {
 		uc.log.Error(err)
 	}
-	roles := make([]Role, 0, len(rolesFromRedis)+len(rolesFromDB))
-	roles = append(roles, rolesFromRedis...)
+	// roles := make([]Role, 0, len(rolesFromRedis)+len(rolesFromDB))
+	// roles = append(roles, rolesFromRedis...)
+	roles := rolesFromDB
 	return roles, nil
 }
 

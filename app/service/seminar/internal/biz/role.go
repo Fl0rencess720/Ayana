@@ -72,13 +72,6 @@ func (role *Role) Call(messages []*schema.Message, stream grpc.ServerStreamingSe
 	if err != nil {
 		return err, nil
 	}
-	// var messages []*schema.Message
-
-	// messages = append(messages, &schema.Message{
-	// 	Role:    schema.User,
-	// 	Content: "帮我写一篇引人入胜的故事",
-	// })
-
 	ctx := context.Background()
 	aiStream, err := cm.Stream(ctx, messages)
 	if err != nil {

@@ -34,10 +34,10 @@ func (r *seminarRepo) DeleteTopic(ctx context.Context, topicUID string) error {
 	return nil
 }
 
-func (r *seminarRepo) GetTopic(ctx context.Context, uid string) (biz.Topic, error) {
-	var topic biz.Topic
-	if err := r.data.mysqlClient.Model(&biz.Topic{}).Preload("Speeches").Where("uid = ?", uid).First(&topic).Error; err != nil {
-		return biz.Topic{}, err
+func (r *seminarRepo) GetTopic(ctx context.Context, uid string) (*biz.Topic, error) {
+	var topic *biz.Topic
+	if err := r.data.mysqlClient.Model(topic).Preload("Speeches").Where("uid = ?", uid).First(&topic).Error; err != nil {
+		return nil, err
 	}
 	return topic, nil
 }
