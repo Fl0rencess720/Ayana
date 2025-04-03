@@ -10,7 +10,7 @@ import (
 type RoleRepo interface {
 	CreateRole(ctx context.Context, phone string, role Role) (string, error)
 	GetRoles(ctx context.Context, phone string) ([]Role, error)
-	GetRolesByUIDsFromRedis(ctx context.Context, uids []string) ([]Role, []string, error)
+	GetRolesFromRedis(ctx context.Context, phone string) ([]Role, error)
 	GetRolesByUIDs(ctx context.Context, phone string, uids []string) ([]Role, error)
 	DeleteRole(ctx context.Context, uid string) error
 	RolesToRedis(ctx context.Context, phone string, roles []Role) error
@@ -71,26 +71,21 @@ func (uc *RoleUsecase) GetRoles(ctx context.Context, phone string) ([]Role, erro
 }
 
 func (uc *RoleUsecase) GetRolesByUIDs(ctx context.Context, phone string, uids []string) ([]Role, error) {
-	// rolesFromRedis, notFound, err := uc.repo.GetRolesByUIDsFromRedis(ctx, uids)
-	// if err == nil {
-	// 	if len(notFound) == 0 {
-	// 		return rolesFromRedis, nil
-	// 	}
-	// } else {
-	// 	uc.log.Error(err)
-	// }
+	rolesFromRedis, err := uc.repo.GetRolesFromRedis(ctx, phone)
+	if err == nil {
+		return rolesFilter(rolesFromRedis, uids), nil
+	} else {
+		uc.log.Error(err)
+	}
 
-	// rolesFromDB, err := uc.repo.GetRolesByUIDs(ctx, phone, notFound)
 	rolesFromDB, err := uc.repo.GetRolesByUIDs(ctx, phone, uids)
 	if err != nil {
 		return nil, err
 	}
+	roles := rolesFilter(rolesFromDB, uids)
 	if err = uc.repo.RolesToRedis(ctx, phone, rolesFromDB); err != nil {
 		uc.log.Error(err)
 	}
-	// roles := make([]Role, 0, len(rolesFromRedis)+len(rolesFromDB))
-	// roles = append(roles, rolesFromRedis...)
-	roles := rolesFromDB
 	return roles, nil
 }
 
@@ -107,4 +102,16 @@ func (uc *RoleUsecase) DeleteRole(ctx context.Context, phone, uid string) error 
 		uc.log.Error(err)
 	}
 	return nil
+}
+
+func rolesFilter(roles []Role, uids []string) []Role {
+	result := []Role{}
+	for _, role := range roles {
+		for _, uid := range uids {
+			if role.Uid == uid {
+				result = append(result, role)
+			}
+		}
+	}
+	return result
 }

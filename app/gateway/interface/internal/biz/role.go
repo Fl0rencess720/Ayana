@@ -17,15 +17,15 @@ type Role struct {
 	Uid         string
 	Description string
 	Avatar      string
-	Api_path    string
-	Api_key     string
-	Model       Model
-	Name        string
+	ApiPath     string
+	ApiKey      string
+	RoleName    string
+	Model
 }
 
 type Model struct {
-	Name     string
-	Provider string
+	ModelName string
+	Provider  string
 }
 
 type RoleUsecase struct {
@@ -52,13 +52,13 @@ func (uc *RoleUsecase) GetRoles(ctx context.Context, req *roleV1.GetRolesRequest
 		rs := make([]*roleV1.Role, 0, len(roles))
 		for _, r := range roles {
 			rs = append(rs, &roleV1.Role{
-				Name:        r.Name,
+				Name:        r.RoleName,
 				Uid:         r.Uid,
 				Description: r.Description,
 				Avatar:      r.Avatar,
-				ApiPath:     r.Api_key,
-				ApiKey:      r.Api_key,
-				Model:       &roleV1.Model{Provider: r.Model.Provider, Name: r.Model.Name},
+				ApiPath:     r.ApiPath,
+				ApiKey:      r.ApiKey,
+				Model:       &roleV1.Model{Provider: r.Model.Provider, Name: r.Model.ModelName},
 			})
 		}
 		return &roleV1.GetRolesReply{
@@ -82,7 +82,7 @@ func (uc *RoleUsecase) GetAvailableModels(ctx context.Context, req *roleV1.GetAv
 		ms := make([]*roleV1.Model, 0, len(models))
 		for _, m := range models {
 			ms = append(ms, &roleV1.Model{
-				Name:     m.Name,
+				Name:     m.ModelName,
 				Provider: m.Provider,
 			})
 		}

@@ -64,27 +64,29 @@ func (rs *RoleScheduler) NextRole() *Role {
 	return rs.roles[rs.current]
 }
 
-func (role *Role) Call(messages []*schema.Message, stream grpc.ServerStreamingServer[v1.StartTopicReply]) (error, []*schema.Message) {
+func (role *Role) Call(messages []*schema.Message, stream grpc.ServerStreamingServer[v1.StartTopicReply]) (*schema.Message, error) {
 	cm, err := deepseek.NewChatModel(context.Background(), &deepseek.ChatModelConfig{
 		APIKey: role.ApiKey,
 		Model:  role.ModelName,
 	})
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 	ctx := context.Background()
+	if messages == nil {
+	}
 	aiStream, err := cm.Stream(ctx, messages)
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
-	message := &schema.Message{}
+	message := &schema.Message{Role: schema.User}
 	for {
 		resp, err := aiStream.Recv()
 		if err == io.EOF {
-			return nil, append(messages, message)
+			return message, nil
 		}
 		if err != nil {
-			return err, nil
+			return nil, err
 		}
 
 		if reasoning, ok := deepseek.GetReasoningContent(resp); ok {

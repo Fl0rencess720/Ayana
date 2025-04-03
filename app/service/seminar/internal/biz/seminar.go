@@ -72,7 +72,7 @@ func (uc *SeminarUsecase) StartTopic(topicID string, stream grpc.ServerStreaming
 			return err
 		}
 	}
-	rolesReply, err := uc.roleClient.GetRolesByUIDs(context.Background(), &roleV1.GetRolesByUIDsRequest{Uids: topic.Participants})
+	rolesReply, err := uc.roleClient.GetRolesByUIDs(context.Background(), &roleV1.GetRolesByUIDsRequest{Phone: topic.Phone, Uids: topic.Participants})
 	if err != nil {
 		return err
 	}
@@ -101,7 +101,11 @@ func (uc *SeminarUsecase) StartTopic(topicID string, stream grpc.ServerStreaming
 	})
 	maxTurn := 10
 	for i := 0; i < maxTurn; i++ {
-		role.Call(messages, stream)
+		message, err := role.Call(messages, stream)
+		if err != nil {
+			return err
+		}
+		messages = append(messages, message)
 		role = roleScheduler.NextRole()
 	}
 	return nil
