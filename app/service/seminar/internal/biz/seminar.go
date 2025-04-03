@@ -103,9 +103,14 @@ func (uc *SeminarUsecase) StartTopic(topicID string, stream grpc.ServerStreaming
 	})
 	maxTurn := 5
 	for i := 0; i < maxTurn; i++ {
-		message, err := role.Call(messages, stream, topic.signalChan)
+		message, signal, err := role.Call(messages, stream, topic.signalChan)
 		if err != nil {
 			return err
+		}
+		if signal == Pause {
+			topic.State.nextState(topic)
+			uc.topicCache.SetTopic(topic)
+			break
 		}
 		messages = append(messages, message)
 		role = roleScheduler.NextRole()

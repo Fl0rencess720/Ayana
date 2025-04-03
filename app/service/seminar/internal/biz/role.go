@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"sync"
 
 	v1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/seminar/v1"
@@ -66,17 +65,13 @@ func (rs *RoleScheduler) NextRole() *Role {
 	return rs.roles[rs.current]
 }
 
-func (role *Role) Call(messages []*schema.Message, stream grpc.ServerStreamingServer[v1.StartTopicReply], signalChan <-chan StateSignal) (*schema.Message, error) {
+func (role *Role) Call(messages []*schema.Message, stream grpc.ServerStreamingServer[v1.StartTopicReply], signalChan <-chan StateSignal) (*schema.Message, StateSignal, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// 暂停，现在不优雅
 	go func() {
-		for signal := range signalChan {
-			if signal == Pause {
-				cancel()
-				return
-			}
+		if signal, ok := <-signalChan; ok && signal == Pause {
+			cancel()
 		}
 	}()
 
@@ -85,47 +80,74 @@ func (role *Role) Call(messages []*schema.Message, stream grpc.ServerStreamingSe
 		Model:  role.ModelName,
 	})
 	if err != nil {
-		return nil, err
+		return nil, Error, err
 	}
 
 	aiStream, err := cm.Stream(ctx, messages)
 	if err != nil {
-		return nil, err
+		return nil, Error, err
 	}
 	defer aiStream.Close()
 
 	message := &schema.Message{Role: schema.User}
-	for {
-		select {
-		case <-ctx.Done():
-			return nil, fmt.Errorf("stream interrupted: %w", ctx.Err())
-		default:
-			resp, err := aiStream.Recv()
-			if errors.Is(err, io.EOF) {
-				return message, nil
-			}
-			if err != nil {
-				return nil, fmt.Errorf("stream error: %w", err)
-			}
+	resultChan := make(chan struct {
+		*schema.Message
+		StateSignal
+		error
+	}, 1)
 
-			// 处理响应内容
+	go func() {
+		defer close(resultChan)
+		for {
+			resp, err := aiStream.Recv()
+			if err != nil {
+				if errors.Is(err, context.Canceled) {
+					resultChan <- struct {
+						*schema.Message
+						StateSignal
+						error
+					}{nil, Pause, nil}
+					return
+				}
+				resultChan <- struct {
+					*schema.Message
+					StateSignal
+					error
+				}{nil, Error, fmt.Errorf("stream error: %w", err)}
+				return
+			}
 			if reasoning, ok := deepseek.GetReasoningContent(resp); ok {
 				message.Content += reasoning
 				if sendErr := stream.Send(&v1.StartTopicReply{
 					Content: &v1.StartTopicReply_Reasoning{Reasoning: reasoning},
 				}); sendErr != nil {
-					return nil, sendErr
+					resultChan <- struct {
+						*schema.Message
+						StateSignal
+						error
+					}{nil, Error, sendErr}
+					return
 				}
 			}
-
 			if len(resp.Content) > 0 {
 				message.Content += resp.Content
 				if sendErr := stream.Send(&v1.StartTopicReply{
 					Content: &v1.StartTopicReply_Text{Text: resp.Content},
 				}); sendErr != nil {
-					return nil, sendErr
+					resultChan <- struct {
+						*schema.Message
+						StateSignal
+						error
+					}{nil, Error, sendErr}
+					return
 				}
 			}
 		}
+	}()
+	select {
+	case <-ctx.Done():
+		return nil, Pause, nil
+	case result := <-resultChan:
+		return result.Message, result.StateSignal, result.error
 	}
 }

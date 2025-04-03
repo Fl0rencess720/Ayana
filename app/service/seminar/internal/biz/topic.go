@@ -15,6 +15,8 @@ type StateSignal uint8
 const (
 	Pause StateSignal = iota
 	Resume
+	Error
+	Normal
 )
 
 type TopicCache struct {
