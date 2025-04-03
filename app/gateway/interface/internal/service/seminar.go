@@ -56,3 +56,19 @@ func StartTopic(ctx http.Context) error {
 	}
 	return nil
 }
+
+func (s *SeminarService) StopTopic(ctx context.Context, req *v1.StopTopicRequest) (*v1.StopTopicReply, error) {
+	reply, err := s.uc.StopTopic(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return reply, nil
+}
+
+func (s *SeminarService) ResumeTopic(ctx context.Context, req *v1.ResumeTopicRequest) (*v1.ResumeTopicReply, error) {
+	reply, err := s.uc.ResumeTopic(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return reply, nil
+}

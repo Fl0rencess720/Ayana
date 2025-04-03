@@ -42,6 +42,12 @@ service Seminar {
       body: "*"
     };
   }
+  rpc ResumeTopic (ResumeTopicRequest) returns (ResumeTopicReply) {
+    option (google.api.http) = {
+      post: "/seminar/topic/resuming"
+      body: "*"
+    };
+  }
 }
 
 message TopicMetadata {
@@ -100,6 +106,14 @@ message StopTopicRequest {
 }
 
 message StopTopicReply {
+  string message = 1;
+}
+
+message ResumeTopicRequest {
+  string topicId = 1;
+}
+
+message ResumeTopicReply {
   string message = 1;
 }
 

@@ -152,6 +152,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Wittgenstein.v1.GetTopicsMetadataReply'
+    /seminar/topic/resuming:
+        post:
+            tags:
+                - Seminar
+            operationId: Seminar_ResumeTopic
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Wittgenstein.v1.ResumeTopicRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Wittgenstein.v1.ResumeTopicReply'
     /seminar/topic/stopping:
         post:
             tags:
@@ -410,6 +428,16 @@ components:
                 phone:
                     type: string
                 password:
+                    type: string
+        Wittgenstein.v1.ResumeTopicReply:
+            type: object
+            properties:
+                message:
+                    type: string
+        Wittgenstein.v1.ResumeTopicRequest:
+            type: object
+            properties:
+                topicId:
                     type: string
         Wittgenstein.v1.Role:
             type: object

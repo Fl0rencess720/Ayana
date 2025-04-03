@@ -10,6 +10,13 @@ import (
 	"gorm.io/gorm"
 )
 
+type StateSignal uint8
+
+const (
+	Pause StateSignal = iota
+	Resume
+)
+
 type TopicCache struct {
 	sync.RWMutex
 	Topics map[string]*Topic
@@ -25,6 +32,8 @@ type Topic struct {
 	Title        string   `gorm:"column:title;type:varchar(255)"`
 	TitleImage   string   `gorm:"column:title_image;type:varchar(255)"`
 	Phone        string   `gorm:"column:phone;type:varchar(255)"`
+
+	signalChan chan StateSignal `gorm:"-;"`
 }
 
 type Speech struct {
@@ -56,6 +65,7 @@ func NewTopic(content string, participants []string) (*Topic, error) {
 		Participants: participants,
 		Speeches:     []Speech{},
 		Title:        "新主题",
+		signalChan:   make(chan StateSignal, 1),
 	}, nil
 }
 

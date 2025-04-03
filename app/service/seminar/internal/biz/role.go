@@ -2,6 +2,8 @@ package biz
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"io"
 	"sync"
 
@@ -64,43 +66,66 @@ func (rs *RoleScheduler) NextRole() *Role {
 	return rs.roles[rs.current]
 }
 
-func (role *Role) Call(messages []*schema.Message, stream grpc.ServerStreamingServer[v1.StartTopicReply]) (*schema.Message, error) {
-	cm, err := deepseek.NewChatModel(context.Background(), &deepseek.ChatModelConfig{
+func (role *Role) Call(messages []*schema.Message, stream grpc.ServerStreamingServer[v1.StartTopicReply], signalChan <-chan StateSignal) (*schema.Message, error) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// 暂停，现在不优雅
+	go func() {
+		for signal := range signalChan {
+			if signal == Pause {
+				cancel()
+				return
+			}
+		}
+	}()
+
+	cm, err := deepseek.NewChatModel(ctx, &deepseek.ChatModelConfig{
 		APIKey: role.ApiKey,
 		Model:  role.ModelName,
 	})
 	if err != nil {
 		return nil, err
 	}
-	ctx := context.Background()
-	if messages == nil {
-	}
+
 	aiStream, err := cm.Stream(ctx, messages)
 	if err != nil {
 		return nil, err
 	}
+	defer aiStream.Close()
+
 	message := &schema.Message{Role: schema.User}
 	for {
-		resp, err := aiStream.Recv()
-		if err == io.EOF {
-			return message, nil
-		}
-		if err != nil {
-			return nil, err
-		}
+		select {
+		case <-ctx.Done():
+			return nil, fmt.Errorf("stream interrupted: %w", ctx.Err())
+		default:
+			resp, err := aiStream.Recv()
+			if errors.Is(err, io.EOF) {
+				return message, nil
+			}
+			if err != nil {
+				return nil, fmt.Errorf("stream error: %w", err)
+			}
 
-		if reasoning, ok := deepseek.GetReasoningContent(resp); ok {
-			message.Content += reasoning
-			stream.Send(&v1.StartTopicReply{
-				Content: &v1.StartTopicReply_Reasoning{Reasoning: reasoning},
-			})
-		}
+			// 处理响应内容
+			if reasoning, ok := deepseek.GetReasoningContent(resp); ok {
+				message.Content += reasoning
+				if sendErr := stream.Send(&v1.StartTopicReply{
+					Content: &v1.StartTopicReply_Reasoning{Reasoning: reasoning},
+				}); sendErr != nil {
+					return nil, sendErr
+				}
+			}
 
-		if len(resp.Content) > 0 {
-			message.Content += resp.Content
-			stream.Send(&v1.StartTopicReply{
-				Content: &v1.StartTopicReply_Text{Text: resp.Content},
-			})
+			if len(resp.Content) > 0 {
+				message.Content += resp.Content
+				if sendErr := stream.Send(&v1.StartTopicReply{
+					Content: &v1.StartTopicReply_Text{Text: resp.Content},
+				}); sendErr != nil {
+					return nil, sendErr
+				}
+			}
 		}
 	}
 }

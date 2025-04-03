@@ -39,6 +39,7 @@ func (r *seminarRepo) GetTopic(ctx context.Context, uid string) (*biz.Topic, err
 	if err := r.data.mysqlClient.Model(topic).Preload("Speeches").Where("uid = ?", uid).First(&topic).Error; err != nil {
 		return nil, err
 	}
+
 	return topic, nil
 }
 

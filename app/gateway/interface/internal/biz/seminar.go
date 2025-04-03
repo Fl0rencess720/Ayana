@@ -98,3 +98,19 @@ func StartTopic(ctx http.Context) (interface{}, error) {
 		flusher.Flush()
 	}
 }
+
+func (uc *SeminarUsecase) StopTopic(ctx context.Context, req *v1.StopTopicRequest) (*v1.StopTopicReply, error) {
+	reply, err := uc.seminarClient.StopTopic(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return reply, nil
+}
+
+func (uc *SeminarUsecase) ResumeTopic(ctx context.Context, req *v1.ResumeTopicRequest) (*v1.ResumeTopicReply, error) {
+	reply, err := uc.seminarClient.ResumeTopic(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return reply, nil
+}

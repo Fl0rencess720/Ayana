@@ -25,6 +25,7 @@ const (
 	Seminar_DeleteTopic_FullMethodName       = "/Wittgenstein.v1.Seminar/DeleteTopic"
 	Seminar_StartTopic_FullMethodName        = "/Wittgenstein.v1.Seminar/StartTopic"
 	Seminar_StopTopic_FullMethodName         = "/Wittgenstein.v1.Seminar/StopTopic"
+	Seminar_ResumeTopic_FullMethodName       = "/Wittgenstein.v1.Seminar/ResumeTopic"
 )
 
 // SeminarClient is the client API for Seminar service.
@@ -39,6 +40,7 @@ type SeminarClient interface {
 	DeleteTopic(ctx context.Context, in *DeleteTopicRequest, opts ...grpc.CallOption) (*DeleteTopicReply, error)
 	StartTopic(ctx context.Context, in *StartTopicRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StartTopicReply], error)
 	StopTopic(ctx context.Context, in *StopTopicRequest, opts ...grpc.CallOption) (*StopTopicReply, error)
+	ResumeTopic(ctx context.Context, in *ResumeTopicRequest, opts ...grpc.CallOption) (*ResumeTopicReply, error)
 }
 
 type seminarClient struct {
@@ -118,6 +120,16 @@ func (c *seminarClient) StopTopic(ctx context.Context, in *StopTopicRequest, opt
 	return out, nil
 }
 
+func (c *seminarClient) ResumeTopic(ctx context.Context, in *ResumeTopicRequest, opts ...grpc.CallOption) (*ResumeTopicReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ResumeTopicReply)
+	err := c.cc.Invoke(ctx, Seminar_ResumeTopic_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SeminarServer is the server API for Seminar service.
 // All implementations must embed UnimplementedSeminarServer
 // for forward compatibility.
@@ -130,6 +142,7 @@ type SeminarServer interface {
 	DeleteTopic(context.Context, *DeleteTopicRequest) (*DeleteTopicReply, error)
 	StartTopic(*StartTopicRequest, grpc.ServerStreamingServer[StartTopicReply]) error
 	StopTopic(context.Context, *StopTopicRequest) (*StopTopicReply, error)
+	ResumeTopic(context.Context, *ResumeTopicRequest) (*ResumeTopicReply, error)
 	mustEmbedUnimplementedSeminarServer()
 }
 
@@ -157,6 +170,9 @@ func (UnimplementedSeminarServer) StartTopic(*StartTopicRequest, grpc.ServerStre
 }
 func (UnimplementedSeminarServer) StopTopic(context.Context, *StopTopicRequest) (*StopTopicReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StopTopic not implemented")
+}
+func (UnimplementedSeminarServer) ResumeTopic(context.Context, *ResumeTopicRequest) (*ResumeTopicReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ResumeTopic not implemented")
 }
 func (UnimplementedSeminarServer) mustEmbedUnimplementedSeminarServer() {}
 func (UnimplementedSeminarServer) testEmbeddedByValue()                 {}
@@ -280,6 +296,24 @@ func _Seminar_StopTopic_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Seminar_ResumeTopic_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResumeTopicRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SeminarServer).ResumeTopic(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Seminar_ResumeTopic_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SeminarServer).ResumeTopic(ctx, req.(*ResumeTopicRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Seminar_ServiceDesc is the grpc.ServiceDesc for Seminar service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -306,6 +340,10 @@ var Seminar_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "StopTopic",
 			Handler:    _Seminar_StopTopic_Handler,
+		},
+		{
+			MethodName: "ResumeTopic",
+			Handler:    _Seminar_ResumeTopic_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

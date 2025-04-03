@@ -71,6 +71,8 @@ func (uc *SeminarUsecase) StartTopic(topicID string, stream grpc.ServerStreaming
 		if err != nil {
 			return err
 		}
+		topic.signalChan = make(chan StateSignal, 1)
+		uc.topicCache.SetTopic(topic)
 	}
 	rolesReply, err := uc.roleClient.GetRolesByUIDs(context.Background(), &roleV1.GetRolesByUIDsRequest{Phone: topic.Phone, Uids: topic.Participants})
 	if err != nil {
@@ -101,12 +103,25 @@ func (uc *SeminarUsecase) StartTopic(topicID string, stream grpc.ServerStreaming
 	})
 	maxTurn := 5
 	for i := 0; i < maxTurn; i++ {
-		message, err := role.Call(messages, stream)
+		message, err := role.Call(messages, stream, topic.signalChan)
 		if err != nil {
 			return err
 		}
 		messages = append(messages, message)
 		role = roleScheduler.NextRole()
 	}
+	return nil
+}
+
+func (uc *SeminarUsecase) StopTopic(ctx context.Context, topicID string) error {
+	topic, err := uc.topicCache.GetTopic(topicID)
+	if err != nil {
+		return err
+	}
+	topic.signalChan <- Pause
+	return nil
+}
+
+func (uc *SeminarUsecase) ResumeTopic(ctx context.Context, topicID string) error {
 	return nil
 }
