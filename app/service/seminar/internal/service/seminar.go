@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 
+	"github.com/go-kratos/kratos/v2/log"
+
 	v1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/seminar/v1"
 	"github.com/Fl0rencess720/Wittgenstein/app/service/seminar/internal/biz"
 	"google.golang.org/grpc"
@@ -69,6 +71,11 @@ func (s *SeminarService) GetTopicsMetadata(ctx context.Context, req *v1.GetTopic
 	return reply, nil
 }
 func (s *SeminarService) StartTopic(req *v1.StartTopicRequest, stream grpc.ServerStreamingServer[v1.StartTopicReply]) error {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Errorf("panic: %v", r)
+		}
+	}()
 	if err := s.uc.StartTopic(req.TopicId, stream); err != nil {
 		return err
 	}
