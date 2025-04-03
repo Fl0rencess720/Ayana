@@ -36,6 +36,12 @@ service Seminar {
   }
   rpc StartTopic (StartTopicRequest) returns (stream StartTopicReply) {
   }
+  rpc StopTopic (StopTopicRequest) returns (StopTopicReply) {
+    option (google.api.http) = {
+      post: "/seminar/topic/stopping"
+      body: "*"
+    };
+  }
 }
 
 message TopicMetadata {
@@ -89,6 +95,15 @@ message StartTopicReply {
   }
 }
 
+message StopTopicRequest {
+  string topicId = 1;
+}
+
+message StopTopicReply {
+  string message = 1;
+}
+
+
 message GetTopicsMetadataRequest {
   string phone = 1;
 }
@@ -105,3 +120,4 @@ message GetTopicRequest {
 message GetTopicReply {
   Topic topic = 1;
 }
+

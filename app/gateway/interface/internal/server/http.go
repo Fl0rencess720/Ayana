@@ -57,8 +57,8 @@ func NewHTTPServer(c *conf.Server, role *service.RoleService, user *service.User
 	roleV1.RegisterRoleManagerHTTPServer(srv, role)
 	userV1.RegisterUserHTTPServer(srv, user)
 	seminarV1.RegisterSeminarHTTPServer(srv, seminar)
-	route := srv.Route("/")
-	seminarRouter := route.Group("/seminar")
+	route := srv.Route("/seminar")
+	seminarRouter := route.Group("/topic")
 	seminarRouter.POST("starting", service.StartTopic)
 	return srv
 }

@@ -15,9 +15,6 @@ import (
 // NewGRPCServer new a gRPC server.
 func NewGRPCServer(c *conf.Server, seminar *service.SeminarService, logger log.Logger) *grpc.Server {
 	var opts = []grpc.ServerOption{
-		grpc.StreamMiddleware(
-			recovery.Recovery(),
-		),
 		grpc.Middleware(
 			recovery.Recovery(),
 			tracing.Server(),

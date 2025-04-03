@@ -60,6 +60,7 @@ func NewUserServiceClient(sr *conf.Service, rr registry.Discovery) userV1.UserCl
 			tracing.Client(),
 			recovery.Recovery(),
 		),
+
 		grpc.WithTimeout(2*time.Second),
 		grpc.WithOptions(grpcx.WithStatsHandler(&tracing.ClientHandler{})),
 	)
