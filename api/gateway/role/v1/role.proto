@@ -34,6 +34,12 @@ service RoleManager {
       body: "*"
     };
   }
+  rpc SetRole (SetRoleRequest) returns (SetRoleReply) {
+    option (google.api.http) = {
+      post: "/role/setting"
+      body: "*"
+    };
+  }
 }
 
 message Role {
@@ -77,6 +83,16 @@ message GetRolesRequest {
 
 message GetRolesReply {
   repeated Role roles = 1;
+}
+
+message SetRoleRequest {
+  string phone = 1;
+  string uid = 2;
+  Role role = 3;
+}
+
+message SetRoleReply {
+  string message = 1;
 }
 
 message GetAvailableModelsRequest{

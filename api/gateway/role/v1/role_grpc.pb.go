@@ -24,6 +24,7 @@ const (
 	RoleManager_GetRoles_FullMethodName           = "/Wittgenstein.v1.RoleManager/GetRoles"
 	RoleManager_GetRolesByUIDs_FullMethodName     = "/Wittgenstein.v1.RoleManager/GetRolesByUIDs"
 	RoleManager_GetAvailableModels_FullMethodName = "/Wittgenstein.v1.RoleManager/GetAvailableModels"
+	RoleManager_SetRole_FullMethodName            = "/Wittgenstein.v1.RoleManager/SetRole"
 )
 
 // RoleManagerClient is the client API for RoleManager service.
@@ -35,6 +36,7 @@ type RoleManagerClient interface {
 	GetRoles(ctx context.Context, in *GetRolesRequest, opts ...grpc.CallOption) (*GetRolesReply, error)
 	GetRolesByUIDs(ctx context.Context, in *GetRolesByUIDsRequest, opts ...grpc.CallOption) (*GetRolesByUIDsReply, error)
 	GetAvailableModels(ctx context.Context, in *GetAvailableModelsRequest, opts ...grpc.CallOption) (*GetAvailableModelsReply, error)
+	SetRole(ctx context.Context, in *SetRoleRequest, opts ...grpc.CallOption) (*SetRoleReply, error)
 }
 
 type roleManagerClient struct {
@@ -95,6 +97,16 @@ func (c *roleManagerClient) GetAvailableModels(ctx context.Context, in *GetAvail
 	return out, nil
 }
 
+func (c *roleManagerClient) SetRole(ctx context.Context, in *SetRoleRequest, opts ...grpc.CallOption) (*SetRoleReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetRoleReply)
+	err := c.cc.Invoke(ctx, RoleManager_SetRole_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RoleManagerServer is the server API for RoleManager service.
 // All implementations must embed UnimplementedRoleManagerServer
 // for forward compatibility.
@@ -104,6 +116,7 @@ type RoleManagerServer interface {
 	GetRoles(context.Context, *GetRolesRequest) (*GetRolesReply, error)
 	GetRolesByUIDs(context.Context, *GetRolesByUIDsRequest) (*GetRolesByUIDsReply, error)
 	GetAvailableModels(context.Context, *GetAvailableModelsRequest) (*GetAvailableModelsReply, error)
+	SetRole(context.Context, *SetRoleRequest) (*SetRoleReply, error)
 	mustEmbedUnimplementedRoleManagerServer()
 }
 
@@ -128,6 +141,9 @@ func (UnimplementedRoleManagerServer) GetRolesByUIDs(context.Context, *GetRolesB
 }
 func (UnimplementedRoleManagerServer) GetAvailableModels(context.Context, *GetAvailableModelsRequest) (*GetAvailableModelsReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAvailableModels not implemented")
+}
+func (UnimplementedRoleManagerServer) SetRole(context.Context, *SetRoleRequest) (*SetRoleReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetRole not implemented")
 }
 func (UnimplementedRoleManagerServer) mustEmbedUnimplementedRoleManagerServer() {}
 func (UnimplementedRoleManagerServer) testEmbeddedByValue()                     {}
@@ -240,6 +256,24 @@ func _RoleManager_GetAvailableModels_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RoleManager_SetRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetRoleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RoleManagerServer).SetRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RoleManager_SetRole_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RoleManagerServer).SetRole(ctx, req.(*SetRoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RoleManager_ServiceDesc is the grpc.ServiceDesc for RoleManager service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -266,6 +300,10 @@ var RoleManager_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAvailableModels",
 			Handler:    _RoleManager_GetAvailableModels_Handler,
+		},
+		{
+			MethodName: "SetRole",
+			Handler:    _RoleManager_SetRole_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

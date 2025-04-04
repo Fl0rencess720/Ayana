@@ -5,6 +5,7 @@ import (
 
 	v1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/role/v1"
 	"github.com/Fl0rencess720/Wittgenstein/app/gateway/interface/internal/biz"
+	"github.com/Fl0rencess720/Wittgenstein/pkgs/utils"
 )
 
 type RoleService struct {
@@ -40,6 +41,14 @@ func (s *RoleService) GetAvailableModels(ctx context.Context, req *v1.GetAvailab
 }
 func (s *RoleService) GetRoles(ctx context.Context, req *v1.GetRolesRequest) (*v1.GetRolesReply, error) {
 	reply, err := s.uc.GetRoles(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return reply, nil
+}
+func (s *RoleService) SetRole(ctx context.Context, req *v1.SetRoleRequest) (*v1.SetRoleReply, error) {
+	req.Phone = utils.GetPhoneFromContext(ctx)
+	reply, err := s.uc.SetRole(ctx, req)
 	if err != nil {
 		return nil, err
 	}

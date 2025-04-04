@@ -88,3 +88,17 @@ func (s *RoleService) GetRolesByUIDs(ctx context.Context, req *v1.GetRolesByUIDs
 	}
 	return reply, nil
 }
+func (s *RoleService) SetRole(ctx context.Context, req *v1.SetRoleRequest) (*v1.SetRoleReply, error) {
+
+	if err := s.uc.SetRole(ctx, req.Phone, req.Uid, biz.Role{RoleName: req.Role.Name,
+		Description: req.Role.Description,
+		Avatar:      req.Role.Avatar,
+		ApiPath:     req.Role.ApiPath,
+		ApiKey:      req.Role.ApiKey,
+		ModelName:   req.Role.Model.Name,
+		Provider:    req.Role.Model.Provider,
+	}); err != nil {
+		return nil, err
+	}
+	return &v1.SetRoleReply{Message: "success"}, nil
+}

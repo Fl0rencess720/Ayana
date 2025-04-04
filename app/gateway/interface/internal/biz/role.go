@@ -92,3 +92,10 @@ func (uc *RoleUsecase) GetAvailableModels(ctx context.Context, req *roleV1.GetAv
 	}
 	return uc.roleClient.GetAvailableModels(ctx, req)
 }
+func (uc *RoleUsecase) SetRole(ctx context.Context, req *roleV1.SetRoleRequest) (*roleV1.SetRoleReply, error) {
+	reply, err := uc.roleClient.SetRole(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return reply, nil
+}

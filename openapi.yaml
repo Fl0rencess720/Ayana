@@ -78,6 +78,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Wittgenstein.v1.GetAvailableModelsReply'
+    /role/setting:
+        post:
+            tags:
+                - RoleManager
+            operationId: RoleManager_SetRole
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Wittgenstein.v1.SetRoleRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Wittgenstein.v1.SetRoleReply'
     /seminar/topic/creating:
         post:
             tags:
@@ -440,6 +458,20 @@ components:
                     type: string
                 profile:
                     $ref: '#/components/schemas/Wittgenstein.v1.Profile'
+        Wittgenstein.v1.SetRoleReply:
+            type: object
+            properties:
+                message:
+                    type: string
+        Wittgenstein.v1.SetRoleRequest:
+            type: object
+            properties:
+                phone:
+                    type: string
+                uid:
+                    type: string
+                role:
+                    $ref: '#/components/schemas/Wittgenstein.v1.Role'
         Wittgenstein.v1.Speech:
             type: object
             properties:

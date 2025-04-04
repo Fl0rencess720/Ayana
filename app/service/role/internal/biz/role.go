@@ -14,6 +14,7 @@ type RoleRepo interface {
 	GetRolesByUIDs(ctx context.Context, phone string, uids []string) ([]Role, error)
 	DeleteRole(ctx context.Context, uid string) error
 	RolesToRedis(ctx context.Context, phone string, roles []Role) error
+	SetRole(ctx context.Context, phone, uid string, role Role) error
 }
 
 type AIModel struct {
@@ -91,6 +92,21 @@ func (uc *RoleUsecase) GetRolesByUIDs(ctx context.Context, phone string, uids []
 
 func (uc *RoleUsecase) DeleteRole(ctx context.Context, phone, uid string) error {
 	if err := uc.repo.DeleteRole(ctx, uid); err != nil {
+		return err
+	}
+	roles, err := uc.repo.GetRoles(ctx, phone)
+	if err != nil {
+		uc.log.Error(err)
+		return nil
+	}
+	if err = uc.repo.RolesToRedis(ctx, phone, roles); err != nil {
+		uc.log.Error(err)
+	}
+	return nil
+}
+
+func (uc *RoleUsecase) SetRole(ctx context.Context, phone, uid string, role Role) error {
+	if err := uc.repo.SetRole(ctx, phone, uid, role); err != nil {
 		return err
 	}
 	roles, err := uc.repo.GetRoles(ctx, phone)

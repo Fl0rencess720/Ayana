@@ -77,3 +77,6 @@ func (r *roleRepo) GetRolesFromRedis(ctx context.Context, phone string) ([]biz.R
 	}
 	return roles, nil
 }
+func (r *roleRepo) SetRole(ctx context.Context, phone, uid string, role biz.Role) error {
+	return r.data.mysqlClient.Model(&biz.Role{}).Where("uid = ?", uid).Updates(&role).Error
+}
