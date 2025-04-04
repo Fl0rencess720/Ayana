@@ -102,8 +102,7 @@ func (uc *SeminarUsecase) StartTopic(topicID string, stream grpc.ServerStreaming
 		Role:    schema.User,
 		Content: topic.Content,
 	})
-	maxTurn := 5
-	for i := 0; i < maxTurn; i++ {
+	for {
 		message, signal, err := role.Call(messages, stream, topic.signalChan)
 		if err != nil {
 			return err
