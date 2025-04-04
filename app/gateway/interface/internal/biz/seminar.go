@@ -54,6 +54,7 @@ func (uc *SeminarUsecase) GetTopic(ctx context.Context, req *v1.GetTopicRequest)
 }
 
 func (uc *SeminarUsecase) GetTopicsMetadata(ctx context.Context, req *v1.GetTopicsMetadataRequest) (*v1.GetTopicsMetadataReply, error) {
+	req.Phone = utils.GetPhoneFromContext(ctx)
 	reply, err := uc.seminarClient.GetTopicsMetadata(ctx, req)
 	if err != nil {
 		return nil, err
