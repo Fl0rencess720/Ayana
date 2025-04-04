@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"time"
 
 	roleV1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/role/v1"
 	v1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/seminar/v1"
@@ -61,7 +62,7 @@ func (uc *SeminarUsecase) GetTopicsMetadata(ctx context.Context, phone string) (
 	return topics, nil
 }
 
-func (uc *SeminarUsecase) StartTopic(topicID string, stream grpc.ServerStreamingServer[v1.StartTopicReply]) error {
+func (uc *SeminarUsecase) StartTopic(topicID string, stream grpc.ServerStreamingServer[v1.StreamOutputReply]) error {
 	topic, err := uc.topicCache.GetTopic(topicID)
 	if err != nil {
 		return err
@@ -113,6 +114,12 @@ func (uc *SeminarUsecase) StartTopic(topicID string, stream grpc.ServerStreaming
 			break
 		}
 		messages = append(messages, message)
+		topic.Speeches = append(topic.Speeches, Speech{
+			Content:  message.Content,
+			RoleUID:  role.Uid,
+			TopicUID: topic.UID,
+			Time:     time.Now(),
+		})
 		role = roleScheduler.NextRole()
 	}
 	return nil
@@ -124,9 +131,5 @@ func (uc *SeminarUsecase) StopTopic(ctx context.Context, topicID string) error {
 		return err
 	}
 	topic.signalChan <- Pause
-	return nil
-}
-
-func (uc *SeminarUsecase) ResumeTopic(ctx context.Context, topicID string) error {
 	return nil
 }

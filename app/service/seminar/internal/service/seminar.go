@@ -70,7 +70,7 @@ func (s *SeminarService) GetTopicsMetadata(ctx context.Context, req *v1.GetTopic
 	}
 	return reply, nil
 }
-func (s *SeminarService) StartTopic(req *v1.StartTopicRequest, stream grpc.ServerStreamingServer[v1.StartTopicReply]) error {
+func (s *SeminarService) StartTopic(req *v1.StartTopicRequest, stream grpc.ServerStreamingServer[v1.StreamOutputReply]) error {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Errorf("panic: %v", r)
@@ -87,11 +87,4 @@ func (s *SeminarService) StopTopic(ctx context.Context, req *v1.StopTopicRequest
 		return nil, err
 	}
 	return &v1.StopTopicReply{Message: "success"}, nil
-}
-
-func (s *SeminarService) ResumeTopic(ctx context.Context, req *v1.ResumeTopicRequest) (*v1.ResumeTopicReply, error) {
-	if err := s.uc.ResumeTopic(ctx, req.TopicId); err != nil {
-		return nil, err
-	}
-	return &v1.ResumeTopicReply{Message: "success"}, nil
 }

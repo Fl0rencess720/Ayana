@@ -65,10 +65,13 @@ func (s *SeminarService) StopTopic(ctx context.Context, req *v1.StopTopicRequest
 	return reply, nil
 }
 
-func (s *SeminarService) ResumeTopic(ctx context.Context, req *v1.ResumeTopicRequest) (*v1.ResumeTopicReply, error) {
-	reply, err := s.uc.ResumeTopic(ctx, req)
+func ResumeTopic(ctx http.Context) error {
+	h := ctx.Middleware(func(c context.Context, req interface{}) (interface{}, error) {
+		return biz.StartTopic(ctx)
+	})
+	_, err := h(ctx, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return reply, nil
+	return nil
 }

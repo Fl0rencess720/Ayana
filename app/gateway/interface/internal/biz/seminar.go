@@ -90,25 +90,18 @@ func StartTopic(ctx http.Context) (interface{}, error) {
 			return nil, nil
 		}
 		switch content := resp.Content.(type) {
-		case *v1.StartTopicReply_Reasoning:
+		case *v1.StreamOutputReply_Reasoning:
 			fmt.Fprintf(w, "event: reasoning\ndata: %s\n\n", content.Reasoning)
-		case *v1.StartTopicReply_Text:
+		case *v1.StreamOutputReply_Text:
 			fmt.Fprintf(w, "event: text\ndata: %s\n\n", content.Text)
 		}
 		flusher.Flush()
 	}
+
 }
 
 func (uc *SeminarUsecase) StopTopic(ctx context.Context, req *v1.StopTopicRequest) (*v1.StopTopicReply, error) {
 	reply, err := uc.seminarClient.StopTopic(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-	return reply, nil
-}
-
-func (uc *SeminarUsecase) ResumeTopic(ctx context.Context, req *v1.ResumeTopicRequest) (*v1.ResumeTopicReply, error) {
-	reply, err := uc.seminarClient.ResumeTopic(ctx, req)
 	if err != nil {
 		return nil, err
 	}

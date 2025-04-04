@@ -23,7 +23,6 @@ const OperationSeminarCreateTopic = "/Wittgenstein.v1.Seminar/CreateTopic"
 const OperationSeminarDeleteTopic = "/Wittgenstein.v1.Seminar/DeleteTopic"
 const OperationSeminarGetTopic = "/Wittgenstein.v1.Seminar/GetTopic"
 const OperationSeminarGetTopicsMetadata = "/Wittgenstein.v1.Seminar/GetTopicsMetadata"
-const OperationSeminarResumeTopic = "/Wittgenstein.v1.Seminar/ResumeTopic"
 const OperationSeminarStopTopic = "/Wittgenstein.v1.Seminar/StopTopic"
 
 type SeminarHTTPServer interface {
@@ -33,7 +32,6 @@ type SeminarHTTPServer interface {
 	GetTopic(context.Context, *GetTopicRequest) (*GetTopicReply, error)
 	// GetTopicsMetadata 获取用户所有讨论主题的元信息，用于前端展示
 	GetTopicsMetadata(context.Context, *GetTopicsMetadataRequest) (*GetTopicsMetadataReply, error)
-	ResumeTopic(context.Context, *ResumeTopicRequest) (*ResumeTopicReply, error)
 	StopTopic(context.Context, *StopTopicRequest) (*StopTopicReply, error)
 }
 
@@ -44,7 +42,6 @@ func RegisterSeminarHTTPServer(s *http.Server, srv SeminarHTTPServer) {
 	r.POST("/seminar/topic/getting", _Seminar_GetTopic0_HTTP_Handler(srv))
 	r.POST("/seminar/topic/deleting", _Seminar_DeleteTopic0_HTTP_Handler(srv))
 	r.POST("/seminar/topic/stopping", _Seminar_StopTopic0_HTTP_Handler(srv))
-	r.POST("/seminar/topic/resuming", _Seminar_ResumeTopic0_HTTP_Handler(srv))
 }
 
 func _Seminar_CreateTopic0_HTTP_Handler(srv SeminarHTTPServer) func(ctx http.Context) error {
@@ -157,34 +154,11 @@ func _Seminar_StopTopic0_HTTP_Handler(srv SeminarHTTPServer) func(ctx http.Conte
 	}
 }
 
-func _Seminar_ResumeTopic0_HTTP_Handler(srv SeminarHTTPServer) func(ctx http.Context) error {
-	return func(ctx http.Context) error {
-		var in ResumeTopicRequest
-		if err := ctx.Bind(&in); err != nil {
-			return err
-		}
-		if err := ctx.BindQuery(&in); err != nil {
-			return err
-		}
-		http.SetOperation(ctx, OperationSeminarResumeTopic)
-		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
-			return srv.ResumeTopic(ctx, req.(*ResumeTopicRequest))
-		})
-		out, err := h(ctx, &in)
-		if err != nil {
-			return err
-		}
-		reply := out.(*ResumeTopicReply)
-		return ctx.Result(200, reply)
-	}
-}
-
 type SeminarHTTPClient interface {
 	CreateTopic(ctx context.Context, req *CreateTopicRequest, opts ...http.CallOption) (rsp *CreateTopicReply, err error)
 	DeleteTopic(ctx context.Context, req *DeleteTopicRequest, opts ...http.CallOption) (rsp *DeleteTopicReply, err error)
 	GetTopic(ctx context.Context, req *GetTopicRequest, opts ...http.CallOption) (rsp *GetTopicReply, err error)
 	GetTopicsMetadata(ctx context.Context, req *GetTopicsMetadataRequest, opts ...http.CallOption) (rsp *GetTopicsMetadataReply, err error)
-	ResumeTopic(ctx context.Context, req *ResumeTopicRequest, opts ...http.CallOption) (rsp *ResumeTopicReply, err error)
 	StopTopic(ctx context.Context, req *StopTopicRequest, opts ...http.CallOption) (rsp *StopTopicReply, err error)
 }
 
@@ -240,19 +214,6 @@ func (c *SeminarHTTPClientImpl) GetTopicsMetadata(ctx context.Context, in *GetTo
 	pattern := "/seminar/topic/metadata"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationSeminarGetTopicsMetadata))
-	opts = append(opts, http.PathTemplate(pattern))
-	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &out, nil
-}
-
-func (c *SeminarHTTPClientImpl) ResumeTopic(ctx context.Context, in *ResumeTopicRequest, opts ...http.CallOption) (*ResumeTopicReply, error) {
-	var out ResumeTopicReply
-	pattern := "/seminar/topic/resuming"
-	path := binding.EncodeURL(pattern, in, false)
-	opts = append(opts, http.Operation(OperationSeminarResumeTopic))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

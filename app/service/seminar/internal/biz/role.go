@@ -65,7 +65,7 @@ func (rs *RoleScheduler) NextRole() *Role {
 	return rs.roles[rs.current]
 }
 
-func (role *Role) Call(messages []*schema.Message, stream grpc.ServerStreamingServer[v1.StartTopicReply], signalChan <-chan StateSignal) (*schema.Message, StateSignal, error) {
+func (role *Role) Call(messages []*schema.Message, stream grpc.ServerStreamingServer[v1.StreamOutputReply], signalChan <-chan StateSignal) (*schema.Message, StateSignal, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -118,8 +118,8 @@ func (role *Role) Call(messages []*schema.Message, stream grpc.ServerStreamingSe
 			}
 			if reasoning, ok := deepseek.GetReasoningContent(resp); ok {
 				message.Content += reasoning
-				if sendErr := stream.Send(&v1.StartTopicReply{
-					Content: &v1.StartTopicReply_Reasoning{Reasoning: reasoning},
+				if sendErr := stream.Send(&v1.StreamOutputReply{
+					Content: &v1.StreamOutputReply_Reasoning{Reasoning: reasoning},
 				}); sendErr != nil {
 					resultChan <- struct {
 						*schema.Message
@@ -131,8 +131,8 @@ func (role *Role) Call(messages []*schema.Message, stream grpc.ServerStreamingSe
 			}
 			if len(resp.Content) > 0 {
 				message.Content += resp.Content
-				if sendErr := stream.Send(&v1.StartTopicReply{
-					Content: &v1.StartTopicReply_Text{Text: resp.Content},
+				if sendErr := stream.Send(&v1.StreamOutputReply{
+					Content: &v1.StreamOutputReply_Text{Text: resp.Content},
 				}); sendErr != nil {
 					resultChan <- struct {
 						*schema.Message

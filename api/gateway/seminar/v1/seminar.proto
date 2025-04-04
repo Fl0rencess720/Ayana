@@ -34,7 +34,7 @@ service Seminar {
       body: "*"
     };
   }
-  rpc StartTopic (StartTopicRequest) returns (stream StartTopicReply) {
+  rpc StartTopic (StartTopicRequest) returns (stream StreamOutputReply) {
   }
   rpc StopTopic (StopTopicRequest) returns (StopTopicReply) {
     option (google.api.http) = {
@@ -42,11 +42,7 @@ service Seminar {
       body: "*"
     };
   }
-  rpc ResumeTopic (ResumeTopicRequest) returns (ResumeTopicReply) {
-    option (google.api.http) = {
-      post: "/seminar/topic/resuming"
-      body: "*"
-    };
+  rpc ResumeTopic (StartTopicRequest) returns (stream StreamOutputReply) {
   }
 }
 
@@ -94,13 +90,6 @@ message StartTopicRequest {
   string topicId = 1;
 }
 
-message StartTopicReply {
-  oneof content {
-    string reasoning = 1;
-    string text = 2;
-  }
-}
-
 message StopTopicRequest {
   string topicId = 1;
 }
@@ -109,12 +98,11 @@ message StopTopicReply {
   string message = 1;
 }
 
-message ResumeTopicRequest {
-  string topicId = 1;
-}
-
-message ResumeTopicReply {
-  string message = 1;
+message StreamOutputReply {
+  oneof content {
+    string reasoning = 1;
+    string text = 2;
+  }
 }
 
 
