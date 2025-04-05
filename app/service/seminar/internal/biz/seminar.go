@@ -102,7 +102,7 @@ func (uc *SeminarUsecase) StartTopic(topicID string, stream grpc.ServerStreaming
 		Role:    schema.User,
 		Content: topic.Content,
 	})
-	for {
+	for i := 0; i < 3; i++ {
 		message, signal, err := role.Call(messages, stream, topic.signalChan)
 		if err != nil {
 			return err

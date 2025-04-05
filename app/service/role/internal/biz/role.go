@@ -29,7 +29,7 @@ type Role struct {
 	Uid         string `gorm:"type:varchar(50)"`
 	RoleName    string `gorm:"type:varchar(50)"`
 	Description string `gorm:"type:text"`
-	Avatar      string `gorm:"type:varchar(50)"`
+	Avatar      string `gorm:"type:varchar(200)"`
 	ApiPath     string `gorm:"type:varchar(50)"`
 	ApiKey      string `gorm:"type:varchar(50)"`
 	ModelName   string `gorm:"type:varchar(50)"`

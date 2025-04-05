@@ -103,6 +103,7 @@ message StreamOutputReply {
     string reasoning = 1;
     string text = 2;
   }
+  string roleUID = 3;
 }
 
 

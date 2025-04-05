@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"sync"
 
 	v1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/seminar/v1"
@@ -65,13 +66,19 @@ func (rs *RoleScheduler) NextRole() *Role {
 	return rs.roles[rs.current]
 }
 
-func (role *Role) Call(messages []*schema.Message, stream grpc.ServerStreamingServer[v1.StreamOutputReply], signalChan <-chan StateSignal) (*schema.Message, StateSignal, error) {
-	ctx, cancel := context.WithCancel(context.Background())
+func (role *Role) Call(messages []*schema.Message, stream grpc.ServerStreamingServer[v1.StreamOutputReply], signalChan chan StateSignal) (*schema.Message, StateSignal, error) {
+	ctx := context.Background()
+	ctxFromPausing, cancel := context.WithCancel(context.Background())
 	defer cancel()
-
 	go func() {
-		if signal, ok := <-signalChan; ok && signal == Pause {
-			cancel()
+		if signal, ok := <-signalChan; ok {
+			if signal == Pause {
+				cancel()
+				return
+			}
+			if signal == Normal {
+				return
+			}
 		}
 	}()
 
@@ -109,6 +116,14 @@ func (role *Role) Call(messages []*schema.Message, stream grpc.ServerStreamingSe
 					}{nil, Pause, nil}
 					return
 				}
+				if errors.Is(err, io.EOF) {
+					resultChan <- struct {
+						*schema.Message
+						StateSignal
+						error
+					}{message, Normal, nil}
+					return
+				}
 				resultChan <- struct {
 					*schema.Message
 					StateSignal
@@ -119,6 +134,7 @@ func (role *Role) Call(messages []*schema.Message, stream grpc.ServerStreamingSe
 			if reasoning, ok := deepseek.GetReasoningContent(resp); ok {
 				message.Content += reasoning
 				if sendErr := stream.Send(&v1.StreamOutputReply{
+					RoleUID: role.Uid,
 					Content: &v1.StreamOutputReply_Reasoning{Reasoning: reasoning},
 				}); sendErr != nil {
 					resultChan <- struct {
@@ -132,6 +148,7 @@ func (role *Role) Call(messages []*schema.Message, stream grpc.ServerStreamingSe
 			if len(resp.Content) > 0 {
 				message.Content += resp.Content
 				if sendErr := stream.Send(&v1.StreamOutputReply{
+					RoleUID: role.Uid,
 					Content: &v1.StreamOutputReply_Text{Text: resp.Content},
 				}); sendErr != nil {
 					resultChan <- struct {
@@ -145,9 +162,10 @@ func (role *Role) Call(messages []*schema.Message, stream grpc.ServerStreamingSe
 		}
 	}()
 	select {
-	case <-ctx.Done():
+	case <-ctxFromPausing.Done():
 		return nil, Pause, nil
 	case result := <-resultChan:
+		signalChan <- Normal
 		return result.Message, result.StateSignal, result.error
 	}
 }

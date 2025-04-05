@@ -19,6 +19,11 @@ type SeminarUsecase struct {
 	seminarClient v1.SeminarClient
 }
 
+type sseResp struct {
+	RoleUID string `json:"role_uid"`
+	Content string `json:"content"`
+}
+
 var globalSeminarUsecase *SeminarUsecase
 
 func NewSeminarUsecase(repo UserRepo, logger log.Logger, seminarClient v1.SeminarClient) *SeminarUsecase {
@@ -90,11 +95,20 @@ func StartTopic(ctx http.Context) (interface{}, error) {
 			flusher.Flush()
 			return nil, nil
 		}
+
 		switch content := resp.Content.(type) {
 		case *v1.StreamOutputReply_Reasoning:
-			fmt.Fprintf(w, "event: reasoning\ndata: %s\n\n", content.Reasoning)
+			sseRespReasoning := sseResp{
+				RoleUID: resp.RoleUID,
+				Content: content.Reasoning,
+			}
+			fmt.Fprintf(w, "event: reasoning\ndata: %v\n\n", sseRespReasoning)
 		case *v1.StreamOutputReply_Text:
-			fmt.Fprintf(w, "event: text\ndata: %s\n\n", content.Text)
+			sseRespText := sseResp{
+				RoleUID: resp.RoleUID,
+				Content: content.Text,
+			}
+			fmt.Fprintf(w, "event: text\ndata: %v\n\n", sseRespText)
 		}
 		flusher.Flush()
 	}
