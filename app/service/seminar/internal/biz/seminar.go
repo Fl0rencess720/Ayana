@@ -16,6 +16,7 @@ type SeminarRepo interface {
 	DeleteTopic(ctx context.Context, topicUID string) error
 	GetTopic(ctx context.Context, topicUID string) (*Topic, error)
 	GetTopicsMetadata(ctx context.Context, phone string) ([]Topic, error)
+	SaveSpeech(ctx context.Context, speech *Speech) error
 }
 
 type SeminarUsecase struct {
@@ -113,12 +114,16 @@ func (uc *SeminarUsecase) StartTopic(topicID string, stream grpc.ServerStreaming
 			break
 		}
 		messages = append(messages, message)
-		topic.Speeches = append(topic.Speeches, Speech{
+		speech := Speech{
 			Content:  message.Content,
 			RoleUID:  role.Uid,
 			TopicUID: topic.UID,
 			Time:     time.Now(),
-		})
+		}
+		topic.Speeches = append(topic.Speeches, speech)
+		if err := uc.repo.SaveSpeech(context.Background(), &speech); err != nil {
+			return err
+		}
 		role = roleScheduler.NextRole()
 	}
 	return nil

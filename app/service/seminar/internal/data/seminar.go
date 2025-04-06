@@ -50,3 +50,9 @@ func (r *seminarRepo) GetTopicsMetadata(ctx context.Context, phone string) ([]bi
 	}
 	return topics, nil
 }
+func (r *seminarRepo) SaveSpeech(ctx context.Context, speech *biz.Speech) error {
+	if err := r.data.mysqlClient.Create(speech).Error; err != nil {
+		return err
+	}
+	return nil
+}

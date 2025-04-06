@@ -59,7 +59,7 @@ func NewHTTPServer(c *conf.Server, role *service.RoleService, user *service.User
 	seminarV1.RegisterSeminarHTTPServer(srv, seminar)
 	route := srv.Route("/seminar")
 	seminarRouter := route.Group("/topic")
-	seminarRouter.POST("starting", service.StartTopic)
+	seminarRouter.GET("starting", service.StartTopic)
 	seminarRouter.POST("resuming", service.ResumeTopic)
 	return srv
 }
