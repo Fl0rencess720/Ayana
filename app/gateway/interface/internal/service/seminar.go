@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 
 	v1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/seminar/v1"
 	"github.com/Fl0rencess720/Wittgenstein/app/gateway/interface/internal/biz"
@@ -48,7 +47,6 @@ func (s *SeminarService) GetTopicsMetadata(ctx context.Context, req *v1.GetTopic
 	return reply, nil
 }
 func StartTopic(ctx http.Context) error {
-	fmt.Println("开启喵")
 	h := ctx.Middleware(func(c context.Context, req interface{}) (interface{}, error) {
 		return biz.StartTopic(ctx)
 	})

@@ -41,8 +41,8 @@ type Topic struct {
 type Speech struct {
 	gorm.Model
 	UID      string    `gorm:"primaryKey;column:uid;size:255"`
-	TopicUID string    `gorm:"column:topic_uid;size:255;index"`
-	RoleUID  string    `gorm:"column:role_uid;size:255"`
+	TopicUID string    `gorm:"column:topic_uid;type:varchar(50);index"`
+	RoleUID  string    `gorm:"column:role_uid;type:varchar(50)"`
 	Content  string    `gorm:"column:content;type:text"`
 	Time     time.Time `gorm:"column:time"`
 }

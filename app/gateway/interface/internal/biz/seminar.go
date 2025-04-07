@@ -69,15 +69,11 @@ func (uc *SeminarUsecase) GetTopicsMetadata(ctx context.Context, req *v1.GetTopi
 
 func StartTopic(ctx http.Context) (interface{}, error) {
 	req := v1.StartTopicRequest{}
-	if err := ctx.Bind(&req); err != nil {
-		return nil, err
-	}
 	req.TopicId = ctx.Query().Get("topic_id")
 	stream, err := globalSeminarUsecase.seminarClient.StartTopic(ctx, &req)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(1)
 	w := ctx.Response()
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
@@ -104,14 +100,12 @@ func StartTopic(ctx http.Context) (interface{}, error) {
 				RoleUID: resp.RoleUID,
 				Content: content.Reasoning,
 			}
-			fmt.Printf("sseRespReasoning: %v\n", sseRespReasoning)
 			fmt.Fprintf(w, "event: reasoning\ndata: %v\n\n", sseRespReasoning)
 		case *v1.StreamOutputReply_Text:
 			sseRespText := sseResp{
 				RoleUID: resp.RoleUID,
 				Content: content.Text,
 			}
-			fmt.Printf("sseRespText: %v\n", sseRespText)
 			fmt.Fprintf(w, "event: text\ndata: %v\n\n", sseRespText)
 		}
 		flusher.Flush()
