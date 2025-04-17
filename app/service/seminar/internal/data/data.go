@@ -39,18 +39,14 @@ func NewData(c *conf.Data, logger log.Logger, mysqlClient *gorm.DB, redisClient 
 }
 
 func NewMysql(c *conf.Data) *gorm.DB {
-	db, err := gorm.Open(mysql.Open(c.Database.Source), &gorm.Config{
-		DisableForeignKeyConstraintWhenMigrating: true,
-	})
+	db, err := gorm.Open(mysql.Open(c.Database.Source), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect mysql")
 	}
-	if err := db.AutoMigrate(biz.Topic{}); err != nil {
+	if err := db.AutoMigrate(&biz.Topic{}, &biz.Speech{}); err != nil {
 		panic("failed to migrate mysql")
 	}
-	if err := db.AutoMigrate(biz.Speech{}); err != nil {
-		panic("failed to migrate mysql")
-	}
+
 	return db
 }
 

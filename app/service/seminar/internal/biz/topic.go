@@ -26,7 +26,7 @@ type TopicCache struct {
 
 type Topic struct {
 	gorm.Model
-	UID          string   `gorm:"primaryKey;column:uid;size:255"`
+	UID          string   `gorm:"index;column:uid;type:varchar(255)"`
 	Content      string   `gorm:"column:content;type:text"`
 	State        State    `gorm:"-;"`
 	Moderator    string   `gorm:"column:moderator;type:varchar(255)"`
@@ -41,7 +41,7 @@ type Topic struct {
 
 type Speech struct {
 	gorm.Model
-	UID      string    `gorm:"primaryKey;column:uid;size:255"`
+	UID      string    `gorm:"index;column:uid;type:varchar(255)"`
 	TopicUID string    `gorm:"column:topic_uid;type:varchar(255)"`
 	RoleUID  string    `gorm:"column:role_uid;type:varchar(50)"`
 	Content  string    `gorm:"column:content;type:text"`
