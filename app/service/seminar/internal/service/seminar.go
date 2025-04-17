@@ -21,7 +21,7 @@ func NewSeminarService(uc *biz.SeminarUsecase) *SeminarService {
 }
 
 func (s *SeminarService) CreateTopic(ctx context.Context, req *v1.CreateTopicRequest) (*v1.CreateTopicReply, error) {
-	topic, err := biz.NewTopic(req.Content, req.Participants)
+	topic, err := biz.NewTopic(req.Content, req.Moderator, req.Participants)
 	if err != nil {
 		return nil, err
 	}

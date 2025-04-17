@@ -17,6 +17,7 @@ type SeminarRepo interface {
 	GetTopic(ctx context.Context, topicUID string) (*Topic, error)
 	GetTopicsMetadata(ctx context.Context, phone string) ([]Topic, error)
 	SaveSpeech(ctx context.Context, speech *Speech) error
+	SaveSpeechToRedis(ctx context.Context, speech *Speech) error
 }
 
 type SeminarUsecase struct {
@@ -76,9 +77,18 @@ func (uc *SeminarUsecase) StartTopic(topicID string, stream grpc.ServerStreaming
 		topic.signalChan = make(chan StateSignal, 1)
 		uc.topicCache.SetTopic(topic)
 	}
-	rolesReply, err := uc.roleClient.GetRolesByUIDs(context.Background(), &roleV1.GetRolesByUIDsRequest{Phone: topic.Phone, Uids: topic.Participants})
+	rolesReply, err := uc.roleClient.GetRolesAndModeratorByUIDs(context.Background(), &roleV1.GetRolesAndModeratorByUIDsRequest{Phone: topic.Phone, Moderator: topic.Moderator, Uids: topic.Participants})
 	if err != nil {
 		return err
+	}
+	moderator := &Role{
+		Uid:         rolesReply.Moderator.Uid,
+		RoleName:    rolesReply.Moderator.Name,
+		Description: rolesReply.Moderator.Description,
+		Avatar:      rolesReply.Moderator.Avatar,
+		ApiPath:     rolesReply.Moderator.ApiPath,
+		ApiKey:      rolesReply.Moderator.ApiKey,
+		ModelName:   rolesReply.Moderator.Model.Name,
 	}
 	roles := []*Role{}
 	for _, r := range rolesReply.Roles {
@@ -93,17 +103,16 @@ func (uc *SeminarUsecase) StartTopic(topicID string, stream grpc.ServerStreaming
 		})
 	}
 	uc.roleCache.SetRoles(topicID, roles)
-	roleScheduler := RoleScheduler{roles: roles}
+	roleScheduler := RoleScheduler{moderator: moderator, roles: roles}
 	role := roleScheduler.NextRole()
 	topic.State = &PreparingState{}
 	topic.State.nextState(topic)
-
 	messages := []*schema.Message{}
 	messages = append(messages, &schema.Message{
 		Role:    schema.User,
 		Content: topic.Content,
 	})
-	for i := 0; i < 3; i++ {
+	for {
 		message, signal, err := role.Call(messages, stream, topic.signalChan)
 		if err != nil {
 			return err

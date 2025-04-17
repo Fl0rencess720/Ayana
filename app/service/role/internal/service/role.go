@@ -67,12 +67,12 @@ func (s *RoleService) GetRoles(ctx context.Context, req *v1.GetRolesRequest) (*v
 	return reply, nil
 }
 
-func (s *RoleService) GetRolesByUIDs(ctx context.Context, req *v1.GetRolesByUIDsRequest) (*v1.GetRolesByUIDsReply, error) {
-	roles, err := s.uc.GetRolesByUIDs(ctx, req.Phone, req.Uids)
+func (s *RoleService) GetRolesAndModeratorByUIDs(ctx context.Context, req *v1.GetRolesAndModeratorByUIDsRequest) (*v1.GetRolesAndModeratorByUIDsReply, error) {
+	moderator, roles, err := s.uc.GetRolesAndModeratorByUIDs(ctx, req.Phone, req.Moderator, req.Uids)
 	if err != nil {
 		return nil, err
 	}
-	reply := &v1.GetRolesByUIDsReply{}
+	reply := &v1.GetRolesAndModeratorByUIDsReply{}
 	for _, role := range roles {
 		reply.Roles = append(reply.Roles, &v1.Role{
 			Uid:         role.Uid,
@@ -85,6 +85,17 @@ func (s *RoleService) GetRolesByUIDs(ctx context.Context, req *v1.GetRolesByUIDs
 				Provider: role.Provider,
 			},
 		})
+	}
+	reply.Moderator = &v1.Role{
+		Uid:         moderator.Uid,
+		Name:        moderator.RoleName,
+		Description: moderator.Description,
+		ApiPath:     moderator.ApiPath,
+		ApiKey:      moderator.ApiKey,
+		Model: &v1.Model{
+			Name:     moderator.ModelName,
+			Provider: moderator.Provider,
+		},
 	}
 	return reply, nil
 }

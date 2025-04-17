@@ -66,12 +66,14 @@ message Topic {
   string title = 4;
   string title_image = 5;
   string content = 6;
+  string moderator = 7;
 } 
 
 message CreateTopicRequest {
   string phone = 1;
   string content = 2;
-  repeated string participants = 3;
+  string moderator = 3;
+  repeated string participants = 4;
 }
 
 message CreateTopicReply {

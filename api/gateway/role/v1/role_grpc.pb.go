@@ -19,12 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	RoleManager_CreateRole_FullMethodName         = "/Wittgenstein.v1.RoleManager/CreateRole"
-	RoleManager_DeleteRole_FullMethodName         = "/Wittgenstein.v1.RoleManager/DeleteRole"
-	RoleManager_GetRoles_FullMethodName           = "/Wittgenstein.v1.RoleManager/GetRoles"
-	RoleManager_GetRolesByUIDs_FullMethodName     = "/Wittgenstein.v1.RoleManager/GetRolesByUIDs"
-	RoleManager_GetAvailableModels_FullMethodName = "/Wittgenstein.v1.RoleManager/GetAvailableModels"
-	RoleManager_SetRole_FullMethodName            = "/Wittgenstein.v1.RoleManager/SetRole"
+	RoleManager_CreateRole_FullMethodName                 = "/Wittgenstein.v1.RoleManager/CreateRole"
+	RoleManager_DeleteRole_FullMethodName                 = "/Wittgenstein.v1.RoleManager/DeleteRole"
+	RoleManager_GetRoles_FullMethodName                   = "/Wittgenstein.v1.RoleManager/GetRoles"
+	RoleManager_GetRolesAndModeratorByUIDs_FullMethodName = "/Wittgenstein.v1.RoleManager/GetRolesAndModeratorByUIDs"
+	RoleManager_GetAvailableModels_FullMethodName         = "/Wittgenstein.v1.RoleManager/GetAvailableModels"
+	RoleManager_SetRole_FullMethodName                    = "/Wittgenstein.v1.RoleManager/SetRole"
 )
 
 // RoleManagerClient is the client API for RoleManager service.
@@ -34,7 +34,7 @@ type RoleManagerClient interface {
 	CreateRole(ctx context.Context, in *CreateRoleRequest, opts ...grpc.CallOption) (*CreateRoleReply, error)
 	DeleteRole(ctx context.Context, in *DeleteRoleRequest, opts ...grpc.CallOption) (*DeleteRoleReply, error)
 	GetRoles(ctx context.Context, in *GetRolesRequest, opts ...grpc.CallOption) (*GetRolesReply, error)
-	GetRolesByUIDs(ctx context.Context, in *GetRolesByUIDsRequest, opts ...grpc.CallOption) (*GetRolesByUIDsReply, error)
+	GetRolesAndModeratorByUIDs(ctx context.Context, in *GetRolesAndModeratorByUIDsRequest, opts ...grpc.CallOption) (*GetRolesAndModeratorByUIDsReply, error)
 	GetAvailableModels(ctx context.Context, in *GetAvailableModelsRequest, opts ...grpc.CallOption) (*GetAvailableModelsReply, error)
 	SetRole(ctx context.Context, in *SetRoleRequest, opts ...grpc.CallOption) (*SetRoleReply, error)
 }
@@ -77,10 +77,10 @@ func (c *roleManagerClient) GetRoles(ctx context.Context, in *GetRolesRequest, o
 	return out, nil
 }
 
-func (c *roleManagerClient) GetRolesByUIDs(ctx context.Context, in *GetRolesByUIDsRequest, opts ...grpc.CallOption) (*GetRolesByUIDsReply, error) {
+func (c *roleManagerClient) GetRolesAndModeratorByUIDs(ctx context.Context, in *GetRolesAndModeratorByUIDsRequest, opts ...grpc.CallOption) (*GetRolesAndModeratorByUIDsReply, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetRolesByUIDsReply)
-	err := c.cc.Invoke(ctx, RoleManager_GetRolesByUIDs_FullMethodName, in, out, cOpts...)
+	out := new(GetRolesAndModeratorByUIDsReply)
+	err := c.cc.Invoke(ctx, RoleManager_GetRolesAndModeratorByUIDs_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +114,7 @@ type RoleManagerServer interface {
 	CreateRole(context.Context, *CreateRoleRequest) (*CreateRoleReply, error)
 	DeleteRole(context.Context, *DeleteRoleRequest) (*DeleteRoleReply, error)
 	GetRoles(context.Context, *GetRolesRequest) (*GetRolesReply, error)
-	GetRolesByUIDs(context.Context, *GetRolesByUIDsRequest) (*GetRolesByUIDsReply, error)
+	GetRolesAndModeratorByUIDs(context.Context, *GetRolesAndModeratorByUIDsRequest) (*GetRolesAndModeratorByUIDsReply, error)
 	GetAvailableModels(context.Context, *GetAvailableModelsRequest) (*GetAvailableModelsReply, error)
 	SetRole(context.Context, *SetRoleRequest) (*SetRoleReply, error)
 	mustEmbedUnimplementedRoleManagerServer()
@@ -136,8 +136,8 @@ func (UnimplementedRoleManagerServer) DeleteRole(context.Context, *DeleteRoleReq
 func (UnimplementedRoleManagerServer) GetRoles(context.Context, *GetRolesRequest) (*GetRolesReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRoles not implemented")
 }
-func (UnimplementedRoleManagerServer) GetRolesByUIDs(context.Context, *GetRolesByUIDsRequest) (*GetRolesByUIDsReply, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetRolesByUIDs not implemented")
+func (UnimplementedRoleManagerServer) GetRolesAndModeratorByUIDs(context.Context, *GetRolesAndModeratorByUIDsRequest) (*GetRolesAndModeratorByUIDsReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRolesAndModeratorByUIDs not implemented")
 }
 func (UnimplementedRoleManagerServer) GetAvailableModels(context.Context, *GetAvailableModelsRequest) (*GetAvailableModelsReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAvailableModels not implemented")
@@ -220,20 +220,20 @@ func _RoleManager_GetRoles_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
-func _RoleManager_GetRolesByUIDs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetRolesByUIDsRequest)
+func _RoleManager_GetRolesAndModeratorByUIDs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRolesAndModeratorByUIDsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RoleManagerServer).GetRolesByUIDs(ctx, in)
+		return srv.(RoleManagerServer).GetRolesAndModeratorByUIDs(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: RoleManager_GetRolesByUIDs_FullMethodName,
+		FullMethod: RoleManager_GetRolesAndModeratorByUIDs_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RoleManagerServer).GetRolesByUIDs(ctx, req.(*GetRolesByUIDsRequest))
+		return srv.(RoleManagerServer).GetRolesAndModeratorByUIDs(ctx, req.(*GetRolesAndModeratorByUIDsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -294,8 +294,8 @@ var RoleManager_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _RoleManager_GetRoles_Handler,
 		},
 		{
-			MethodName: "GetRolesByUIDs",
-			Handler:    _RoleManager_GetRolesByUIDs_Handler,
+			MethodName: "GetRolesAndModeratorByUIDs",
+			Handler:    _RoleManager_GetRolesAndModeratorByUIDs_Handler,
 		},
 		{
 			MethodName: "GetAvailableModels",

@@ -56,3 +56,10 @@ func (r *seminarRepo) SaveSpeech(ctx context.Context, speech *biz.Speech) error 
 	}
 	return nil
 }
+
+func (r *seminarRepo) SaveSpeechToRedis(ctx context.Context, speech *biz.Speech) error {
+	if err := r.data.redisClient.Set(ctx, speech.UID, speech, 0).Err(); err != nil {
+		return err
+	}
+	return nil
+}

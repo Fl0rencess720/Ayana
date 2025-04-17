@@ -12,19 +12,44 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/http"
 )
 
+type SeminarRepo interface {
+	GetTopicsMetadataFromRedis(context.Context, string) ([]TopicMetadata, error)
+	GetTopicFromRedis(context.Context, string)
+}
+
 type SeminarUsecase struct {
 	repo UserRepo
 	log  *log.Helper
 
 	seminarClient v1.SeminarClient
 }
-
 type sseResp struct {
 	RoleUID string `json:"role_uid"`
 	Content string `json:"content"`
 }
 
 var globalSeminarUsecase *SeminarUsecase
+
+type TopicMetadata struct {
+	Uid          string   `json:"uid"`
+	Content      string   `json:"content"`
+	Participants []string `json:"participants"`
+}
+
+type Speech struct {
+	Uid     string
+	RoleUid string
+	Content string
+}
+
+type Topic struct {
+	Uid          string
+	Participants []string
+	Speeches     []Speech
+	Title        string
+	TitleImage   string
+	Content      string
+}
 
 func NewSeminarUsecase(repo UserRepo, logger log.Logger, seminarClient v1.SeminarClient) *SeminarUsecase {
 	seminarUsecase := &SeminarUsecase{repo: repo, log: log.NewHelper(logger), seminarClient: seminarClient}

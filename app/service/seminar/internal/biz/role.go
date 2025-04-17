@@ -33,8 +33,10 @@ type RoleCache struct {
 }
 
 type RoleScheduler struct {
-	roles   []*Role
-	current int
+	moderator      *Role
+	isNotModerator bool
+	roles          []*Role
+	current        int
 }
 
 func NewRoleCache() *RoleCache {
@@ -62,7 +64,12 @@ func (rc *RoleCache) DeleteRoles(topicID string) {
 }
 
 func (rs *RoleScheduler) NextRole() *Role {
+	if !rs.isNotModerator {
+		rs.isNotModerator = true
+		return rs.moderator
+	}
 	rs.current = (rs.current + 1) % len(rs.roles)
+	rs.isNotModerator = false
 	return rs.roles[rs.current]
 }
 

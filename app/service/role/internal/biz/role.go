@@ -11,7 +11,7 @@ type RoleRepo interface {
 	CreateRole(ctx context.Context, phone string, role Role) (string, error)
 	GetRoles(ctx context.Context, phone string) ([]Role, error)
 	GetRolesFromRedis(ctx context.Context, phone string) ([]Role, error)
-	GetRolesByUIDs(ctx context.Context, phone string, uids []string) ([]Role, error)
+	GetRolesAndModeratorByUIDs(ctx context.Context, phone string, moderatorUID string, roleUIDs []string) (Role, []Role, error)
 	DeleteRole(ctx context.Context, uid string) error
 	RolesToRedis(ctx context.Context, phone string, roles []Role) error
 	SetRole(ctx context.Context, phone, uid string, role Role) error
@@ -71,23 +71,24 @@ func (uc *RoleUsecase) GetRoles(ctx context.Context, phone string) ([]Role, erro
 	return roles, nil
 }
 
-func (uc *RoleUsecase) GetRolesByUIDs(ctx context.Context, phone string, uids []string) ([]Role, error) {
+func (uc *RoleUsecase) GetRolesAndModeratorByUIDs(ctx context.Context, phone string, moderatorUID string, RoleUIDs []string) (Role, []Role, error) {
 	rolesFromRedis, err := uc.repo.GetRolesFromRedis(ctx, phone)
 	if err == nil {
-		return rolesFilter(rolesFromRedis, uids), nil
+		moderator, roles := rolesFilter(rolesFromRedis, moderatorUID, RoleUIDs)
+		return moderator, roles, nil
 	} else {
 		uc.log.Error(err)
 	}
-
-	rolesFromDB, err := uc.repo.GetRolesByUIDs(ctx, phone, uids)
+	moderatorFromDB, rolesFromDB, err := uc.repo.GetRolesAndModeratorByUIDs(ctx, phone, moderatorUID, RoleUIDs)
 	if err != nil {
-		return nil, err
+		return Role{}, nil, err
 	}
-	roles := rolesFilter(rolesFromDB, uids)
-	if err = uc.repo.RolesToRedis(ctx, phone, rolesFromDB); err != nil {
+	allRoles := append(rolesFromDB, moderatorFromDB)
+	moderator, roles := rolesFilter(allRoles, moderatorUID, RoleUIDs)
+	if err = uc.repo.RolesToRedis(ctx, phone, allRoles); err != nil {
 		uc.log.Error(err)
 	}
-	return roles, nil
+	return moderator, roles, nil
 }
 
 func (uc *RoleUsecase) DeleteRole(ctx context.Context, phone, uid string) error {
@@ -120,14 +121,18 @@ func (uc *RoleUsecase) SetRole(ctx context.Context, phone, uid string, role Role
 	return nil
 }
 
-func rolesFilter(roles []Role, uids []string) []Role {
-	result := []Role{}
+func rolesFilter(roles []Role, moderatorUID string, RoleUIDs []string) (Role, []Role) {
+	rolesResult := []Role{}
+	moderator := Role{}
 	for _, role := range roles {
-		for _, uid := range uids {
+		for _, uid := range RoleUIDs {
 			if role.Uid == uid {
-				result = append(result, role)
+				rolesResult = append(rolesResult, role)
 			}
 		}
+		if role.Uid == moderatorUID {
+			moderator = role
+		}
 	}
-	return result
+	return moderator, rolesResult
 }
