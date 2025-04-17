@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	roleV1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/role/v1"
@@ -27,6 +28,11 @@ type SeminarUsecase struct {
 	roleClient roleV1.RoleManagerClient
 	topicCache *TopicCache
 	roleCache  *RoleCache
+}
+
+type prompt struct {
+	RoleName string `json:"role_name"`
+	Content  string `json:"content"`
 }
 
 func NewSeminarUsecase(repo SeminarRepo, topicCache *TopicCache, roleCache *RoleCache, roleClient roleV1.RoleManagerClient, logger log.Logger) *SeminarUsecase {
@@ -107,10 +113,21 @@ func (uc *SeminarUsecase) StartTopic(topicID string, stream grpc.ServerStreaming
 	role := roleScheduler.NextRole()
 	topic.State = &PreparingState{}
 	topic.State.nextState(topic)
+
+	// 构建prompt
+	prompt := prompt{
+		RoleName: role.RoleName,
+		Content:  topic.Content,
+	}
+	promptBytes, err := json.Marshal(prompt)
+	if err != nil {
+		return err
+	}
+	promptString := string(promptBytes)
 	messages := []*schema.Message{}
 	messages = append(messages, &schema.Message{
 		Role:    schema.User,
-		Content: topic.Content,
+		Content: promptString,
 	})
 	for {
 		message, signal, err := role.Call(messages, stream, topic.signalChan)
