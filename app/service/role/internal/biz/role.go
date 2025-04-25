@@ -83,6 +83,7 @@ func (uc *RoleUsecase) GetRolesAndModeratorByUIDs(ctx context.Context, phone str
 	if err != nil {
 		return Role{}, nil, err
 	}
+
 	allRoles := append(rolesFromDB, moderatorFromDB)
 	moderator, roles := rolesFilter(allRoles, moderatorUID, RoleUIDs)
 	if err = uc.repo.RolesToRedis(ctx, phone, allRoles); err != nil {

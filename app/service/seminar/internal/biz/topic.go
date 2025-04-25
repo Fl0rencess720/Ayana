@@ -44,6 +44,7 @@ type Speech struct {
 	UID      string    `gorm:"index;column:uid;type:varchar(255)"`
 	TopicUID string    `gorm:"column:topic_uid;type:varchar(255)"`
 	RoleUID  string    `gorm:"column:role_uid;type:varchar(50)"`
+	RoleName string    `gorm:"column:role_name;type:varchar(50)"`
 	Content  string    `gorm:"column:content;type:text"`
 	Time     time.Time `gorm:"column:time"`
 }

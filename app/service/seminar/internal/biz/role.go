@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math/rand"
 	"sync"
 
 	v1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/seminar/v1"
@@ -16,15 +17,16 @@ import (
 
 type Role struct {
 	gorm.Model
-	Phone       string `gorm:"type:varchar(50);primaryKey"`
-	Uid         string `gorm:"type:varchar(50)"`
-	RoleName    string `gorm:"type:varchar(50)"`
-	Description string `gorm:"type:text"`
-	Avatar      string `gorm:"type:varchar(50)"`
-	ApiPath     string `gorm:"type:varchar(50)"`
-	ApiKey      string `gorm:"type:varchar(50)"`
-	ModelName   string `gorm:"type:varchar(50)"`
-	Provider    string `gorm:"type:varchar(50)"`
+	Phone       string   `gorm:"type:varchar(50);primaryKey"`
+	Uid         string   `gorm:"type:varchar(50)"`
+	RoleName    string   `gorm:"type:varchar(50)"`
+	RoleType    RoleType `gorm:"type:enum(0, 1)"`
+	Description string   `gorm:"type:text"`
+	Avatar      string   `gorm:"type:varchar(50)"`
+	ApiPath     string   `gorm:"type:varchar(50)"`
+	ApiKey      string   `gorm:"type:varchar(50)"`
+	ModelName   string   `gorm:"type:varchar(50)"`
+	Provider    string   `gorm:"type:varchar(50)"`
 }
 
 type RoleCache struct {
@@ -34,9 +36,9 @@ type RoleCache struct {
 
 type RoleScheduler struct {
 	moderator      *Role
-	isNotModerator bool
 	roles          []*Role
-	current        int
+	current        *Role
+	currentRoleIdx int
 }
 
 func NewRoleCache() *RoleCache {
@@ -63,14 +65,44 @@ func (rc *RoleCache) DeleteRoles(topicID string) {
 	delete(rc.Roles, topicID)
 }
 
-func (rs *RoleScheduler) NextRole() *Role {
-	if !rs.isNotModerator {
-		rs.isNotModerator = true
-		return rs.moderator
+func (rs *RoleScheduler) NextRole() (*Role, RoleType) {
+	if rs.current.RoleType != MODERATOR {
+		rs.currentRoleIdx = -1
+		rs.current = rs.moderator
+		return rs.moderator, MODERATOR
 	}
-	rs.current = (rs.current + 1) % len(rs.roles)
-	rs.isNotModerator = false
-	return rs.roles[rs.current]
+
+	if rs.currentRoleIdx == -1 {
+		if len(rs.roles) == 0 {
+			return rs.moderator, MODERATOR
+		}
+		randomIndex := rand.Intn(len(rs.roles))
+		rs.current = rs.roles[randomIndex]
+		rs.currentRoleIdx = randomIndex
+		return rs.current, PARTICIPANT
+	}
+
+	pre := rs.roles[:rs.currentRoleIdx]
+	tail := []*Role{}
+	if rs.currentRoleIdx+1 < len(rs.roles) {
+		tail = rs.roles[rs.currentRoleIdx+1:]
+	}
+	selectingRoles := append(pre, tail...)
+
+	if len(selectingRoles) == 0 {
+		rs.currentRoleIdx = -1
+		rs.current = rs.moderator
+		return rs.moderator, MODERATOR
+	}
+
+	randomIndex := rand.Intn(len(selectingRoles))
+	originalIdx := rs.currentRoleIdx
+	if randomIndex >= originalIdx {
+		randomIndex++
+	}
+	rs.current = selectingRoles[randomIndex]
+	rs.currentRoleIdx = randomIndex
+	return rs.current, PARTICIPANT
 }
 
 func (role *Role) Call(messages []*schema.Message, stream grpc.ServerStreamingServer[v1.StreamOutputReply], signalChan chan StateSignal) (*schema.Message, StateSignal, error) {
@@ -109,7 +141,6 @@ func (role *Role) Call(messages []*schema.Message, stream grpc.ServerStreamingSe
 		StateSignal
 		error
 	}, 1)
-
 	go func() {
 		defer close(resultChan)
 		for {
