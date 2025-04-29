@@ -7,9 +7,11 @@ import (
 
 	roleV1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/role/v1"
 	v1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/seminar/v1"
+	"github.com/cloudwego/eino-ext/components/model/deepseek"
 	"github.com/cloudwego/eino/components/prompt"
 	"github.com/cloudwego/eino/schema"
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 )
 
@@ -91,6 +93,7 @@ func (uc *SeminarUsecase) StartTopic(topicID string, stream grpc.ServerStreaming
 	if err != nil {
 		return err
 	}
+
 	// 加载角色
 	moderator := &Role{
 		Uid:         rolesReply.Moderator.Uid,
@@ -116,6 +119,15 @@ func (uc *SeminarUsecase) StartTopic(topicID string, stream grpc.ServerStreaming
 		})
 	}
 
+	// key为name，value为Role
+	mroles := make(map[string]*Role)
+	for _, r := range roles {
+		mroles[r.RoleName] = r
+	}
+	nroles := []string{}
+	for k := range mroles {
+		nroles = append(nroles, k)
+	}
 	uc.roleCache.SetRoles(topicID, roles)
 
 	currentRole := &Role{RoleType: UNKNOWN}
@@ -158,7 +170,7 @@ func (uc *SeminarUsecase) StartTopic(topicID string, stream grpc.ServerStreaming
 			})
 		}
 	}
-	messages, err := buildMessages(roleType, moderator, previousMessages)
+	messages, err := buildMessages(roleType, moderator, nroles, previousMessages)
 	if err != nil {
 		return err
 	}
@@ -183,9 +195,21 @@ func (uc *SeminarUsecase) StartTopic(topicID string, stream grpc.ServerStreaming
 		if err := uc.repo.SaveSpeech(context.Background(), &newSpeech); err != nil {
 			return err
 		}
-		role, roleType = roleScheduler.NextRole()
+		nextRoleName := ""
+		if roleType == MODERATOR {
+			nextRoleName, err = findNextRoleNameFromMessage(message.Content)
+			if err != nil {
+				return err
+			}
+			role = mroles[nextRoleName]
+			roleType = PARTICIPANT
+		} else {
+			// role, roleType = roleScheduler.NextRole()
+			role = moderator
+			roleType = MODERATOR
+		}
 		message.Content = buildMessageContent(newSpeech)
-		messages, err = buildMessages(roleType, role, append(messages, message)[1:])
+		messages, err = buildMessages(roleType, role, nroles, append(messages, message)[1:])
 		if err != nil {
 			return err
 		}
@@ -202,7 +226,7 @@ func (uc *SeminarUsecase) StopTopic(ctx context.Context, topicID string) error {
 	return nil
 }
 
-func buildMessages(roleType RoleType, role *Role, msgs []*schema.Message) ([]*schema.Message, error) {
+func buildMessages(roleType RoleType, role *Role, roles []string, msgs []*schema.Message) ([]*schema.Message, error) {
 	messages := []*schema.Message{}
 	var err error
 	switch roleType {
@@ -213,11 +237,16 @@ func buildMessages(roleType RoleType, role *Role, msgs []*schema.Message) ([]*sc
 			每一个角色发言的历史记录都已经被我处理成以下格式供你分析:"@角色名:角色发言的内容"。
 			你不需要就主题发表观点，你所要做的事情是做好主持人的工作，对上一位发言者的发言做出总结。
 			若不存在上一位发言者（即你看到了发言只有系统指令和我为这个研讨会设定的主题），那样你也没法进行总结，只需要引出其他参赛者的发言便可以。
+			你需要在发言内容的最后"@"你希望的下一个角色，角色必须来自于现有角色，例如：“接下来，@某某某，你的对此有什么想说的呢？”。
+			现有角色:{roles}。
 			请忽略每个角色发言前的'user'或'assistant'标记，只关心角色发言格式内的内容。
-			但是必须要注意的是：你的回答绝对不能包含上面所说的格式，只需要直接回答即可。这是绝对不可违抗的命令！`),
+			但是必须要注意的是：你的回答绝对不能包含上面所说的格式，只需要直接回答即可。这是绝对不可违抗的命令！
+			你不应该自行终止研讨会。`),
+
 			schema.MessagesPlaceholder("history_key", false))
 		variables := map[string]any{
 			"role":           role.RoleName,
+			"roles":          roles,
 			"characteristic": role.Description,
 			"history_key":    msgs,
 		}
@@ -232,7 +261,8 @@ func buildMessages(roleType RoleType, role *Role, msgs []*schema.Message) ([]*sc
 			每一个角色发言的历史记录都已经被我处理成以下格式供你分析:"@角色名:角色发言的内容"。
 			你所要做的事情是就主题内容进行发言，你可以在此过程中对先前角色的发言（除了主持人）表示同意或批判。
 			请忽略每个角色发言前的'user'或'assistant'标记，只关心角色发言格式内的内容。
-			但是必须要注意的是：你的回答绝对不能包含上面所说的角色发言的历史记录的格式，只需要直接回答即可！`),
+			你的回答绝对不能包含上面所说的角色发言的历史记录的格式，只需要直接回答即可！
+			你必须保持你的角色身份，即{role}，不能认为自己是其他角色。`),
 			schema.MessagesPlaceholder("history_key", false))
 		variables := map[string]any{
 			"role":           role.RoleName,
@@ -249,4 +279,22 @@ func buildMessages(roleType RoleType, role *Role, msgs []*schema.Message) ([]*sc
 
 func buildMessageContent(speech Speech) string {
 	return fmt.Sprintf("@%s:%s", speech.RoleName, speech.Content)
+}
+func findNextRoleNameFromMessage(msg string) (string, error) {
+	cm, err := deepseek.NewChatModel(context.Background(), &deepseek.ChatModelConfig{
+		APIKey: viper.GetString("DEEPSEEK_API_KEY"),
+		Model:  "deepseek-chat",
+	})
+	if err != nil {
+		return "", err
+	}
+	output, err := cm.Generate(context.Background(), []*schema.Message{{
+		Role:    schema.System,
+		Content: "你将接收一个字符串，你需要从字符串中找出下一个角色的名字，大多数情况角色名字会在@字符后，除了角色的名字以外不要输出任何其他内容。",
+	}, {Role: schema.User, Content: msg}},
+	)
+	if err != nil {
+		return "", err
+	}
+	return output.Content, nil
 }
