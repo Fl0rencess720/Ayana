@@ -7,35 +7,50 @@ import (
 	roleV1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/role/v1"
 	"github.com/Fl0rencess720/Wittgenstein/app/service/seminar/internal/biz"
 	"github.com/Fl0rencess720/Wittgenstein/app/service/seminar/internal/conf"
+	embedding "github.com/cloudwego/eino-ext/components/embedding/ark"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/go-kratos/kratos/v2/registry"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
-	"github.com/go-redis/redis/extra/redisotel"
-	"github.com/go-redis/redis/v8"
 	"github.com/google/wire"
+	"github.com/redis/go-redis/v9"
+	"github.com/spf13/viper"
 	grpcx "google.golang.org/grpc"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
 // ProviderSet is data providers.
-var ProviderSet = wire.NewSet(NewData, NewSeminarRepo, NewMysql, NewRedis, NewRoleServiceClient)
+var ProviderSet = wire.NewSet(NewData, NewSeminarRepo, NewRAGRepo, NewMysql, NewRedis, NewEmbedder, NewRoleServiceClient)
 
 // Data .
 type Data struct {
 	mysqlClient *gorm.DB
 	redisClient *redis.Client
 	roleClient  roleV1.RoleManagerClient
+
+	embedder *embedding.Embedder
 }
 
 // NewData .
-func NewData(c *conf.Data, logger log.Logger, mysqlClient *gorm.DB, redisClient *redis.Client, roleClient roleV1.RoleManagerClient) (*Data, func(), error) {
+func NewData(c *conf.Data, logger log.Logger, mysqlClient *gorm.DB, redisClient *redis.Client, roleClient roleV1.RoleManagerClient, embedder *embedding.Embedder) (*Data, func(), error) {
 	cleanup := func() {
 		log.NewHelper(logger).Info("closing the data resources")
 	}
-	return &Data{mysqlClient: mysqlClient, redisClient: redisClient, roleClient: roleClient}, cleanup, nil
+	return &Data{mysqlClient: mysqlClient, redisClient: redisClient, roleClient: roleClient, embedder: embedder}, cleanup, nil
+}
+
+func NewEmbedder(c *conf.Data) *embedding.Embedder {
+	ctx := context.Background()
+	embedder, err := embedding.NewEmbedder(ctx, &embedding.EmbeddingConfig{
+		APIKey: viper.GetString("rag.api_key"),
+		Model:  viper.GetString("rag.model"),
+	})
+	if err != nil {
+		panic("failed to create embedder")
+	}
+	return embedder
 }
 
 func NewMysql(c *conf.Data) *gorm.DB {
@@ -43,7 +58,7 @@ func NewMysql(c *conf.Data) *gorm.DB {
 	if err != nil {
 		panic("failed to connect mysql")
 	}
-	if err := db.AutoMigrate(&biz.Topic{}, &biz.Speech{}); err != nil {
+	if err := db.AutoMigrate(&biz.Topic{}, &biz.Speech{}, &biz.Document{}); err != nil {
 		panic("failed to migrate mysql")
 	}
 
@@ -59,7 +74,6 @@ func NewRedis(c *conf.Data) *redis.Client {
 		WriteTimeout: c.Redis.WriteTimeout.AsDuration(),
 		ReadTimeout:  c.Redis.ReadTimeout.AsDuration(),
 	})
-	rdb.AddHook(redisotel.TracingHook{})
 	return rdb
 }
 

@@ -54,12 +54,22 @@ func NewHTTPServer(c *conf.Server, role *service.RoleService, user *service.User
 		opts = append(opts, http.Timeout(c.Http.Timeout.AsDuration()))
 	}
 	srv := http.NewServer(opts...)
+	NoneProtoRoutesRegister(srv)
+
 	roleV1.RegisterRoleManagerHTTPServer(srv, role)
 	userV1.RegisterUserHTTPServer(srv, user)
 	seminarV1.RegisterSeminarHTTPServer(srv, seminar)
-	route := srv.Route("/seminar")
-	seminarRouter := route.Group("/topic")
+
+	return srv
+}
+
+func NoneProtoRoutesRegister(srv *http.Server) {
+	seminarRoute := srv.Route("/seminar")
+	seminarRouter := seminarRoute.Group("/topic")
 	seminarRouter.GET("starting", service.StartTopic)
 	seminarRouter.POST("resuming", service.ResumeTopic)
-	return srv
+
+	documentRoute := srv.Route("/document")
+	documentRoute.POST("upload", service.UploadDocument)
+
 }

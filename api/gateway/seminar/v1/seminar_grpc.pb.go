@@ -26,6 +26,7 @@ const (
 	Seminar_StartTopic_FullMethodName        = "/Wittgenstein.v1.Seminar/StartTopic"
 	Seminar_StopTopic_FullMethodName         = "/Wittgenstein.v1.Seminar/StopTopic"
 	Seminar_ResumeTopic_FullMethodName       = "/Wittgenstein.v1.Seminar/ResumeTopic"
+	Seminar_UploadDocument_FullMethodName    = "/Wittgenstein.v1.Seminar/UploadDocument"
 )
 
 // SeminarClient is the client API for Seminar service.
@@ -41,6 +42,7 @@ type SeminarClient interface {
 	StartTopic(ctx context.Context, in *StartTopicRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StreamOutputReply], error)
 	StopTopic(ctx context.Context, in *StopTopicRequest, opts ...grpc.CallOption) (*StopTopicReply, error)
 	ResumeTopic(ctx context.Context, in *StartTopicRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StreamOutputReply], error)
+	UploadDocument(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[UploadDocumentRequest, UploadDocumentReply], error)
 }
 
 type seminarClient struct {
@@ -139,6 +141,19 @@ func (c *seminarClient) ResumeTopic(ctx context.Context, in *StartTopicRequest, 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Seminar_ResumeTopicClient = grpc.ServerStreamingClient[StreamOutputReply]
 
+func (c *seminarClient) UploadDocument(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[UploadDocumentRequest, UploadDocumentReply], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Seminar_ServiceDesc.Streams[2], Seminar_UploadDocument_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[UploadDocumentRequest, UploadDocumentReply]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Seminar_UploadDocumentClient = grpc.ClientStreamingClient[UploadDocumentRequest, UploadDocumentReply]
+
 // SeminarServer is the server API for Seminar service.
 // All implementations must embed UnimplementedSeminarServer
 // for forward compatibility.
@@ -152,6 +167,7 @@ type SeminarServer interface {
 	StartTopic(*StartTopicRequest, grpc.ServerStreamingServer[StreamOutputReply]) error
 	StopTopic(context.Context, *StopTopicRequest) (*StopTopicReply, error)
 	ResumeTopic(*StartTopicRequest, grpc.ServerStreamingServer[StreamOutputReply]) error
+	UploadDocument(grpc.ClientStreamingServer[UploadDocumentRequest, UploadDocumentReply]) error
 	mustEmbedUnimplementedSeminarServer()
 }
 
@@ -182,6 +198,9 @@ func (UnimplementedSeminarServer) StopTopic(context.Context, *StopTopicRequest) 
 }
 func (UnimplementedSeminarServer) ResumeTopic(*StartTopicRequest, grpc.ServerStreamingServer[StreamOutputReply]) error {
 	return status.Errorf(codes.Unimplemented, "method ResumeTopic not implemented")
+}
+func (UnimplementedSeminarServer) UploadDocument(grpc.ClientStreamingServer[UploadDocumentRequest, UploadDocumentReply]) error {
+	return status.Errorf(codes.Unimplemented, "method UploadDocument not implemented")
 }
 func (UnimplementedSeminarServer) mustEmbedUnimplementedSeminarServer() {}
 func (UnimplementedSeminarServer) testEmbeddedByValue()                 {}
@@ -316,6 +335,13 @@ func _Seminar_ResumeTopic_Handler(srv interface{}, stream grpc.ServerStream) err
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Seminar_ResumeTopicServer = grpc.ServerStreamingServer[StreamOutputReply]
 
+func _Seminar_UploadDocument_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(SeminarServer).UploadDocument(&grpc.GenericServerStream[UploadDocumentRequest, UploadDocumentReply]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Seminar_UploadDocumentServer = grpc.ClientStreamingServer[UploadDocumentRequest, UploadDocumentReply]
+
 // Seminar_ServiceDesc is the grpc.ServiceDesc for Seminar service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -354,6 +380,11 @@ var Seminar_ServiceDesc = grpc.ServiceDesc{
 			StreamName:    "ResumeTopic",
 			Handler:       _Seminar_ResumeTopic_Handler,
 			ServerStreams: true,
+		},
+		{
+			StreamName:    "UploadDocument",
+			Handler:       _Seminar_UploadDocument_Handler,
+			ClientStreams: true,
 		},
 	},
 	Metadata: "gateway/seminar/v1/seminar.proto",

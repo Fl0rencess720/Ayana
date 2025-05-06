@@ -13,7 +13,8 @@ import (
 type SeminarService struct {
 	v1.UnimplementedSeminarServer
 
-	uc *biz.SeminarUsecase
+	uc  *biz.SeminarUsecase
+	ruc *biz.RAGUsecase
 }
 
 func NewSeminarService(uc *biz.SeminarUsecase) *SeminarService {
@@ -87,4 +88,19 @@ func (s *SeminarService) StopTopic(ctx context.Context, req *v1.StopTopicRequest
 		return nil, err
 	}
 	return &v1.StopTopicReply{Message: "success"}, nil
+}
+
+func (s *SeminarService) UploadDocument(stream v1.Seminar_UploadDocumentServer) error {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Errorf("panic: %v", r)
+		}
+	}()
+
+	if err := s.ruc.UploadDocument(stream); err != nil {
+		return err
+	}
+	return stream.SendAndClose(&v1.UploadDocumentReply{
+		Message: "success",
+	})
 }

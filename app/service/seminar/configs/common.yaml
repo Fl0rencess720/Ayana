@@ -3,3 +3,6 @@ project:
 jwtc:
   accessSecret: test
   refreshSecret: test
+rag:
+  api_key: test
+  model: test

@@ -75,3 +75,14 @@ func ResumeTopic(ctx http.Context) error {
 	}
 	return nil
 }
+
+func UploadDocument(ctx http.Context) error {
+	h := ctx.Middleware(func(c context.Context, req interface{}) (interface{}, error) {
+		return biz.UploadDocument(ctx)
+	})
+	_, err := h(ctx, nil)
+	if err != nil {
+		return err
+	}
+	return nil
+}

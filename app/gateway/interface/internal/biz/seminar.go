@@ -145,3 +145,36 @@ func (uc *SeminarUsecase) StopTopic(ctx context.Context, req *v1.StopTopicReques
 	}
 	return reply, nil
 }
+
+func UploadDocument(ctx http.Context) (interface{}, error) {
+	req := ctx.Request()
+	file, handler, err := req.FormFile("file")
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	stream, err := globalSeminarUsecase.seminarClient.UploadDocument(ctx)
+	if err != nil {
+		return nil, err
+	}
+	buffer := make([]byte, 4096)
+	for {
+		n, err := file.Read(buffer)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
+		stream.Send(&v1.UploadDocumentRequest{
+			Filename:    handler.Filename,
+			ContentType: handler.Header.Get("Content-Type"),
+			ChunkData:   buffer[:n],
+		})
+	}
+	reply, err := stream.CloseAndRecv()
+	if err != nil {
+		return nil, err
+	}
+	return reply, nil
+}

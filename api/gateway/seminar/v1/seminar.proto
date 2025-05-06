@@ -44,6 +44,9 @@ service Seminar {
   }
   rpc ResumeTopic (StartTopicRequest) returns (stream StreamOutputReply) {
   }
+  rpc UploadDocument(stream UploadDocumentRequest) returns (UploadDocumentReply) {
+
+  }
 }
 
 message TopicMetadata {
@@ -125,4 +128,12 @@ message GetTopicRequest {
 message GetTopicReply {
   Topic topic = 1;
 }
+message UploadDocumentRequest {
+  string filename = 1;
+  string content_type = 2;
+  bytes chunk_data = 3;
+}
 
+message UploadDocumentReply {
+  string message = 1;
+} 

@@ -28,7 +28,8 @@ func wireApp(confServer *conf.Server, confService *conf.Service, confData *conf.
 	client := data.NewRedis(confData)
 	discovery := server.NewDiscovery(registry)
 	roleManagerClient := data.NewRoleServiceClient(confService, discovery)
-	dataData, cleanup, err := data.NewData(confData, logger, db, client, roleManagerClient)
+	embedder := data.NewEmbedder(confData)
+	dataData, cleanup, err := data.NewData(confData, logger, db, client, roleManagerClient, embedder)
 	if err != nil {
 		return nil, nil, err
 	}
