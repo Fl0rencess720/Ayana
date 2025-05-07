@@ -7,10 +7,12 @@ import (
 	ri "github.com/cloudwego/eino-ext/components/indexer/redis"
 	"github.com/cloudwego/eino/schema"
 	"github.com/go-kratos/kratos/v2/log"
+	"go.uber.org/zap"
 )
 
 var (
-	keyPrefix = "Wittgenstein:"
+	keyPrefix = "WittgensteinDoc:"
+	indexName = "WittgensteinIndex"
 )
 
 type ragRepo struct {
@@ -19,25 +21,39 @@ type ragRepo struct {
 }
 
 func NewRAGRepo(data *Data, logger log.Logger) biz.RAGRepo {
-	return &ragRepo{
+	ctx := context.Background()
+	r := &ragRepo{
 		data: data,
 		log:  log.NewHelper(log.With(logger, "module", "seminar/data/rag")),
 	}
+	if err := r.InitVectorIndex(ctx); err != nil {
+		zap.L().Error("Failed to init vector index", zap.Error(err))
+	}
+	return r
 }
 
 func (r *ragRepo) DocumentToVectorDB(ctx context.Context, uid string, docs []*schema.Document) error {
-
 	i, err := ri.NewIndexer(ctx, &ri.IndexerConfig{
-		Client:           r.data.redisClient,
-		KeyPrefix:        keyPrefix,
-		DocumentToHashes: nil,
-		BatchSize:        10,
-		Embedding:        r.data.embedder,
+		Client:    r.data.redisClient,
+		KeyPrefix: keyPrefix,
+		DocumentToHashes: func(ctx context.Context, doc *schema.Document) (*ri.Hashes, error) {
+			return &ri.Hashes{
+				Key: doc.ID,
+				Field2Value: map[string]ri.FieldValue{
+					"content": {
+						Value:    doc.Content,
+						EmbedKey: "vector_content",
+					},
+					"document_id": {
+						Value: uid,
+					},
+				},
+			}, nil
+		},
+		BatchSize: 10,
+		Embedding: r.data.embedder,
 	})
 	if err != nil {
-		return err
-	}
-	if err := r.InitVectorIndex(ctx, uid); err != nil {
 		return err
 	}
 	_, err = i.Store(ctx, docs)
@@ -55,29 +71,30 @@ func (r *ragRepo) DocumentToMysql(ctx context.Context, document biz.Document) er
 	return nil
 }
 
-func (r *ragRepo) InitVectorIndex(ctx context.Context, uid string) error {
-	if _, err := r.data.redisClient.Do(ctx, "FT.INFO", uid).Result(); err == nil {
+func (r *ragRepo) InitVectorIndex(ctx context.Context) error {
+	if _, err := r.data.redisClient.Do(ctx, "FT.INFO").Result(); err == nil {
 		return nil
 	}
 
 	createIndexArgs := []interface{}{
-		"FT.CREATE", uid,
+		"FT.CREATE", indexName,
 		"ON", "HASH",
 		"PREFIX", "1", keyPrefix,
 		"SCHEMA",
 		"content", "TEXT",
+		"document_id", "TAG",
 		"vector_content", "VECTOR", "FLAT",
 		"6",
-		"TYPE", "FLOAT32",
 		"DIM", 4096,
 		"DISTANCE_METRIC", "COSINE",
+		"TYPE", "FLOAT32",
 	}
 
 	if err := r.data.redisClient.Do(ctx, createIndexArgs...).Err(); err != nil {
 		return err
 	}
 
-	if _, err := r.data.redisClient.Do(ctx, "FT.INFO", uid).Result(); err != nil {
+	if _, err := r.data.redisClient.Do(ctx, "FT.INFO", indexName).Result(); err != nil {
 		return err
 	}
 	return nil

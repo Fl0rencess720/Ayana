@@ -6,6 +6,7 @@ import (
 	"io"
 
 	v1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/seminar/v1"
+	"github.com/Fl0rencess720/Wittgenstein/pkgs/utils"
 	"github.com/cloudwego/eino-ext/components/document/parser/pdf"
 	"github.com/cloudwego/eino-ext/components/document/transformer/splitter/recursive"
 	"github.com/cloudwego/eino/schema"
@@ -87,7 +88,10 @@ func (uc *RAGUsecase) UploadDocument(stream v1.Seminar_UploadDocumentServer) err
 	if err != nil {
 		return err
 	}
-	uid := uuid.New().String()
+	uid, err := utils.GetSnowflakeID(0)
+	if err != nil {
+		return err
+	}
 	if err := uc.repo.DocumentToVectorDB(ctx, uid, splittedDocs); err != nil {
 		return err
 	}
@@ -134,7 +138,8 @@ func splitDocument(ctx context.Context, docs []*schema.Document) ([]*schema.Docu
 		return nil, err
 	}
 	for _, doc := range splittedDocs {
-		doc.ID = uuid.NewString()
+		uid := uuid.NewString()
+		doc.ID = uid
 	}
 	return splittedDocs, nil
 }
