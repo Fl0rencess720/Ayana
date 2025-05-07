@@ -26,17 +26,17 @@ type TopicCache struct {
 
 type Topic struct {
 	gorm.Model
-	UID          string   `gorm:"index;column:uid;type:varchar(255)"`
-	Content      string   `gorm:"column:content;type:text"`
-	State        State    `gorm:"-;"`
-	Moderator    string   `gorm:"column:moderator;type:varchar(255)"`
-	Participants []string `gorm:"column:participants;type:json;serializer:json"`
-	Speeches     []Speech `gorm:"foreignKey:TopicUID;references:UID"`
-	Title        string   `gorm:"column:title;type:varchar(255)"`
-	TitleImage   string   `gorm:"column:title_image;type:varchar(255)"`
-	Phone        string   `gorm:"column:phone;type:varchar(255)"`
-
-	signalChan chan StateSignal `gorm:"-;"`
+	UID          string           `gorm:"index;column:uid;type:varchar(255)"`
+	Content      string           `gorm:"column:content;type:text"`
+	State        State            `gorm:"-;"`
+	Moderator    string           `gorm:"column:moderator;type:varchar(255)"`
+	Participants []string         `gorm:"column:participants;type:json;serializer:json"`
+	Speeches     []Speech         `gorm:"foreignKey:TopicUID;references:UID"`
+	Title        string           `gorm:"column:title;type:varchar(255)"`
+	TitleImage   string           `gorm:"column:title_image;type:varchar(255)"`
+	Phone        string           `gorm:"column:phone;type:varchar(255)"`
+	Documents    []Document       `gorm:"many2many:load_documents;foreignKey:UID;joinForeignKey:TopicUID;References:UID;joinReferences:DocumentUID"`
+	signalChan   chan StateSignal `gorm:"-;"`
 }
 
 type Speech struct {

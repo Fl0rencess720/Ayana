@@ -331,6 +331,15 @@ components:
             properties:
                 uid:
                     type: string
+        Wittgenstein.v1.Document:
+            type: object
+            properties:
+                uid:
+                    type: string
+                filename:
+                    type: string
+                totalSize:
+                    type: string
         Wittgenstein.v1.GetAvailableModelsReply:
             type: object
             properties:
@@ -506,6 +515,10 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/Wittgenstein.v1.Speech'
+                documents:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Wittgenstein.v1.Document'
                 title:
                     type: string
                 titleImage:
@@ -525,6 +538,10 @@ components:
                     type: array
                     items:
                         type: string
+                documents:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Wittgenstein.v1.Document'
 tags:
     - name: RoleManager
     - name: Seminar

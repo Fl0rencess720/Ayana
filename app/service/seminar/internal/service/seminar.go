@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/go-kratos/kratos/v2/log"
 
@@ -54,6 +55,13 @@ func (s *SeminarService) GetTopic(ctx context.Context, req *v1.GetTopicRequest) 
 			Content: speech.Content,
 		})
 	}
+	for _, document := range topic.Documents {
+		reply.Topic.Documents = append(reply.Topic.Documents, &v1.Document{
+			Filename:  document.Filename,
+			TotalSize: strconv.Itoa(int(document.TotalSize)),
+			Uid:       document.UID,
+		})
+	}
 	return reply, nil
 }
 func (s *SeminarService) GetTopicsMetadata(ctx context.Context, req *v1.GetTopicsMetadataRequest) (*v1.GetTopicsMetadataReply, error) {
@@ -63,10 +71,19 @@ func (s *SeminarService) GetTopicsMetadata(ctx context.Context, req *v1.GetTopic
 	}
 	reply := &v1.GetTopicsMetadataReply{}
 	for _, topic := range topics {
+		documents := make([]*v1.Document, 0)
+		for _, document := range topic.Documents {
+			documents = append(documents, &v1.Document{
+				Filename:  document.Filename,
+				TotalSize: strconv.Itoa(int(document.TotalSize)),
+				Uid:       document.UID,
+			})
+		}
 		reply.Topics = append(reply.Topics, &v1.TopicMetadata{
 			Uid:          topic.UID,
 			Participants: topic.Participants,
 			Content:      topic.Content,
+			Documents:    documents,
 		})
 	}
 	return reply, nil

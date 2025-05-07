@@ -53,6 +53,7 @@ message TopicMetadata {
   string uid = 1;
   string content = 2;
   repeated string participants = 3;
+  repeated Document documents = 4;
 }
 
 message Speech {
@@ -66,11 +67,18 @@ message Topic {
   string uid = 1;
   repeated string participants = 2;
   repeated Speech speeches = 3;
-  string title = 4;
-  string title_image = 5;
-  string content = 6;
-  string moderator = 7;
+  repeated Document documents = 4;
+  string title = 5;
+  string title_image = 6;
+  string content = 7;
+  string moderator = 8;
 } 
+
+message Document {
+  string uid = 1;
+  string filename = 2;
+  string total_size = 3;
+}
 
 message CreateTopicRequest {
   string phone = 1;

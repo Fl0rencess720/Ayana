@@ -35,6 +35,12 @@ type Document struct {
 	Phone       string `gorm:"index"`
 }
 
+type LoadDocument struct {
+	ID          uint   `gorm:"primaryKey"`
+	DocumentUID string `gorm:"foreignKey:DocumentUID;references:UID"`
+	TopicUID    string `gorm:"foreignKey:TopicUID;references:UID"`
+}
+
 func NewRAGUsecase(repo RAGRepo, logger log.Logger) *RAGUsecase {
 	return &RAGUsecase{repo: repo, log: log.NewHelper(logger)}
 }

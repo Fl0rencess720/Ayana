@@ -60,7 +60,7 @@ func NewMysql(c *conf.Data) *gorm.DB {
 	if err != nil {
 		panic("failed to connect mysql")
 	}
-	if err := db.AutoMigrate(&biz.Topic{}, &biz.Speech{}, &biz.Document{}); err != nil {
+	if err := db.AutoMigrate(&biz.Topic{}, &biz.Speech{}, &biz.Document{}, &biz.LoadDocument{}); err != nil {
 		panic("failed to migrate mysql")
 	}
 
