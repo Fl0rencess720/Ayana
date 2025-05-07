@@ -10,11 +10,13 @@ require (
 	github.com/cloudwego/eino-ext/components/embedding/ark v0.0.0-20250429121045-a2545a66f5cf
 	github.com/cloudwego/eino-ext/components/indexer/redis v0.0.0-20250429121045-a2545a66f5cf
 	github.com/cloudwego/eino-ext/components/model/deepseek v0.0.0-20250429121045-a2545a66f5cf
+	github.com/cloudwego/eino-ext/components/retriever/redis v0.0.0-20250507115047-b20720df8528
 	github.com/go-kratos/kratos/contrib/registry/consul/v2 v2.0.0-20250429074618-c82f7957223f
 	github.com/go-kratos/kratos/v2 v2.8.4
 	github.com/go-redis/redis/extra/redisotel v0.3.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/golang-jwt/jwt/v4 v4.5.2
+	github.com/google/uuid v1.6.0
 	github.com/google/wire v0.6.0
 	github.com/gorilla/handlers v1.5.2
 	github.com/hashicorp/consul/api v1.32.1
@@ -61,7 +63,6 @@ require (
 	github.com/go-redis/redis/extra/rediscmd v0.2.0 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/goph/emperror v0.17.2 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.1 // indirect

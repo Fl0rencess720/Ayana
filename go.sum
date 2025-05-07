@@ -64,6 +64,8 @@ github.com/cloudwego/eino-ext/components/indexer/redis v0.0.0-20250429121045-a25
 github.com/cloudwego/eino-ext/components/indexer/redis v0.0.0-20250429121045-a2545a66f5cf/go.mod h1:uMSBD1LB5E+Zxrd+o0DtjMQKLrR0rHp8D/PLeA51YEQ=
 github.com/cloudwego/eino-ext/components/model/deepseek v0.0.0-20250429121045-a2545a66f5cf h1:suVnGx1urskBlx7UtZwOwnUrY7KJwQf4b6iDlXkv9qE=
 github.com/cloudwego/eino-ext/components/model/deepseek v0.0.0-20250429121045-a2545a66f5cf/go.mod h1:JMBM8HTVQo0YaCBA0hWsZME6lDKFmMCU8jScQrZHiUc=
+github.com/cloudwego/eino-ext/components/retriever/redis v0.0.0-20250507115047-b20720df8528 h1:E9CmBkxR8phqYsaESYM3IHdvcuJYxwZUAkCHs12yZEU=
+github.com/cloudwego/eino-ext/components/retriever/redis v0.0.0-20250507115047-b20720df8528/go.mod h1:GzHSsjI5xp8i3fUxlToU1bondTJbWuTHbqBCGK1RmNU=
 github.com/cloudwego/iasm v0.2.0/go.mod h1:8rXZaNYT2n95jn+zTI1sDr+IgcD2GVs0nlbbQPiEFhY=
 github.com/cncf/xds/go v0.0.0-20250121191232-2f005788dc42 h1:Om6kYQYDUk5wWbT0t0q6pvyM49i9XZAv9dDrkDA7gjk=
 github.com/cncf/xds/go v0.0.0-20250121191232-2f005788dc42/go.mod h1:W+zGtBO5Y1IgJhy4+A9GOqVhqLpfZi+vwmdNXUehLA8=

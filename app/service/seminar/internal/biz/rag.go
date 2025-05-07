@@ -19,6 +19,7 @@ import (
 type RAGRepo interface {
 	DocumentToVectorDB(ctx context.Context, uid string, docs []*schema.Document) error
 	DocumentToMysql(ctx context.Context, document Document) error
+	RetrieveDocuments(ctx context.Context, query, uid string) ([]*schema.Document, error)
 }
 
 type RAGUsecase struct {

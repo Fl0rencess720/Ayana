@@ -8,6 +8,7 @@ import (
 	"github.com/Fl0rencess720/Wittgenstein/app/service/seminar/internal/biz"
 	"github.com/Fl0rencess720/Wittgenstein/app/service/seminar/internal/conf"
 	embedding "github.com/cloudwego/eino-ext/components/embedding/ark"
+	rr "github.com/cloudwego/eino-ext/components/retriever/redis"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
@@ -16,13 +17,15 @@ import (
 	"github.com/google/wire"
 	"github.com/redis/go-redis/v9"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 	grpcx "google.golang.org/grpc"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
 // ProviderSet is data providers.
-var ProviderSet = wire.NewSet(NewData, NewSeminarRepo, NewRAGRepo, NewMysql, NewRedis, NewEmbedder, NewRoleServiceClient)
+var ProviderSet = wire.NewSet(NewData, NewSeminarRepo, NewRAGRepo, NewMysql, NewRedis,
+	NewEmbedder, NewRetriever, NewRoleServiceClient)
 
 // Data .
 type Data struct {
@@ -30,15 +33,17 @@ type Data struct {
 	redisClient *redis.Client
 	roleClient  roleV1.RoleManagerClient
 
-	embedder *embedding.Embedder
+	embedder  *embedding.Embedder
+	retriever *rr.Retriever
 }
 
 // NewData .
-func NewData(c *conf.Data, logger log.Logger, mysqlClient *gorm.DB, redisClient *redis.Client, roleClient roleV1.RoleManagerClient, embedder *embedding.Embedder) (*Data, func(), error) {
+func NewData(c *conf.Data, logger log.Logger, mysqlClient *gorm.DB, redisClient *redis.Client, roleClient roleV1.RoleManagerClient,
+	embedder *embedding.Embedder, retriever *rr.Retriever) (*Data, func(), error) {
 	cleanup := func() {
 		log.NewHelper(logger).Info("closing the data resources")
 	}
-	return &Data{mysqlClient: mysqlClient, redisClient: redisClient, roleClient: roleClient, embedder: embedder}, cleanup, nil
+	return &Data{mysqlClient: mysqlClient, redisClient: redisClient, roleClient: roleClient, embedder: embedder, retriever: retriever}, cleanup, nil
 }
 
 func NewEmbedder(c *conf.Data) *embedding.Embedder {
@@ -53,6 +58,26 @@ func NewEmbedder(c *conf.Data) *embedding.Embedder {
 		panic("failed to create embedder")
 	}
 	return embedder
+}
+
+func NewRetriever(vdb *redis.Client, embedder *embedding.Embedder) *rr.Retriever {
+	ctx := context.Background()
+	r, err := rr.NewRetriever(ctx, &rr.RetrieverConfig{
+		Client:            vdb,
+		Index:             indexName,
+		VectorField:       "vector_content",
+		DistanceThreshold: nil,
+		Dialect:           2,
+		ReturnFields:      []string{"vector_content", "content"},
+		DocumentConverter: nil,
+		TopK:              5,
+		Embedding:         embedder,
+	})
+	if err != nil {
+		zap.L().Error("Failed to create retriever", zap.Error(err))
+		return nil
+	}
+	return r
 }
 
 func NewMysql(c *conf.Data) *gorm.DB {

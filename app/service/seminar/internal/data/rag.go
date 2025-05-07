@@ -5,6 +5,7 @@ import (
 
 	"github.com/Fl0rencess720/Wittgenstein/app/service/seminar/internal/biz"
 	ri "github.com/cloudwego/eino-ext/components/indexer/redis"
+	rr "github.com/cloudwego/eino-ext/components/retriever/redis"
 	"github.com/cloudwego/eino/schema"
 	"github.com/go-kratos/kratos/v2/log"
 	"go.uber.org/zap"
@@ -98,4 +99,13 @@ func (r *ragRepo) InitVectorIndex(ctx context.Context) error {
 		return err
 	}
 	return nil
+}
+
+func (r *ragRepo) RetrieveDocuments(ctx context.Context, uid, query string) ([]*schema.Document, error) {
+	filterQuery := "@document_id:{" + uid + "}"
+	docs, err := r.data.retriever.Retrieve(ctx, query, rr.WithFilterQuery(filterQuery))
+	if err != nil {
+		return nil, err
+	}
+	return docs, nil
 }
