@@ -17,8 +17,8 @@ type SeminarService struct {
 	ruc *biz.RAGUsecase
 }
 
-func NewSeminarService(uc *biz.SeminarUsecase) *SeminarService {
-	return &SeminarService{uc: uc}
+func NewSeminarService(uc *biz.SeminarUsecase, ruc *biz.RAGUsecase) *SeminarService {
+	return &SeminarService{uc: uc, ruc: ruc}
 }
 
 func (s *SeminarService) CreateTopic(ctx context.Context, req *v1.CreateTopicRequest) (*v1.CreateTopicReply, error) {

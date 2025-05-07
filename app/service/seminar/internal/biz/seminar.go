@@ -155,7 +155,7 @@ func (uc *SeminarUsecase) StartTopic(topicID string, stream grpc.ServerStreaming
 	topic.State = &PreparingState{}
 	topic.State.nextState(topic)
 
-	previousMessages := []*schema.Message{{Role: schema.User, Content: "@研讨会管理:研讨会的主题是---" + topic.Content + "。请主持人做好准备！"}}
+	previousMessages := []*schema.Message{{Role: schema.User, Content: "@研讨会管理员:研讨会的主题是---" + topic.Content + "。请主持人做好准备！"}}
 	for i, speech := range topic.Speeches {
 		content := buildMessageContent(speech)
 		if i%2 == 0 {

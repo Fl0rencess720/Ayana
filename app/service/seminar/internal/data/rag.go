@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	keyPrefix = "Wittgenstein"
+	keyPrefix = "Wittgenstein:"
 )
 
 type ragRepo struct {

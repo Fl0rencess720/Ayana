@@ -132,6 +132,7 @@ message UploadDocumentRequest {
   string filename = 1;
   string content_type = 2;
   bytes chunk_data = 3;
+  string phone = 4;
 }
 
 message UploadDocumentReply {

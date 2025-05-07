@@ -43,6 +43,7 @@ func (uc *RAGUsecase) UploadDocument(stream v1.Seminar_UploadDocumentServer) err
 	var (
 		buf         bytes.Buffer
 		filename    string
+		phone       string
 		contentType string
 		firstChunk  = true
 		ctx         = context.Background()
@@ -61,6 +62,7 @@ func (uc *RAGUsecase) UploadDocument(stream v1.Seminar_UploadDocumentServer) err
 			firstChunk = false
 			filename = req.GetFilename()
 			contentType = req.GetContentType()
+			phone = req.GetPhone()
 		} else {
 			if req.GetFilename() != filename || req.GetContentType() != contentType {
 				return status.Error(codes.InvalidArgument, "元数据不可变更")
@@ -88,6 +90,7 @@ func (uc *RAGUsecase) UploadDocument(stream v1.Seminar_UploadDocumentServer) err
 		Filename:    filename,
 		ContentType: contentType,
 		TotalSize:   int64(buf.Len()),
+		Phone:       phone,
 	}); err != nil {
 		return err
 	}
@@ -123,6 +126,9 @@ func splitDocument(ctx context.Context, docs []*schema.Document) ([]*schema.Docu
 	splittedDocs, err := splitter.Transform(ctx, docs)
 	if err != nil {
 		return nil, err
+	}
+	for _, doc := range splittedDocs {
+		doc.ID = uuid.NewString()
 	}
 	return splittedDocs, nil
 }

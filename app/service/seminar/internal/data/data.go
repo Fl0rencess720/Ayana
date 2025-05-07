@@ -44,8 +44,10 @@ func NewData(c *conf.Data, logger log.Logger, mysqlClient *gorm.DB, redisClient 
 func NewEmbedder(c *conf.Data) *embedding.Embedder {
 	ctx := context.Background()
 	embedder, err := embedding.NewEmbedder(ctx, &embedding.EmbeddingConfig{
-		APIKey: viper.GetString("rag.api_key"),
-		Model:  viper.GetString("rag.model"),
+		APIKey:  viper.GetString("rag.api_key"),
+		Model:   viper.GetString("rag.model"),
+		BaseURL: "https://ark.cn-beijing.volces.com/api/v3",
+		Region:  "cn-beijing",
 	})
 	if err != nil {
 		panic("failed to create embedder")

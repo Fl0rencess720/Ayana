@@ -78,11 +78,19 @@ func ResumeTopic(ctx http.Context) error {
 
 func UploadDocument(ctx http.Context) error {
 	h := ctx.Middleware(func(c context.Context, req interface{}) (interface{}, error) {
-		return biz.UploadDocument(ctx)
+		file, handler, err := ctx.Request().FormFile("file")
+		if err != nil {
+			return nil, err
+		}
+		defer file.Close()
+
+		return biz.UploadDocument(c, file, handler)
 	})
 	_, err := h(ctx, nil)
 	if err != nil {
 		return err
 	}
-	return nil
+	return ctx.JSON(200, map[string]interface{}{
+		"message": "上传成功",
+	})
 }

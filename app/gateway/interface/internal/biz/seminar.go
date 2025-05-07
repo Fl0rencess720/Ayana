@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"mime/multipart"
 	nethttp "net/http"
 
 	v1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/seminar/v1"
@@ -146,13 +147,8 @@ func (uc *SeminarUsecase) StopTopic(ctx context.Context, req *v1.StopTopicReques
 	return reply, nil
 }
 
-func UploadDocument(ctx http.Context) (interface{}, error) {
-	req := ctx.Request()
-	file, handler, err := req.FormFile("file")
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
+func UploadDocument(ctx context.Context, file multipart.File, handler *multipart.FileHeader) (interface{}, error) {
+	phone := utils.GetPhoneFromContext(ctx)
 	stream, err := globalSeminarUsecase.seminarClient.UploadDocument(ctx)
 	if err != nil {
 		return nil, err
@@ -168,6 +164,7 @@ func UploadDocument(ctx http.Context) (interface{}, error) {
 		}
 		stream.Send(&v1.UploadDocumentRequest{
 			Filename:    handler.Filename,
+			Phone:       phone,
 			ContentType: handler.Header.Get("Content-Type"),
 			ChunkData:   buffer[:n],
 		})
