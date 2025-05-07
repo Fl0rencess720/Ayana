@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/Fl0rencess720/Wittgenstein/app/gateway/interface/internal/biz"
+	"github.com/Fl0rencess720/Ayana/app/gateway/interface/internal/biz"
 	"github.com/go-kratos/kratos/v2/log"
 )
 

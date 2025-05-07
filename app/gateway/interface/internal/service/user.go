@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
-	v1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/user/v1"
-	"github.com/Fl0rencess720/Wittgenstein/app/gateway/interface/internal/biz"
+	v1 "github.com/Fl0rencess720/Ayana/api/gateway/user/v1"
+	"github.com/Fl0rencess720/Ayana/app/gateway/interface/internal/biz"
 )
 
 type UserService struct {

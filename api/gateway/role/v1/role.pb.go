@@ -894,41 +894,41 @@ func file_gateway_role_v1_role_proto_rawDescGZIP() []byte {
 
 var file_gateway_role_v1_role_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_gateway_role_v1_role_proto_goTypes = []any{
-	(*Role)(nil),                              // 0: Wittgenstein.v1.Role
-	(*Model)(nil),                             // 1: Wittgenstein.v1.Model
-	(*CreateRoleRequest)(nil),                 // 2: Wittgenstein.v1.CreateRoleRequest
-	(*CreateRoleReply)(nil),                   // 3: Wittgenstein.v1.CreateRoleReply
-	(*DeleteRoleRequest)(nil),                 // 4: Wittgenstein.v1.DeleteRoleRequest
-	(*DeleteRoleReply)(nil),                   // 5: Wittgenstein.v1.DeleteRoleReply
-	(*GetRolesRequest)(nil),                   // 6: Wittgenstein.v1.GetRolesRequest
-	(*GetRolesReply)(nil),                     // 7: Wittgenstein.v1.GetRolesReply
-	(*SetRoleRequest)(nil),                    // 8: Wittgenstein.v1.SetRoleRequest
-	(*SetRoleReply)(nil),                      // 9: Wittgenstein.v1.SetRoleReply
-	(*GetAvailableModelsRequest)(nil),         // 10: Wittgenstein.v1.GetAvailableModelsRequest
-	(*GetAvailableModelsReply)(nil),           // 11: Wittgenstein.v1.GetAvailableModelsReply
-	(*GetRolesAndModeratorByUIDsRequest)(nil), // 12: Wittgenstein.v1.GetRolesAndModeratorByUIDsRequest
-	(*GetRolesAndModeratorByUIDsReply)(nil),   // 13: Wittgenstein.v1.GetRolesAndModeratorByUIDsReply
+	(*Role)(nil),                              // 0: Ayana.v1.Role
+	(*Model)(nil),                             // 1: Ayana.v1.Model
+	(*CreateRoleRequest)(nil),                 // 2: Ayana.v1.CreateRoleRequest
+	(*CreateRoleReply)(nil),                   // 3: Ayana.v1.CreateRoleReply
+	(*DeleteRoleRequest)(nil),                 // 4: Ayana.v1.DeleteRoleRequest
+	(*DeleteRoleReply)(nil),                   // 5: Ayana.v1.DeleteRoleReply
+	(*GetRolesRequest)(nil),                   // 6: Ayana.v1.GetRolesRequest
+	(*GetRolesReply)(nil),                     // 7: Ayana.v1.GetRolesReply
+	(*SetRoleRequest)(nil),                    // 8: Ayana.v1.SetRoleRequest
+	(*SetRoleReply)(nil),                      // 9: Ayana.v1.SetRoleReply
+	(*GetAvailableModelsRequest)(nil),         // 10: Ayana.v1.GetAvailableModelsRequest
+	(*GetAvailableModelsReply)(nil),           // 11: Ayana.v1.GetAvailableModelsReply
+	(*GetRolesAndModeratorByUIDsRequest)(nil), // 12: Ayana.v1.GetRolesAndModeratorByUIDsRequest
+	(*GetRolesAndModeratorByUIDsReply)(nil),   // 13: Ayana.v1.GetRolesAndModeratorByUIDsReply
 }
 var file_gateway_role_v1_role_proto_depIdxs = []int32{
-	1,  // 0: Wittgenstein.v1.Role.model:type_name -> Wittgenstein.v1.Model
-	0,  // 1: Wittgenstein.v1.CreateRoleRequest.role:type_name -> Wittgenstein.v1.Role
-	0,  // 2: Wittgenstein.v1.GetRolesReply.roles:type_name -> Wittgenstein.v1.Role
-	0,  // 3: Wittgenstein.v1.SetRoleRequest.role:type_name -> Wittgenstein.v1.Role
-	1,  // 4: Wittgenstein.v1.GetAvailableModelsReply.models:type_name -> Wittgenstein.v1.Model
-	0,  // 5: Wittgenstein.v1.GetRolesAndModeratorByUIDsReply.moderator:type_name -> Wittgenstein.v1.Role
-	0,  // 6: Wittgenstein.v1.GetRolesAndModeratorByUIDsReply.roles:type_name -> Wittgenstein.v1.Role
-	2,  // 7: Wittgenstein.v1.RoleManager.CreateRole:input_type -> Wittgenstein.v1.CreateRoleRequest
-	4,  // 8: Wittgenstein.v1.RoleManager.DeleteRole:input_type -> Wittgenstein.v1.DeleteRoleRequest
-	6,  // 9: Wittgenstein.v1.RoleManager.GetRoles:input_type -> Wittgenstein.v1.GetRolesRequest
-	12, // 10: Wittgenstein.v1.RoleManager.GetRolesAndModeratorByUIDs:input_type -> Wittgenstein.v1.GetRolesAndModeratorByUIDsRequest
-	10, // 11: Wittgenstein.v1.RoleManager.GetAvailableModels:input_type -> Wittgenstein.v1.GetAvailableModelsRequest
-	8,  // 12: Wittgenstein.v1.RoleManager.SetRole:input_type -> Wittgenstein.v1.SetRoleRequest
-	3,  // 13: Wittgenstein.v1.RoleManager.CreateRole:output_type -> Wittgenstein.v1.CreateRoleReply
-	5,  // 14: Wittgenstein.v1.RoleManager.DeleteRole:output_type -> Wittgenstein.v1.DeleteRoleReply
-	7,  // 15: Wittgenstein.v1.RoleManager.GetRoles:output_type -> Wittgenstein.v1.GetRolesReply
-	13, // 16: Wittgenstein.v1.RoleManager.GetRolesAndModeratorByUIDs:output_type -> Wittgenstein.v1.GetRolesAndModeratorByUIDsReply
-	11, // 17: Wittgenstein.v1.RoleManager.GetAvailableModels:output_type -> Wittgenstein.v1.GetAvailableModelsReply
-	9,  // 18: Wittgenstein.v1.RoleManager.SetRole:output_type -> Wittgenstein.v1.SetRoleReply
+	1,  // 0: Ayana.v1.Role.model:type_name -> Ayana.v1.Model
+	0,  // 1: Ayana.v1.CreateRoleRequest.role:type_name -> Ayana.v1.Role
+	0,  // 2: Ayana.v1.GetRolesReply.roles:type_name -> Ayana.v1.Role
+	0,  // 3: Ayana.v1.SetRoleRequest.role:type_name -> Ayana.v1.Role
+	1,  // 4: Ayana.v1.GetAvailableModelsReply.models:type_name -> Ayana.v1.Model
+	0,  // 5: Ayana.v1.GetRolesAndModeratorByUIDsReply.moderator:type_name -> Ayana.v1.Role
+	0,  // 6: Ayana.v1.GetRolesAndModeratorByUIDsReply.roles:type_name -> Ayana.v1.Role
+	2,  // 7: Ayana.v1.RoleManager.CreateRole:input_type -> Ayana.v1.CreateRoleRequest
+	4,  // 8: Ayana.v1.RoleManager.DeleteRole:input_type -> Ayana.v1.DeleteRoleRequest
+	6,  // 9: Ayana.v1.RoleManager.GetRoles:input_type -> Ayana.v1.GetRolesRequest
+	12, // 10: Ayana.v1.RoleManager.GetRolesAndModeratorByUIDs:input_type -> Ayana.v1.GetRolesAndModeratorByUIDsRequest
+	10, // 11: Ayana.v1.RoleManager.GetAvailableModels:input_type -> Ayana.v1.GetAvailableModelsRequest
+	8,  // 12: Ayana.v1.RoleManager.SetRole:input_type -> Ayana.v1.SetRoleRequest
+	3,  // 13: Ayana.v1.RoleManager.CreateRole:output_type -> Ayana.v1.CreateRoleReply
+	5,  // 14: Ayana.v1.RoleManager.DeleteRole:output_type -> Ayana.v1.DeleteRoleReply
+	7,  // 15: Ayana.v1.RoleManager.GetRoles:output_type -> Ayana.v1.GetRolesReply
+	13, // 16: Ayana.v1.RoleManager.GetRolesAndModeratorByUIDs:output_type -> Ayana.v1.GetRolesAndModeratorByUIDsReply
+	11, // 17: Ayana.v1.RoleManager.GetAvailableModels:output_type -> Ayana.v1.GetAvailableModelsReply
+	9,  // 18: Ayana.v1.RoleManager.SetRole:output_type -> Ayana.v1.SetRoleReply
 	13, // [13:19] is the sub-list for method output_type
 	7,  // [7:13] is the sub-list for method input_type
 	7,  // [7:7] is the sub-list for extension type_name

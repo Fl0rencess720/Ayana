@@ -3,8 +3,8 @@ package biz
 import (
 	"context"
 
-	roleV1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/role/v1"
-	"github.com/Fl0rencess720/Wittgenstein/pkgs/utils"
+	roleV1 "github.com/Fl0rencess720/Ayana/api/gateway/role/v1"
+	"github.com/Fl0rencess720/Ayana/pkgs/utils"
 	"github.com/go-kratos/kratos/v2/log"
 )
 

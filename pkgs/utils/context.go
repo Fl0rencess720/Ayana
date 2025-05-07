@@ -3,7 +3,7 @@ package utils
 import (
 	"context"
 
-	"github.com/Fl0rencess720/Wittgenstein/pkgs/jwtc"
+	"github.com/Fl0rencess720/Ayana/pkgs/jwtc"
 )
 
 func GetPhoneFromContext(ctx context.Context) string {

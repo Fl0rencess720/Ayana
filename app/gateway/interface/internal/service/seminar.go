@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
-	v1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/seminar/v1"
-	"github.com/Fl0rencess720/Wittgenstein/app/gateway/interface/internal/biz"
+	v1 "github.com/Fl0rencess720/Ayana/api/gateway/seminar/v1"
+	"github.com/Fl0rencess720/Ayana/app/gateway/interface/internal/biz"
 	"github.com/go-kratos/kratos/v2/transport/http"
 )
 

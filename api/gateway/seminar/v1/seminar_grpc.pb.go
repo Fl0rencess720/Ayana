@@ -19,14 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Seminar_CreateTopic_FullMethodName       = "/Wittgenstein.v1.Seminar/CreateTopic"
-	Seminar_GetTopicsMetadata_FullMethodName = "/Wittgenstein.v1.Seminar/GetTopicsMetadata"
-	Seminar_GetTopic_FullMethodName          = "/Wittgenstein.v1.Seminar/GetTopic"
-	Seminar_DeleteTopic_FullMethodName       = "/Wittgenstein.v1.Seminar/DeleteTopic"
-	Seminar_StartTopic_FullMethodName        = "/Wittgenstein.v1.Seminar/StartTopic"
-	Seminar_StopTopic_FullMethodName         = "/Wittgenstein.v1.Seminar/StopTopic"
-	Seminar_ResumeTopic_FullMethodName       = "/Wittgenstein.v1.Seminar/ResumeTopic"
-	Seminar_UploadDocument_FullMethodName    = "/Wittgenstein.v1.Seminar/UploadDocument"
+	Seminar_CreateTopic_FullMethodName       = "/Ayana.v1.Seminar/CreateTopic"
+	Seminar_GetTopicsMetadata_FullMethodName = "/Ayana.v1.Seminar/GetTopicsMetadata"
+	Seminar_GetTopic_FullMethodName          = "/Ayana.v1.Seminar/GetTopic"
+	Seminar_DeleteTopic_FullMethodName       = "/Ayana.v1.Seminar/DeleteTopic"
+	Seminar_StartTopic_FullMethodName        = "/Ayana.v1.Seminar/StartTopic"
+	Seminar_StopTopic_FullMethodName         = "/Ayana.v1.Seminar/StopTopic"
+	Seminar_ResumeTopic_FullMethodName       = "/Ayana.v1.Seminar/ResumeTopic"
+	Seminar_UploadDocument_FullMethodName    = "/Ayana.v1.Seminar/UploadDocument"
 )
 
 // SeminarClient is the client API for Seminar service.
@@ -346,7 +346,7 @@ type Seminar_UploadDocumentServer = grpc.ClientStreamingServer[UploadDocumentReq
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Seminar_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "Wittgenstein.v1.Seminar",
+	ServiceName: "Ayana.v1.Seminar",
 	HandlerType: (*SeminarServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/Fl0rencess720/Wittgenstein/app/service/role/internal/biz"
-	"github.com/Fl0rencess720/Wittgenstein/pkgs/utils"
+	"github.com/Fl0rencess720/Ayana/app/service/role/internal/biz"
+	"github.com/Fl0rencess720/Ayana/pkgs/utils"
 	"github.com/go-kratos/kratos/v2/log"
 )
 

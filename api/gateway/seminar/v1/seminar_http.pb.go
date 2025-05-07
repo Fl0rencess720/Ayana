@@ -19,11 +19,11 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
-const OperationSeminarCreateTopic = "/Wittgenstein.v1.Seminar/CreateTopic"
-const OperationSeminarDeleteTopic = "/Wittgenstein.v1.Seminar/DeleteTopic"
-const OperationSeminarGetTopic = "/Wittgenstein.v1.Seminar/GetTopic"
-const OperationSeminarGetTopicsMetadata = "/Wittgenstein.v1.Seminar/GetTopicsMetadata"
-const OperationSeminarStopTopic = "/Wittgenstein.v1.Seminar/StopTopic"
+const OperationSeminarCreateTopic = "/Ayana.v1.Seminar/CreateTopic"
+const OperationSeminarDeleteTopic = "/Ayana.v1.Seminar/DeleteTopic"
+const OperationSeminarGetTopic = "/Ayana.v1.Seminar/GetTopic"
+const OperationSeminarGetTopicsMetadata = "/Ayana.v1.Seminar/GetTopicsMetadata"
+const OperationSeminarStopTopic = "/Ayana.v1.Seminar/StopTopic"
 
 type SeminarHTTPServer interface {
 	CreateTopic(context.Context, *CreateTopicRequest) (*CreateTopicReply, error)

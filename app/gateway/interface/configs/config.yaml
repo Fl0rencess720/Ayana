@@ -5,7 +5,7 @@ server:
 data:
   database:
     driver: mysql
-    source: root:root@tcp(127.0.0.1:3306)/wittgenstein?parseTime=True&loc=Local
+    source: root:root@tcp(127.0.0.1:3306)/ayana?parseTime=True&loc=Local
   redis:
     addr: 127.0.0.1:6379
     password: "test"
@@ -18,9 +18,9 @@ trace:
 
 service:
   user:
-    endpoint: discovery:///Wittgenstein.service.user
+    endpoint: discovery:///Ayana.service.user
   role:
-    endpoint: discovery:///Wittgenstein.service.role
+    endpoint: discovery:///Ayana.service.role
   seminar:
-    endpoint: discovery:///Wittgenstein.service.seminar
+    endpoint: discovery:///Ayana.service.seminar
   

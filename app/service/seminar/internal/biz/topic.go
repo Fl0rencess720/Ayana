@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Fl0rencess720/Wittgenstein/pkgs/utils"
+	"github.com/Fl0rencess720/Ayana/pkgs/utils"
 	"gorm.io/gorm"
 )
 

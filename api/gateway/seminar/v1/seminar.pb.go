@@ -1215,47 +1215,47 @@ func file_gateway_seminar_v1_seminar_proto_rawDescGZIP() []byte {
 
 var file_gateway_seminar_v1_seminar_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_gateway_seminar_v1_seminar_proto_goTypes = []any{
-	(*TopicMetadata)(nil),            // 0: Wittgenstein.v1.TopicMetadata
-	(*Speech)(nil),                   // 1: Wittgenstein.v1.Speech
-	(*Topic)(nil),                    // 2: Wittgenstein.v1.Topic
-	(*Document)(nil),                 // 3: Wittgenstein.v1.Document
-	(*CreateTopicRequest)(nil),       // 4: Wittgenstein.v1.CreateTopicRequest
-	(*CreateTopicReply)(nil),         // 5: Wittgenstein.v1.CreateTopicReply
-	(*DeleteTopicRequest)(nil),       // 6: Wittgenstein.v1.DeleteTopicRequest
-	(*DeleteTopicReply)(nil),         // 7: Wittgenstein.v1.DeleteTopicReply
-	(*StartTopicRequest)(nil),        // 8: Wittgenstein.v1.StartTopicRequest
-	(*StopTopicRequest)(nil),         // 9: Wittgenstein.v1.StopTopicRequest
-	(*StopTopicReply)(nil),           // 10: Wittgenstein.v1.StopTopicReply
-	(*StreamOutputReply)(nil),        // 11: Wittgenstein.v1.StreamOutputReply
-	(*GetTopicsMetadataRequest)(nil), // 12: Wittgenstein.v1.GetTopicsMetadataRequest
-	(*GetTopicsMetadataReply)(nil),   // 13: Wittgenstein.v1.GetTopicsMetadataReply
-	(*GetTopicRequest)(nil),          // 14: Wittgenstein.v1.GetTopicRequest
-	(*GetTopicReply)(nil),            // 15: Wittgenstein.v1.GetTopicReply
-	(*UploadDocumentRequest)(nil),    // 16: Wittgenstein.v1.UploadDocumentRequest
-	(*UploadDocumentReply)(nil),      // 17: Wittgenstein.v1.UploadDocumentReply
+	(*TopicMetadata)(nil),            // 0: Ayana.v1.TopicMetadata
+	(*Speech)(nil),                   // 1: Ayana.v1.Speech
+	(*Topic)(nil),                    // 2: Ayana.v1.Topic
+	(*Document)(nil),                 // 3: Ayana.v1.Document
+	(*CreateTopicRequest)(nil),       // 4: Ayana.v1.CreateTopicRequest
+	(*CreateTopicReply)(nil),         // 5: Ayana.v1.CreateTopicReply
+	(*DeleteTopicRequest)(nil),       // 6: Ayana.v1.DeleteTopicRequest
+	(*DeleteTopicReply)(nil),         // 7: Ayana.v1.DeleteTopicReply
+	(*StartTopicRequest)(nil),        // 8: Ayana.v1.StartTopicRequest
+	(*StopTopicRequest)(nil),         // 9: Ayana.v1.StopTopicRequest
+	(*StopTopicReply)(nil),           // 10: Ayana.v1.StopTopicReply
+	(*StreamOutputReply)(nil),        // 11: Ayana.v1.StreamOutputReply
+	(*GetTopicsMetadataRequest)(nil), // 12: Ayana.v1.GetTopicsMetadataRequest
+	(*GetTopicsMetadataReply)(nil),   // 13: Ayana.v1.GetTopicsMetadataReply
+	(*GetTopicRequest)(nil),          // 14: Ayana.v1.GetTopicRequest
+	(*GetTopicReply)(nil),            // 15: Ayana.v1.GetTopicReply
+	(*UploadDocumentRequest)(nil),    // 16: Ayana.v1.UploadDocumentRequest
+	(*UploadDocumentReply)(nil),      // 17: Ayana.v1.UploadDocumentReply
 }
 var file_gateway_seminar_v1_seminar_proto_depIdxs = []int32{
-	3,  // 0: Wittgenstein.v1.TopicMetadata.documents:type_name -> Wittgenstein.v1.Document
-	1,  // 1: Wittgenstein.v1.Topic.speeches:type_name -> Wittgenstein.v1.Speech
-	3,  // 2: Wittgenstein.v1.Topic.documents:type_name -> Wittgenstein.v1.Document
-	0,  // 3: Wittgenstein.v1.GetTopicsMetadataReply.topics:type_name -> Wittgenstein.v1.TopicMetadata
-	2,  // 4: Wittgenstein.v1.GetTopicReply.topic:type_name -> Wittgenstein.v1.Topic
-	4,  // 5: Wittgenstein.v1.Seminar.CreateTopic:input_type -> Wittgenstein.v1.CreateTopicRequest
-	12, // 6: Wittgenstein.v1.Seminar.GetTopicsMetadata:input_type -> Wittgenstein.v1.GetTopicsMetadataRequest
-	14, // 7: Wittgenstein.v1.Seminar.GetTopic:input_type -> Wittgenstein.v1.GetTopicRequest
-	6,  // 8: Wittgenstein.v1.Seminar.DeleteTopic:input_type -> Wittgenstein.v1.DeleteTopicRequest
-	8,  // 9: Wittgenstein.v1.Seminar.StartTopic:input_type -> Wittgenstein.v1.StartTopicRequest
-	9,  // 10: Wittgenstein.v1.Seminar.StopTopic:input_type -> Wittgenstein.v1.StopTopicRequest
-	8,  // 11: Wittgenstein.v1.Seminar.ResumeTopic:input_type -> Wittgenstein.v1.StartTopicRequest
-	16, // 12: Wittgenstein.v1.Seminar.UploadDocument:input_type -> Wittgenstein.v1.UploadDocumentRequest
-	5,  // 13: Wittgenstein.v1.Seminar.CreateTopic:output_type -> Wittgenstein.v1.CreateTopicReply
-	13, // 14: Wittgenstein.v1.Seminar.GetTopicsMetadata:output_type -> Wittgenstein.v1.GetTopicsMetadataReply
-	15, // 15: Wittgenstein.v1.Seminar.GetTopic:output_type -> Wittgenstein.v1.GetTopicReply
-	7,  // 16: Wittgenstein.v1.Seminar.DeleteTopic:output_type -> Wittgenstein.v1.DeleteTopicReply
-	11, // 17: Wittgenstein.v1.Seminar.StartTopic:output_type -> Wittgenstein.v1.StreamOutputReply
-	10, // 18: Wittgenstein.v1.Seminar.StopTopic:output_type -> Wittgenstein.v1.StopTopicReply
-	11, // 19: Wittgenstein.v1.Seminar.ResumeTopic:output_type -> Wittgenstein.v1.StreamOutputReply
-	17, // 20: Wittgenstein.v1.Seminar.UploadDocument:output_type -> Wittgenstein.v1.UploadDocumentReply
+	3,  // 0: Ayana.v1.TopicMetadata.documents:type_name -> Ayana.v1.Document
+	1,  // 1: Ayana.v1.Topic.speeches:type_name -> Ayana.v1.Speech
+	3,  // 2: Ayana.v1.Topic.documents:type_name -> Ayana.v1.Document
+	0,  // 3: Ayana.v1.GetTopicsMetadataReply.topics:type_name -> Ayana.v1.TopicMetadata
+	2,  // 4: Ayana.v1.GetTopicReply.topic:type_name -> Ayana.v1.Topic
+	4,  // 5: Ayana.v1.Seminar.CreateTopic:input_type -> Ayana.v1.CreateTopicRequest
+	12, // 6: Ayana.v1.Seminar.GetTopicsMetadata:input_type -> Ayana.v1.GetTopicsMetadataRequest
+	14, // 7: Ayana.v1.Seminar.GetTopic:input_type -> Ayana.v1.GetTopicRequest
+	6,  // 8: Ayana.v1.Seminar.DeleteTopic:input_type -> Ayana.v1.DeleteTopicRequest
+	8,  // 9: Ayana.v1.Seminar.StartTopic:input_type -> Ayana.v1.StartTopicRequest
+	9,  // 10: Ayana.v1.Seminar.StopTopic:input_type -> Ayana.v1.StopTopicRequest
+	8,  // 11: Ayana.v1.Seminar.ResumeTopic:input_type -> Ayana.v1.StartTopicRequest
+	16, // 12: Ayana.v1.Seminar.UploadDocument:input_type -> Ayana.v1.UploadDocumentRequest
+	5,  // 13: Ayana.v1.Seminar.CreateTopic:output_type -> Ayana.v1.CreateTopicReply
+	13, // 14: Ayana.v1.Seminar.GetTopicsMetadata:output_type -> Ayana.v1.GetTopicsMetadataReply
+	15, // 15: Ayana.v1.Seminar.GetTopic:output_type -> Ayana.v1.GetTopicReply
+	7,  // 16: Ayana.v1.Seminar.DeleteTopic:output_type -> Ayana.v1.DeleteTopicReply
+	11, // 17: Ayana.v1.Seminar.StartTopic:output_type -> Ayana.v1.StreamOutputReply
+	10, // 18: Ayana.v1.Seminar.StopTopic:output_type -> Ayana.v1.StopTopicReply
+	11, // 19: Ayana.v1.Seminar.ResumeTopic:output_type -> Ayana.v1.StreamOutputReply
+	17, // 20: Ayana.v1.Seminar.UploadDocument:output_type -> Ayana.v1.UploadDocumentReply
 	13, // [13:21] is the sub-list for method output_type
 	5,  // [5:13] is the sub-list for method input_type
 	5,  // [5:5] is the sub-list for extension type_name

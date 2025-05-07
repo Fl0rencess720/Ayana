@@ -5,8 +5,8 @@ import (
 	"context"
 	"io"
 
-	v1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/seminar/v1"
-	"github.com/Fl0rencess720/Wittgenstein/pkgs/utils"
+	v1 "github.com/Fl0rencess720/Ayana/api/gateway/seminar/v1"
+	"github.com/Fl0rencess720/Ayana/pkgs/utils"
 	"github.com/cloudwego/eino-ext/components/document/parser/pdf"
 	"github.com/cloudwego/eino-ext/components/document/transformer/splitter/recursive"
 	"github.com/cloudwego/eino/schema"
@@ -47,6 +47,7 @@ func NewRAGUsecase(repo RAGRepo, logger log.Logger) *RAGUsecase {
 	return &RAGUsecase{repo: repo, log: log.NewHelper(logger)}
 }
 
+// Wanderful EveryAgent
 func (uc *RAGUsecase) UploadDocument(stream v1.Seminar_UploadDocumentServer) error {
 	var (
 		buf         bytes.Buffer

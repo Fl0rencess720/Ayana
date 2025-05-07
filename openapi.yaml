@@ -15,7 +15,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/Wittgenstein.v1.CreateRoleRequest'
+                            $ref: '#/components/schemas/Ayana.v1.CreateRoleRequest'
                 required: true
             responses:
                 "200":
@@ -23,7 +23,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/Wittgenstein.v1.CreateRoleReply'
+                                $ref: '#/components/schemas/Ayana.v1.CreateRoleReply'
     /role/deleting:
         post:
             tags:
@@ -33,7 +33,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/Wittgenstein.v1.DeleteRoleRequest'
+                            $ref: '#/components/schemas/Ayana.v1.DeleteRoleRequest'
                 required: true
             responses:
                 "200":
@@ -41,7 +41,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/Wittgenstein.v1.DeleteRoleReply'
+                                $ref: '#/components/schemas/Ayana.v1.DeleteRoleReply'
     /role/getting:
         post:
             tags:
@@ -51,7 +51,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/Wittgenstein.v1.GetRolesRequest'
+                            $ref: '#/components/schemas/Ayana.v1.GetRolesRequest'
                 required: true
             responses:
                 "200":
@@ -59,7 +59,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/Wittgenstein.v1.GetRolesReply'
+                                $ref: '#/components/schemas/Ayana.v1.GetRolesReply'
     /role/model/getting:
         post:
             tags:
@@ -69,7 +69,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/Wittgenstein.v1.GetAvailableModelsRequest'
+                            $ref: '#/components/schemas/Ayana.v1.GetAvailableModelsRequest'
                 required: true
             responses:
                 "200":
@@ -77,7 +77,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/Wittgenstein.v1.GetAvailableModelsReply'
+                                $ref: '#/components/schemas/Ayana.v1.GetAvailableModelsReply'
     /role/setting:
         post:
             tags:
@@ -87,7 +87,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/Wittgenstein.v1.SetRoleRequest'
+                            $ref: '#/components/schemas/Ayana.v1.SetRoleRequest'
                 required: true
             responses:
                 "200":
@@ -95,7 +95,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/Wittgenstein.v1.SetRoleReply'
+                                $ref: '#/components/schemas/Ayana.v1.SetRoleReply'
     /seminar/topic/creating:
         post:
             tags:
@@ -105,7 +105,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/Wittgenstein.v1.CreateTopicRequest'
+                            $ref: '#/components/schemas/Ayana.v1.CreateTopicRequest'
                 required: true
             responses:
                 "200":
@@ -113,7 +113,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/Wittgenstein.v1.CreateTopicReply'
+                                $ref: '#/components/schemas/Ayana.v1.CreateTopicReply'
     /seminar/topic/deleting:
         post:
             tags:
@@ -123,7 +123,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/Wittgenstein.v1.DeleteTopicRequest'
+                            $ref: '#/components/schemas/Ayana.v1.DeleteTopicRequest'
                 required: true
             responses:
                 "200":
@@ -131,7 +131,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/Wittgenstein.v1.DeleteTopicReply'
+                                $ref: '#/components/schemas/Ayana.v1.DeleteTopicReply'
     /seminar/topic/getting:
         post:
             tags:
@@ -142,7 +142,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/Wittgenstein.v1.GetTopicRequest'
+                            $ref: '#/components/schemas/Ayana.v1.GetTopicRequest'
                 required: true
             responses:
                 "200":
@@ -150,7 +150,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/Wittgenstein.v1.GetTopicReply'
+                                $ref: '#/components/schemas/Ayana.v1.GetTopicReply'
     /seminar/topic/metadata:
         post:
             tags:
@@ -161,7 +161,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/Wittgenstein.v1.GetTopicsMetadataRequest'
+                            $ref: '#/components/schemas/Ayana.v1.GetTopicsMetadataRequest'
                 required: true
             responses:
                 "200":
@@ -169,7 +169,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/Wittgenstein.v1.GetTopicsMetadataReply'
+                                $ref: '#/components/schemas/Ayana.v1.GetTopicsMetadataReply'
     /seminar/topic/stopping:
         post:
             tags:
@@ -179,7 +179,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/Wittgenstein.v1.StopTopicRequest'
+                            $ref: '#/components/schemas/Ayana.v1.StopTopicRequest'
                 required: true
             responses:
                 "200":
@@ -187,7 +187,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/Wittgenstein.v1.StopTopicReply'
+                                $ref: '#/components/schemas/Ayana.v1.StopTopicReply'
     /user/login:
         post:
             tags:
@@ -197,7 +197,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/Wittgenstein.v1.LoginRequest'
+                            $ref: '#/components/schemas/Ayana.v1.LoginRequest'
                 required: true
             responses:
                 "200":
@@ -205,7 +205,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/Wittgenstein.v1.LoginReply'
+                                $ref: '#/components/schemas/Ayana.v1.LoginReply'
     /user/profile:
         get:
             tags:
@@ -222,7 +222,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/Wittgenstein.v1.GetProfileReply'
+                                $ref: '#/components/schemas/Ayana.v1.GetProfileReply'
     /user/profile/setting:
         post:
             tags:
@@ -232,7 +232,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/Wittgenstein.v1.SetProfileRequest'
+                            $ref: '#/components/schemas/Ayana.v1.SetProfileRequest'
                 required: true
             responses:
                 "200":
@@ -240,7 +240,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/Wittgenstein.v1.SetProfileReply'
+                                $ref: '#/components/schemas/Ayana.v1.SetProfileReply'
     /user/refresh:
         post:
             tags:
@@ -250,7 +250,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/Wittgenstein.v1.RefreshTokenRequest'
+                            $ref: '#/components/schemas/Ayana.v1.RefreshTokenRequest'
                 required: true
             responses:
                 "200":
@@ -258,7 +258,7 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/Wittgenstein.v1.RefreshTokenReply'
+                                $ref: '#/components/schemas/Ayana.v1.RefreshTokenReply'
     /user/register:
         post:
             tags:
@@ -268,7 +268,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: '#/components/schemas/Wittgenstein.v1.RegisterRequest'
+                            $ref: '#/components/schemas/Ayana.v1.RegisterRequest'
                 required: true
             responses:
                 "200":
@@ -276,27 +276,27 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: '#/components/schemas/Wittgenstein.v1.RegisterReply'
+                                $ref: '#/components/schemas/Ayana.v1.RegisterReply'
 components:
     schemas:
-        Wittgenstein.v1.CreateRoleReply:
+        Ayana.v1.CreateRoleReply:
             type: object
             properties:
                 uid:
                     type: string
-        Wittgenstein.v1.CreateRoleRequest:
+        Ayana.v1.CreateRoleRequest:
             type: object
             properties:
                 phone:
                     type: string
                 role:
-                    $ref: '#/components/schemas/Wittgenstein.v1.Role'
-        Wittgenstein.v1.CreateTopicReply:
+                    $ref: '#/components/schemas/Ayana.v1.Role'
+        Ayana.v1.CreateTopicReply:
             type: object
             properties:
                 uid:
                     type: string
-        Wittgenstein.v1.CreateTopicRequest:
+        Ayana.v1.CreateTopicRequest:
             type: object
             properties:
                 phone:
@@ -309,29 +309,29 @@ components:
                     type: array
                     items:
                         type: string
-        Wittgenstein.v1.DeleteRoleReply:
+        Ayana.v1.DeleteRoleReply:
             type: object
             properties:
                 message:
                     type: string
-        Wittgenstein.v1.DeleteRoleRequest:
+        Ayana.v1.DeleteRoleRequest:
             type: object
             properties:
                 phone:
                     type: string
                 uid:
                     type: string
-        Wittgenstein.v1.DeleteTopicReply:
+        Ayana.v1.DeleteTopicReply:
             type: object
             properties:
                 message:
                     type: string
-        Wittgenstein.v1.DeleteTopicRequest:
+        Ayana.v1.DeleteTopicRequest:
             type: object
             properties:
                 uid:
                     type: string
-        Wittgenstein.v1.Document:
+        Ayana.v1.Document:
             type: object
             properties:
                 uid:
@@ -340,107 +340,107 @@ components:
                     type: string
                 totalSize:
                     type: string
-        Wittgenstein.v1.GetAvailableModelsReply:
+        Ayana.v1.GetAvailableModelsReply:
             type: object
             properties:
                 models:
                     type: array
                     items:
-                        $ref: '#/components/schemas/Wittgenstein.v1.Model'
-        Wittgenstein.v1.GetAvailableModelsRequest:
+                        $ref: '#/components/schemas/Ayana.v1.Model'
+        Ayana.v1.GetAvailableModelsRequest:
             type: object
             properties: {}
-        Wittgenstein.v1.GetProfileReply:
+        Ayana.v1.GetProfileReply:
             type: object
             properties:
                 profile:
-                    $ref: '#/components/schemas/Wittgenstein.v1.Profile'
-        Wittgenstein.v1.GetRolesReply:
+                    $ref: '#/components/schemas/Ayana.v1.Profile'
+        Ayana.v1.GetRolesReply:
             type: object
             properties:
                 roles:
                     type: array
                     items:
-                        $ref: '#/components/schemas/Wittgenstein.v1.Role'
-        Wittgenstein.v1.GetRolesRequest:
+                        $ref: '#/components/schemas/Ayana.v1.Role'
+        Ayana.v1.GetRolesRequest:
             type: object
             properties:
                 phone:
                     type: string
-        Wittgenstein.v1.GetTopicReply:
+        Ayana.v1.GetTopicReply:
             type: object
             properties:
                 topic:
-                    $ref: '#/components/schemas/Wittgenstein.v1.Topic'
-        Wittgenstein.v1.GetTopicRequest:
+                    $ref: '#/components/schemas/Ayana.v1.Topic'
+        Ayana.v1.GetTopicRequest:
             type: object
             properties:
                 uid:
                     type: string
             description: 获取讨论主题的详细信息，进入讨论时加载
-        Wittgenstein.v1.GetTopicsMetadataReply:
+        Ayana.v1.GetTopicsMetadataReply:
             type: object
             properties:
                 topics:
                     type: array
                     items:
-                        $ref: '#/components/schemas/Wittgenstein.v1.TopicMetadata'
-        Wittgenstein.v1.GetTopicsMetadataRequest:
+                        $ref: '#/components/schemas/Ayana.v1.TopicMetadata'
+        Ayana.v1.GetTopicsMetadataRequest:
             type: object
             properties:
                 phone:
                     type: string
-        Wittgenstein.v1.LoginReply:
+        Ayana.v1.LoginReply:
             type: object
             properties:
                 accessToken:
                     type: string
                 refreshToken:
                     type: string
-        Wittgenstein.v1.LoginRequest:
+        Ayana.v1.LoginRequest:
             type: object
             properties:
                 phone:
                     type: string
                 password:
                     type: string
-        Wittgenstein.v1.Model:
+        Ayana.v1.Model:
             type: object
             properties:
                 provider:
                     type: string
                 name:
                     type: string
-        Wittgenstein.v1.Profile:
+        Ayana.v1.Profile:
             type: object
             properties:
                 name:
                     type: string
                 avatar:
                     type: string
-        Wittgenstein.v1.RefreshTokenReply:
+        Ayana.v1.RefreshTokenReply:
             type: object
             properties:
                 accessToken:
                     type: string
-        Wittgenstein.v1.RefreshTokenRequest:
+        Ayana.v1.RefreshTokenRequest:
             type: object
             properties:
                 refreshToken:
                     type: string
-        Wittgenstein.v1.RegisterReply:
+        Ayana.v1.RegisterReply:
             type: object
             properties:
                 message:
                     type: string
-        Wittgenstein.v1.RegisterRequest:
+        Ayana.v1.RegisterRequest:
             type: object
             properties:
                 phone:
                     type: string
                 password:
                     type: string
-        Wittgenstein.v1.Role:
+        Ayana.v1.Role:
             type: object
             properties:
                 uid:
@@ -454,27 +454,27 @@ components:
                 apiKey:
                     type: string
                 model:
-                    $ref: '#/components/schemas/Wittgenstein.v1.Model'
+                    $ref: '#/components/schemas/Ayana.v1.Model'
                 name:
                     type: string
-        Wittgenstein.v1.SetProfileReply:
+        Ayana.v1.SetProfileReply:
             type: object
             properties:
                 message:
                     type: string
-        Wittgenstein.v1.SetProfileRequest:
+        Ayana.v1.SetProfileRequest:
             type: object
             properties:
                 phone:
                     type: string
                 profile:
-                    $ref: '#/components/schemas/Wittgenstein.v1.Profile'
-        Wittgenstein.v1.SetRoleReply:
+                    $ref: '#/components/schemas/Ayana.v1.Profile'
+        Ayana.v1.SetRoleReply:
             type: object
             properties:
                 message:
                     type: string
-        Wittgenstein.v1.SetRoleRequest:
+        Ayana.v1.SetRoleRequest:
             type: object
             properties:
                 phone:
@@ -482,8 +482,8 @@ components:
                 uid:
                     type: string
                 role:
-                    $ref: '#/components/schemas/Wittgenstein.v1.Role'
-        Wittgenstein.v1.Speech:
+                    $ref: '#/components/schemas/Ayana.v1.Role'
+        Ayana.v1.Speech:
             type: object
             properties:
                 uid:
@@ -492,17 +492,17 @@ components:
                     type: string
                 content:
                     type: string
-        Wittgenstein.v1.StopTopicReply:
+        Ayana.v1.StopTopicReply:
             type: object
             properties:
                 message:
                     type: string
-        Wittgenstein.v1.StopTopicRequest:
+        Ayana.v1.StopTopicRequest:
             type: object
             properties:
                 topicId:
                     type: string
-        Wittgenstein.v1.Topic:
+        Ayana.v1.Topic:
             type: object
             properties:
                 uid:
@@ -514,11 +514,11 @@ components:
                 speeches:
                     type: array
                     items:
-                        $ref: '#/components/schemas/Wittgenstein.v1.Speech'
+                        $ref: '#/components/schemas/Ayana.v1.Speech'
                 documents:
                     type: array
                     items:
-                        $ref: '#/components/schemas/Wittgenstein.v1.Document'
+                        $ref: '#/components/schemas/Ayana.v1.Document'
                 title:
                     type: string
                 titleImage:
@@ -527,7 +527,7 @@ components:
                     type: string
                 moderator:
                     type: string
-        Wittgenstein.v1.TopicMetadata:
+        Ayana.v1.TopicMetadata:
             type: object
             properties:
                 uid:
@@ -541,7 +541,7 @@ components:
                 documents:
                     type: array
                     items:
-                        $ref: '#/components/schemas/Wittgenstein.v1.Document'
+                        $ref: '#/components/schemas/Ayana.v1.Document'
 tags:
     - name: RoleManager
     - name: Seminar

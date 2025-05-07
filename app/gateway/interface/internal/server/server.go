@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/Fl0rencess720/Wittgenstein/app/gateway/interface/internal/conf"
+	"github.com/Fl0rencess720/Ayana/app/gateway/interface/internal/conf"
 	"github.com/go-kratos/kratos/contrib/registry/consul/v2"
 	"github.com/go-kratos/kratos/v2/registry"
 	"github.com/google/wire"

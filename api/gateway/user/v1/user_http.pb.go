@@ -19,11 +19,11 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
-const OperationUserGetProfile = "/Wittgenstein.v1.User/GetProfile"
-const OperationUserLogin = "/Wittgenstein.v1.User/Login"
-const OperationUserRefreshToken = "/Wittgenstein.v1.User/RefreshToken"
-const OperationUserRegister = "/Wittgenstein.v1.User/Register"
-const OperationUserSetProfile = "/Wittgenstein.v1.User/SetProfile"
+const OperationUserGetProfile = "/Ayana.v1.User/GetProfile"
+const OperationUserLogin = "/Ayana.v1.User/Login"
+const OperationUserRefreshToken = "/Ayana.v1.User/RefreshToken"
+const OperationUserRegister = "/Ayana.v1.User/Register"
+const OperationUserSetProfile = "/Ayana.v1.User/SetProfile"
 
 type UserHTTPServer interface {
 	GetProfile(context.Context, *GetProfileRequest) (*GetProfileReply, error)

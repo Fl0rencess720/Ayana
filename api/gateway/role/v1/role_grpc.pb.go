@@ -19,12 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	RoleManager_CreateRole_FullMethodName                 = "/Wittgenstein.v1.RoleManager/CreateRole"
-	RoleManager_DeleteRole_FullMethodName                 = "/Wittgenstein.v1.RoleManager/DeleteRole"
-	RoleManager_GetRoles_FullMethodName                   = "/Wittgenstein.v1.RoleManager/GetRoles"
-	RoleManager_GetRolesAndModeratorByUIDs_FullMethodName = "/Wittgenstein.v1.RoleManager/GetRolesAndModeratorByUIDs"
-	RoleManager_GetAvailableModels_FullMethodName         = "/Wittgenstein.v1.RoleManager/GetAvailableModels"
-	RoleManager_SetRole_FullMethodName                    = "/Wittgenstein.v1.RoleManager/SetRole"
+	RoleManager_CreateRole_FullMethodName                 = "/Ayana.v1.RoleManager/CreateRole"
+	RoleManager_DeleteRole_FullMethodName                 = "/Ayana.v1.RoleManager/DeleteRole"
+	RoleManager_GetRoles_FullMethodName                   = "/Ayana.v1.RoleManager/GetRoles"
+	RoleManager_GetRolesAndModeratorByUIDs_FullMethodName = "/Ayana.v1.RoleManager/GetRolesAndModeratorByUIDs"
+	RoleManager_GetAvailableModels_FullMethodName         = "/Ayana.v1.RoleManager/GetAvailableModels"
+	RoleManager_SetRole_FullMethodName                    = "/Ayana.v1.RoleManager/SetRole"
 )
 
 // RoleManagerClient is the client API for RoleManager service.
@@ -278,7 +278,7 @@ func _RoleManager_SetRole_Handler(srv interface{}, ctx context.Context, dec func
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var RoleManager_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "Wittgenstein.v1.RoleManager",
+	ServiceName: "Ayana.v1.RoleManager",
 	HandlerType: (*RoleManagerServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

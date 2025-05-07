@@ -3,12 +3,12 @@ package server
 import (
 	"context"
 
-	roleV1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/role/v1"
-	seminarV1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/seminar/v1"
-	userV1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/user/v1"
-	"github.com/Fl0rencess720/Wittgenstein/app/gateway/interface/internal/conf"
-	"github.com/Fl0rencess720/Wittgenstein/app/gateway/interface/internal/service"
-	"github.com/Fl0rencess720/Wittgenstein/pkgs/jwtc"
+	roleV1 "github.com/Fl0rencess720/Ayana/api/gateway/role/v1"
+	seminarV1 "github.com/Fl0rencess720/Ayana/api/gateway/seminar/v1"
+	userV1 "github.com/Fl0rencess720/Ayana/api/gateway/user/v1"
+	"github.com/Fl0rencess720/Ayana/app/gateway/interface/internal/conf"
+	"github.com/Fl0rencess720/Ayana/app/gateway/interface/internal/service"
+	"github.com/Fl0rencess720/Ayana/pkgs/jwtc"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/middleware/selector"
@@ -20,9 +20,9 @@ import (
 func NewWhiteListMatcher() selector.MatchFunc {
 
 	whiteList := make(map[string]struct{})
-	whiteList["/Wittgenstein.v1.User/Login"] = struct{}{}
-	whiteList["/Wittgenstein.v1.User/Register"] = struct{}{}
-	whiteList["/Wittgenstein.v1.User/RefreshToken"] = struct{}{}
+	whiteList["/Ayana.v1.User/Login"] = struct{}{}
+	whiteList["/Ayana.v1.User/Register"] = struct{}{}
+	whiteList["/Ayana.v1.User/RefreshToken"] = struct{}{}
 	return func(ctx context.Context, operation string) bool {
 		if _, ok := whiteList[operation]; ok {
 			return false

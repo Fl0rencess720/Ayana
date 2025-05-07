@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/Fl0rencess720/Wittgenstein/pkgs/jwtc"
-	"github.com/Fl0rencess720/Wittgenstein/pkgs/utils"
+	"github.com/Fl0rencess720/Ayana/pkgs/jwtc"
+	"github.com/Fl0rencess720/Ayana/pkgs/utils"
 	"github.com/go-kratos/kratos/v2/log"
 )
 

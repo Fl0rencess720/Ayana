@@ -1,8 +1,8 @@
 package data
 
 import (
-	"github.com/Fl0rencess720/Wittgenstein/app/service/role/internal/biz"
-	"github.com/Fl0rencess720/Wittgenstein/app/service/role/internal/conf"
+	"github.com/Fl0rencess720/Ayana/app/service/role/internal/biz"
+	"github.com/Fl0rencess720/Ayana/app/service/role/internal/conf"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-redis/redis/extra/redisotel"
 	"github.com/go-redis/redis/v8"

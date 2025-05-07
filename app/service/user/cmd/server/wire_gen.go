@@ -7,11 +7,11 @@
 package main
 
 import (
-	"github.com/Fl0rencess720/Wittgenstein/app/service/user/internal/biz"
-	"github.com/Fl0rencess720/Wittgenstein/app/service/user/internal/conf"
-	"github.com/Fl0rencess720/Wittgenstein/app/service/user/internal/data"
-	"github.com/Fl0rencess720/Wittgenstein/app/service/user/internal/server"
-	"github.com/Fl0rencess720/Wittgenstein/app/service/user/internal/service"
+	"github.com/Fl0rencess720/Ayana/app/service/user/internal/biz"
+	"github.com/Fl0rencess720/Ayana/app/service/user/internal/conf"
+	"github.com/Fl0rencess720/Ayana/app/service/user/internal/data"
+	"github.com/Fl0rencess720/Ayana/app/service/user/internal/server"
+	"github.com/Fl0rencess720/Ayana/app/service/user/internal/service"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/log"
 )

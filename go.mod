@@ -1,4 +1,4 @@
-module github.com/Fl0rencess720/Wittgenstein
+module github.com/Fl0rencess720/Ayana
 
 go 1.24.1
 

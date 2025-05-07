@@ -19,11 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	User_Register_FullMethodName     = "/Wittgenstein.v1.User/Register"
-	User_Login_FullMethodName        = "/Wittgenstein.v1.User/Login"
-	User_SetProfile_FullMethodName   = "/Wittgenstein.v1.User/SetProfile"
-	User_GetProfile_FullMethodName   = "/Wittgenstein.v1.User/GetProfile"
-	User_RefreshToken_FullMethodName = "/Wittgenstein.v1.User/RefreshToken"
+	User_Register_FullMethodName     = "/Ayana.v1.User/Register"
+	User_Login_FullMethodName        = "/Ayana.v1.User/Login"
+	User_SetProfile_FullMethodName   = "/Ayana.v1.User/SetProfile"
+	User_GetProfile_FullMethodName   = "/Ayana.v1.User/GetProfile"
+	User_RefreshToken_FullMethodName = "/Ayana.v1.User/RefreshToken"
 )
 
 // UserClient is the client API for User service.
@@ -244,7 +244,7 @@ func _User_RefreshToken_Handler(srv interface{}, ctx context.Context, dec func(i
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var User_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "Wittgenstein.v1.User",
+	ServiceName: "Ayana.v1.User",
 	HandlerType: (*UserServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

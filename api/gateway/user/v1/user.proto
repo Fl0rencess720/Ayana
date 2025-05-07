@@ -1,10 +1,10 @@
 syntax = "proto3";
 
-package Wittgenstein.v1;
+package Ayana.v1;
 
 import "google/api/annotations.proto";
 
-option go_package = "Wittgenstein/api/gateway/user/v1;v1";
+option go_package = "Ayana/api/gateway/user/v1;v1";
 
 
 service User {

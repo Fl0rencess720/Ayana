@@ -5,9 +5,9 @@ import (
 	"errors"
 	"strings"
 
-	userV1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/user/v1"
-	"github.com/Fl0rencess720/Wittgenstein/pkgs/jwtc"
-	"github.com/Fl0rencess720/Wittgenstein/pkgs/utils"
+	userV1 "github.com/Fl0rencess720/Ayana/api/gateway/user/v1"
+	"github.com/Fl0rencess720/Ayana/pkgs/jwtc"
+	"github.com/Fl0rencess720/Ayana/pkgs/utils"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport"
 )

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	roleV1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/role/v1"
-	v1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/seminar/v1"
+	roleV1 "github.com/Fl0rencess720/Ayana/api/gateway/role/v1"
+	v1 "github.com/Fl0rencess720/Ayana/api/gateway/seminar/v1"
 	"github.com/cloudwego/eino-ext/components/model/deepseek"
 	"github.com/cloudwego/eino/components/prompt"
 	"github.com/cloudwego/eino/schema"

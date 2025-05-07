@@ -19,11 +19,11 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
-const OperationRoleManagerCreateRole = "/Wittgenstein.v1.RoleManager/CreateRole"
-const OperationRoleManagerDeleteRole = "/Wittgenstein.v1.RoleManager/DeleteRole"
-const OperationRoleManagerGetAvailableModels = "/Wittgenstein.v1.RoleManager/GetAvailableModels"
-const OperationRoleManagerGetRoles = "/Wittgenstein.v1.RoleManager/GetRoles"
-const OperationRoleManagerSetRole = "/Wittgenstein.v1.RoleManager/SetRole"
+const OperationRoleManagerCreateRole = "/Ayana.v1.RoleManager/CreateRole"
+const OperationRoleManagerDeleteRole = "/Ayana.v1.RoleManager/DeleteRole"
+const OperationRoleManagerGetAvailableModels = "/Ayana.v1.RoleManager/GetAvailableModels"
+const OperationRoleManagerGetRoles = "/Ayana.v1.RoleManager/GetRoles"
+const OperationRoleManagerSetRole = "/Ayana.v1.RoleManager/SetRole"
 
 type RoleManagerHTTPServer interface {
 	CreateRole(context.Context, *CreateRoleRequest) (*CreateRoleReply, error)

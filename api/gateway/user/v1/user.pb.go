@@ -660,31 +660,31 @@ func file_gateway_user_v1_user_proto_rawDescGZIP() []byte {
 
 var file_gateway_user_v1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_gateway_user_v1_user_proto_goTypes = []any{
-	(*Profile)(nil),             // 0: Wittgenstein.v1.Profile
-	(*RegisterRequest)(nil),     // 1: Wittgenstein.v1.RegisterRequest
-	(*RegisterReply)(nil),       // 2: Wittgenstein.v1.RegisterReply
-	(*LoginRequest)(nil),        // 3: Wittgenstein.v1.LoginRequest
-	(*LoginReply)(nil),          // 4: Wittgenstein.v1.LoginReply
-	(*SetProfileRequest)(nil),   // 5: Wittgenstein.v1.SetProfileRequest
-	(*SetProfileReply)(nil),     // 6: Wittgenstein.v1.SetProfileReply
-	(*GetProfileRequest)(nil),   // 7: Wittgenstein.v1.GetProfileRequest
-	(*GetProfileReply)(nil),     // 8: Wittgenstein.v1.GetProfileReply
-	(*RefreshTokenRequest)(nil), // 9: Wittgenstein.v1.RefreshTokenRequest
-	(*RefreshTokenReply)(nil),   // 10: Wittgenstein.v1.RefreshTokenReply
+	(*Profile)(nil),             // 0: Ayana.v1.Profile
+	(*RegisterRequest)(nil),     // 1: Ayana.v1.RegisterRequest
+	(*RegisterReply)(nil),       // 2: Ayana.v1.RegisterReply
+	(*LoginRequest)(nil),        // 3: Ayana.v1.LoginRequest
+	(*LoginReply)(nil),          // 4: Ayana.v1.LoginReply
+	(*SetProfileRequest)(nil),   // 5: Ayana.v1.SetProfileRequest
+	(*SetProfileReply)(nil),     // 6: Ayana.v1.SetProfileReply
+	(*GetProfileRequest)(nil),   // 7: Ayana.v1.GetProfileRequest
+	(*GetProfileReply)(nil),     // 8: Ayana.v1.GetProfileReply
+	(*RefreshTokenRequest)(nil), // 9: Ayana.v1.RefreshTokenRequest
+	(*RefreshTokenReply)(nil),   // 10: Ayana.v1.RefreshTokenReply
 }
 var file_gateway_user_v1_user_proto_depIdxs = []int32{
-	0,  // 0: Wittgenstein.v1.SetProfileRequest.profile:type_name -> Wittgenstein.v1.Profile
-	0,  // 1: Wittgenstein.v1.GetProfileReply.profile:type_name -> Wittgenstein.v1.Profile
-	1,  // 2: Wittgenstein.v1.User.Register:input_type -> Wittgenstein.v1.RegisterRequest
-	3,  // 3: Wittgenstein.v1.User.Login:input_type -> Wittgenstein.v1.LoginRequest
-	5,  // 4: Wittgenstein.v1.User.SetProfile:input_type -> Wittgenstein.v1.SetProfileRequest
-	7,  // 5: Wittgenstein.v1.User.GetProfile:input_type -> Wittgenstein.v1.GetProfileRequest
-	9,  // 6: Wittgenstein.v1.User.RefreshToken:input_type -> Wittgenstein.v1.RefreshTokenRequest
-	2,  // 7: Wittgenstein.v1.User.Register:output_type -> Wittgenstein.v1.RegisterReply
-	4,  // 8: Wittgenstein.v1.User.Login:output_type -> Wittgenstein.v1.LoginReply
-	6,  // 9: Wittgenstein.v1.User.SetProfile:output_type -> Wittgenstein.v1.SetProfileReply
-	8,  // 10: Wittgenstein.v1.User.GetProfile:output_type -> Wittgenstein.v1.GetProfileReply
-	10, // 11: Wittgenstein.v1.User.RefreshToken:output_type -> Wittgenstein.v1.RefreshTokenReply
+	0,  // 0: Ayana.v1.SetProfileRequest.profile:type_name -> Ayana.v1.Profile
+	0,  // 1: Ayana.v1.GetProfileReply.profile:type_name -> Ayana.v1.Profile
+	1,  // 2: Ayana.v1.User.Register:input_type -> Ayana.v1.RegisterRequest
+	3,  // 3: Ayana.v1.User.Login:input_type -> Ayana.v1.LoginRequest
+	5,  // 4: Ayana.v1.User.SetProfile:input_type -> Ayana.v1.SetProfileRequest
+	7,  // 5: Ayana.v1.User.GetProfile:input_type -> Ayana.v1.GetProfileRequest
+	9,  // 6: Ayana.v1.User.RefreshToken:input_type -> Ayana.v1.RefreshTokenRequest
+	2,  // 7: Ayana.v1.User.Register:output_type -> Ayana.v1.RegisterReply
+	4,  // 8: Ayana.v1.User.Login:output_type -> Ayana.v1.LoginReply
+	6,  // 9: Ayana.v1.User.SetProfile:output_type -> Ayana.v1.SetProfileReply
+	8,  // 10: Ayana.v1.User.GetProfile:output_type -> Ayana.v1.GetProfileReply
+	10, // 11: Ayana.v1.User.RefreshToken:output_type -> Ayana.v1.RefreshTokenReply
 	7,  // [7:12] is the sub-list for method output_type
 	2,  // [2:7] is the sub-list for method input_type
 	2,  // [2:2] is the sub-list for extension type_name

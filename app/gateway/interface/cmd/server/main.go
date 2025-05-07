@@ -6,9 +6,9 @@ import (
 
 	"github.com/go-kratos/kratos/v2/transport/http"
 
-	"github.com/Fl0rencess720/Wittgenstein/app/gateway/interface/internal/conf"
-	"github.com/Fl0rencess720/Wittgenstein/pkgs/viperConf"
-	"github.com/Fl0rencess720/Wittgenstein/pkgs/zapLogger"
+	"github.com/Fl0rencess720/Ayana/app/gateway/interface/internal/conf"
+	"github.com/Fl0rencess720/Ayana/pkgs/viperConf"
+	"github.com/Fl0rencess720/Ayana/pkgs/zapLogger"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/config"
 	"github.com/go-kratos/kratos/v2/config/file"
@@ -28,13 +28,13 @@ import (
 // go build -ldflags "-X main.Version=x.y.z"
 var (
 	// Name is the name of the compiled software.
-	Name = "Wittgenstein.gateway.interface"
+	Name = "Ayana.gateway.interface"
 	// Version is the version of the compiled software.
 	Version string
 	// flagconf is the config flag.
 	flagconf string
 
-	id = "Fl0rencess720.Wittgenstein.gateway"
+	id = "Fl0rencess720.Ayana.gateway"
 )
 
 func init() {

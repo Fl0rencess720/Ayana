@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 
-	v1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/role/v1"
-	"github.com/Fl0rencess720/Wittgenstein/app/gateway/interface/internal/biz"
-	"github.com/Fl0rencess720/Wittgenstein/pkgs/utils"
+	v1 "github.com/Fl0rencess720/Ayana/api/gateway/role/v1"
+	"github.com/Fl0rencess720/Ayana/app/gateway/interface/internal/biz"
+	"github.com/Fl0rencess720/Ayana/pkgs/utils"
 )
 
 type RoleService struct {

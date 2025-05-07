@@ -3,7 +3,7 @@ package data
 import (
 	"context"
 
-	"github.com/Fl0rencess720/Wittgenstein/app/service/seminar/internal/biz"
+	"github.com/Fl0rencess720/Ayana/app/service/seminar/internal/biz"
 	ri "github.com/cloudwego/eino-ext/components/indexer/redis"
 	rr "github.com/cloudwego/eino-ext/components/retriever/redis"
 	"github.com/cloudwego/eino/schema"
@@ -12,8 +12,8 @@ import (
 )
 
 var (
-	keyPrefix = "WittgensteinDoc:"
-	indexName = "WittgensteinIndex"
+	keyPrefix = "AyanaDoc:"
+	indexName = "AyanaIndex"
 )
 
 type ragRepo struct {

@@ -3,7 +3,7 @@ package data
 import (
 	"context"
 
-	"github.com/Fl0rencess720/Wittgenstein/app/service/seminar/internal/biz"
+	"github.com/Fl0rencess720/Ayana/app/service/seminar/internal/biz"
 	"github.com/go-kratos/kratos/v2/log"
 )
 

@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	roleV1 "github.com/Fl0rencess720/Wittgenstein/api/gateway/role/v1"
-	"github.com/Fl0rencess720/Wittgenstein/app/service/seminar/internal/biz"
-	"github.com/Fl0rencess720/Wittgenstein/app/service/seminar/internal/conf"
+	roleV1 "github.com/Fl0rencess720/Ayana/api/gateway/role/v1"
+	"github.com/Fl0rencess720/Ayana/app/service/seminar/internal/biz"
+	"github.com/Fl0rencess720/Ayana/app/service/seminar/internal/conf"
 	embedding "github.com/cloudwego/eino-ext/components/embedding/ark"
 	rr "github.com/cloudwego/eino-ext/components/retriever/redis"
 	"github.com/go-kratos/kratos/v2/log"
