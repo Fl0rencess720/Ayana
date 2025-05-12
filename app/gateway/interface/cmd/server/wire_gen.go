@@ -28,8 +28,9 @@ func wireApp(confServer *conf.Server, confService *conf.Service, confData *conf.
 	discovery := server.NewDiscovery(registry)
 	userClient := data.NewUserServiceClient(confService, discovery)
 	roleManagerClient := data.NewRoleServiceClient(confService, discovery)
+	kafkaClient := data.NewKafkaClient(confData)
 	seminarClient := data.NewSeminarServiceClient(confService, discovery)
-	dataData, cleanup, err := data.NewData(confData, logger, client, userClient, roleManagerClient, seminarClient)
+	dataData, cleanup, err := data.NewData(confData, logger, client, userClient, roleManagerClient, kafkaClient, seminarClient)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -39,7 +40,8 @@ func wireApp(confServer *conf.Server, confService *conf.Service, confData *conf.
 	userRepo := data.NewUserRepo(dataData, logger)
 	userUsecase := biz.NewUserUsecase(userRepo, logger, userClient)
 	userService := service.NewUserService(userUsecase)
-	seminarUsecase := biz.NewSeminarUsecase(userRepo, logger, seminarClient)
+	broadcastRepo := data.NewBroadcastRepo(dataData, logger)
+	seminarUsecase := biz.NewSeminarUsecase(userRepo, broadcastRepo, logger, seminarClient)
 	seminarService := service.NewSeminarService(seminarUsecase)
 	httpServer := server.NewHTTPServer(confServer, roleService, userService, seminarService, logger)
 	registrar := server.NewRegistrar(registry)

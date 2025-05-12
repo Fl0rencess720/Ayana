@@ -34,7 +34,7 @@ service Seminar {
       body: "*"
     };
   }
-  rpc StartTopic (StartTopicRequest) returns (stream StreamOutputReply) {
+  rpc StartTopic (StartTopicRequest) returns (StartTopicReply) {
   }
   rpc StopTopic (StopTopicRequest) returns (StopTopicReply) {
     option (google.api.http) = {
@@ -101,6 +101,10 @@ message DeleteTopicReply {
 
 message StartTopicRequest {
   string topicId = 1;
+}
+
+message StartTopicReply {
+  string message = 1;
 }
 
 message StopTopicRequest {

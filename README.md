@@ -1,6 +1,6 @@
 # *Ayana​*
 全称: ​*All Your AI Neurals Activated​​*  
-一个基于Kratos微服务框架即Eino AI框架的多角色研讨会应用，支持多个AI角色针对一个主题进行辩论。
+一个基于Kratos微服务框架及Eino AI框架的多角色研讨会应用，支持多个AI角色针对一个主题进行辩论。
 ## 功能
 * 🤖 **用户创建AI角色** 或使用系统内置AI角色  
 
@@ -19,6 +19,7 @@
 * 链路追踪: Jaeger
 * 存储: MySQL
 * 缓存: Redis
+* 消息队列: Kafka
 * 向量数据库: Redis Stack
 
 

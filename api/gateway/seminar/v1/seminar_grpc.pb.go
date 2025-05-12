@@ -39,7 +39,7 @@ type SeminarClient interface {
 	// 获取讨论主题的详细信息，进入讨论时加载
 	GetTopic(ctx context.Context, in *GetTopicRequest, opts ...grpc.CallOption) (*GetTopicReply, error)
 	DeleteTopic(ctx context.Context, in *DeleteTopicRequest, opts ...grpc.CallOption) (*DeleteTopicReply, error)
-	StartTopic(ctx context.Context, in *StartTopicRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StreamOutputReply], error)
+	StartTopic(ctx context.Context, in *StartTopicRequest, opts ...grpc.CallOption) (*StartTopicReply, error)
 	StopTopic(ctx context.Context, in *StopTopicRequest, opts ...grpc.CallOption) (*StopTopicReply, error)
 	ResumeTopic(ctx context.Context, in *StartTopicRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StreamOutputReply], error)
 	UploadDocument(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[UploadDocumentRequest, UploadDocumentReply], error)
@@ -93,24 +93,15 @@ func (c *seminarClient) DeleteTopic(ctx context.Context, in *DeleteTopicRequest,
 	return out, nil
 }
 
-func (c *seminarClient) StartTopic(ctx context.Context, in *StartTopicRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StreamOutputReply], error) {
+func (c *seminarClient) StartTopic(ctx context.Context, in *StartTopicRequest, opts ...grpc.CallOption) (*StartTopicReply, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &Seminar_ServiceDesc.Streams[0], Seminar_StartTopic_FullMethodName, cOpts...)
+	out := new(StartTopicReply)
+	err := c.cc.Invoke(ctx, Seminar_StartTopic_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[StartTopicRequest, StreamOutputReply]{ClientStream: stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
+	return out, nil
 }
-
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Seminar_StartTopicClient = grpc.ServerStreamingClient[StreamOutputReply]
 
 func (c *seminarClient) StopTopic(ctx context.Context, in *StopTopicRequest, opts ...grpc.CallOption) (*StopTopicReply, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
@@ -124,7 +115,7 @@ func (c *seminarClient) StopTopic(ctx context.Context, in *StopTopicRequest, opt
 
 func (c *seminarClient) ResumeTopic(ctx context.Context, in *StartTopicRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StreamOutputReply], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &Seminar_ServiceDesc.Streams[1], Seminar_ResumeTopic_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &Seminar_ServiceDesc.Streams[0], Seminar_ResumeTopic_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +134,7 @@ type Seminar_ResumeTopicClient = grpc.ServerStreamingClient[StreamOutputReply]
 
 func (c *seminarClient) UploadDocument(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[UploadDocumentRequest, UploadDocumentReply], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &Seminar_ServiceDesc.Streams[2], Seminar_UploadDocument_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &Seminar_ServiceDesc.Streams[1], Seminar_UploadDocument_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +155,7 @@ type SeminarServer interface {
 	// 获取讨论主题的详细信息，进入讨论时加载
 	GetTopic(context.Context, *GetTopicRequest) (*GetTopicReply, error)
 	DeleteTopic(context.Context, *DeleteTopicRequest) (*DeleteTopicReply, error)
-	StartTopic(*StartTopicRequest, grpc.ServerStreamingServer[StreamOutputReply]) error
+	StartTopic(context.Context, *StartTopicRequest) (*StartTopicReply, error)
 	StopTopic(context.Context, *StopTopicRequest) (*StopTopicReply, error)
 	ResumeTopic(*StartTopicRequest, grpc.ServerStreamingServer[StreamOutputReply]) error
 	UploadDocument(grpc.ClientStreamingServer[UploadDocumentRequest, UploadDocumentReply]) error
@@ -190,8 +181,8 @@ func (UnimplementedSeminarServer) GetTopic(context.Context, *GetTopicRequest) (*
 func (UnimplementedSeminarServer) DeleteTopic(context.Context, *DeleteTopicRequest) (*DeleteTopicReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteTopic not implemented")
 }
-func (UnimplementedSeminarServer) StartTopic(*StartTopicRequest, grpc.ServerStreamingServer[StreamOutputReply]) error {
-	return status.Errorf(codes.Unimplemented, "method StartTopic not implemented")
+func (UnimplementedSeminarServer) StartTopic(context.Context, *StartTopicRequest) (*StartTopicReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StartTopic not implemented")
 }
 func (UnimplementedSeminarServer) StopTopic(context.Context, *StopTopicRequest) (*StopTopicReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StopTopic not implemented")
@@ -295,16 +286,23 @@ func _Seminar_DeleteTopic_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Seminar_StartTopic_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(StartTopicRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
+func _Seminar_StartTopic_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StartTopicRequest)
+	if err := dec(in); err != nil {
+		return nil, err
 	}
-	return srv.(SeminarServer).StartTopic(m, &grpc.GenericServerStream[StartTopicRequest, StreamOutputReply]{ServerStream: stream})
+	if interceptor == nil {
+		return srv.(SeminarServer).StartTopic(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Seminar_StartTopic_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SeminarServer).StartTopic(ctx, req.(*StartTopicRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
-
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Seminar_StartTopicServer = grpc.ServerStreamingServer[StreamOutputReply]
 
 func _Seminar_StopTopic_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(StopTopicRequest)
@@ -366,16 +364,15 @@ var Seminar_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Seminar_DeleteTopic_Handler,
 		},
 		{
+			MethodName: "StartTopic",
+			Handler:    _Seminar_StartTopic_Handler,
+		},
+		{
 			MethodName: "StopTopic",
 			Handler:    _Seminar_StopTopic_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
-		{
-			StreamName:    "StartTopic",
-			Handler:       _Seminar_StartTopic_Handler,
-			ServerStreams: true,
-		},
 		{
 			StreamName:    "ResumeTopic",
 			Handler:       _Seminar_ResumeTopic_Handler,

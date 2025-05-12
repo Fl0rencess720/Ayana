@@ -16,6 +16,7 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/google/wire"
 	"github.com/redis/go-redis/v9"
+	"github.com/segmentio/kafka-go"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	grpcx "google.golang.org/grpc"
@@ -25,25 +26,36 @@ import (
 
 // ProviderSet is data providers.
 var ProviderSet = wire.NewSet(NewData, NewSeminarRepo, NewRAGRepo, NewMysql, NewRedis,
-	NewEmbedder, NewRetriever, NewRoleServiceClient)
+	NewEmbedder, NewRetriever, NewRoleServiceClient, NewBroadcastRepo, NewKafkaClient)
+
+type kafkaClient struct {
+	kafkaWriters map[string]*kafka.Writer
+	kafkaReaders map[string]*kafka.Reader
+}
 
 // Data .
 type Data struct {
 	mysqlClient *gorm.DB
 	redisClient *redis.Client
+	kafkaClient *kafkaClient
+	embedder    *embedding.Embedder
+	retriever   *rr.Retriever
 	roleClient  roleV1.RoleManagerClient
-
-	embedder  *embedding.Embedder
-	retriever *rr.Retriever
 }
 
 // NewData .
-func NewData(c *conf.Data, logger log.Logger, mysqlClient *gorm.DB, redisClient *redis.Client, roleClient roleV1.RoleManagerClient,
+func NewData(c *conf.Data, logger log.Logger, mysqlClient *gorm.DB, redisClient *redis.Client, kafkaClient *kafkaClient, roleClient roleV1.RoleManagerClient,
 	embedder *embedding.Embedder, retriever *rr.Retriever) (*Data, func(), error) {
 	cleanup := func() {
 		log.NewHelper(logger).Info("closing the data resources")
 	}
-	return &Data{mysqlClient: mysqlClient, redisClient: redisClient, roleClient: roleClient, embedder: embedder, retriever: retriever}, cleanup, nil
+	return &Data{mysqlClient: mysqlClient, redisClient: redisClient, kafkaClient: kafkaClient, roleClient: roleClient, embedder: embedder, retriever: retriever}, cleanup, nil
+}
+
+func NewKafkaClient(c *conf.Data) *kafkaClient {
+	kafkaWriters := make(map[string]*kafka.Writer)
+	kafkaReaders := make(map[string]*kafka.Reader)
+	return &kafkaClient{kafkaWriters: kafkaWriters, kafkaReaders: kafkaReaders}
 }
 
 func NewEmbedder(c *conf.Data) *embedding.Embedder {

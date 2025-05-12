@@ -6,13 +6,11 @@ import (
 	"time"
 
 	roleV1 "github.com/Fl0rencess720/Ayana/api/gateway/role/v1"
-	v1 "github.com/Fl0rencess720/Ayana/api/gateway/seminar/v1"
 	"github.com/cloudwego/eino-ext/components/model/deepseek"
 	"github.com/cloudwego/eino/components/prompt"
 	"github.com/cloudwego/eino/schema"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/spf13/viper"
-	"google.golang.org/grpc"
 )
 
 type SeminarRepo interface {
@@ -25,8 +23,9 @@ type SeminarRepo interface {
 }
 
 type SeminarUsecase struct {
-	repo SeminarRepo
-	log  *log.Helper
+	repo  SeminarRepo
+	brepo BroadcastRepo
+	log   *log.Helper
 
 	roleClient roleV1.RoleManagerClient
 	topicCache *TopicCache
@@ -41,8 +40,10 @@ const (
 	UNKNOWN
 )
 
-func NewSeminarUsecase(repo SeminarRepo, topicCache *TopicCache, roleCache *RoleCache, roleClient roleV1.RoleManagerClient, logger log.Logger) *SeminarUsecase {
-	return &SeminarUsecase{repo: repo, topicCache: topicCache, roleCache: roleCache, roleClient: roleClient, log: log.NewHelper(logger)}
+func NewSeminarUsecase(repo SeminarRepo, brepo BroadcastRepo, topicCache *TopicCache,
+	roleCache *RoleCache, roleClient roleV1.RoleManagerClient, logger log.Logger) *SeminarUsecase {
+	return &SeminarUsecase{repo: repo, brepo: brepo, topicCache: topicCache, roleCache: roleCache,
+		roleClient: roleClient, log: log.NewHelper(logger)}
 }
 
 func (uc *SeminarUsecase) CreateTopic(ctx context.Context, phone string, topic *Topic) error {
@@ -76,13 +77,13 @@ func (uc *SeminarUsecase) GetTopicsMetadata(ctx context.Context, phone string) (
 	return topics, nil
 }
 
-func (uc *SeminarUsecase) StartTopic(topicID string, stream grpc.ServerStreamingServer[v1.StreamOutputReply]) error {
-	topic, err := uc.topicCache.GetTopic(topicID)
+func (uc *SeminarUsecase) StartTopic(ctx context.Context, topicUID string) error {
+	topic, err := uc.topicCache.GetTopic(topicUID)
 	if err != nil {
 		return err
 	}
 	if topic == nil {
-		topic, err = uc.repo.GetTopic(context.Background(), topicID)
+		topic, err = uc.repo.GetTopic(context.Background(), topicUID)
 		if err != nil {
 			return err
 		}
@@ -128,7 +129,7 @@ func (uc *SeminarUsecase) StartTopic(topicID string, stream grpc.ServerStreaming
 	for k := range mroles {
 		nroles = append(nroles, k)
 	}
-	uc.roleCache.SetRoles(topicID, roles)
+	uc.roleCache.SetRoles(topicUID, roles)
 
 	currentRole := &Role{RoleType: UNKNOWN}
 	currentRoleIdx := -1
@@ -149,7 +150,8 @@ func (uc *SeminarUsecase) StartTopic(topicID string, stream grpc.ServerStreaming
 			}
 		}
 	}
-	roleScheduler := RoleScheduler{moderator: moderator, roles: roles, current: currentRole, currentRoleIdx: currentRoleIdx}
+	// 角色调度器
+	roleScheduler := NewRoleScheduler(topicUID, moderator, roles, currentRole, currentRoleIdx, uc.brepo)
 
 	role, roleType := roleScheduler.NextRole()
 	topic.State = &PreparingState{}
@@ -174,8 +176,10 @@ func (uc *SeminarUsecase) StartTopic(topicID string, stream grpc.ServerStreaming
 	if err != nil {
 		return err
 	}
+	tokenChan := make(chan *TokenMessage, 50)
+	//  开始调用角色，进入循环
 	for {
-		message, signal, err := role.Call(messages, stream, topic.signalChan)
+		message, signal, err := roleScheduler.Call(messages, topic.signalChan, tokenChan)
 		if err != nil {
 			return err
 		}

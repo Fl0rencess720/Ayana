@@ -16,26 +16,40 @@ import (
 	"github.com/go-redis/redis/extra/redisotel"
 	"github.com/go-redis/redis/v8"
 	"github.com/google/wire"
+	"github.com/segmentio/kafka-go"
 	grpcx "google.golang.org/grpc"
 )
 
 // ProviderSet is data providers.
-var ProviderSet = wire.NewSet(NewData, NewRoleRepo, NewUserRepo, NewRedis, NewRoleServiceClient, NewUserServiceClient, NewSeminarServiceClient)
+var ProviderSet = wire.NewSet(NewData, NewRoleRepo, NewBroadcastRepo, NewUserRepo, NewRedis, NewRoleServiceClient, NewUserServiceClient, NewSeminarServiceClient, NewKafkaClient)
+
+type kafkaClient struct {
+	kafkaWriters map[string]*kafka.Writer
+	kafkaReaders map[string]*kafka.Reader
+}
 
 // Data .
 type Data struct {
 	redisClient *redis.Client
+	kafkaClient *kafkaClient
 	rc          roleV1.RoleManagerClient
 	uc          userV1.UserClient
 	sc          seminarV1.SeminarClient
 }
 
 // NewData .
-func NewData(c *conf.Data, logger log.Logger, redisClient *redis.Client, uc userV1.UserClient, rc roleV1.RoleManagerClient, sc seminarV1.SeminarClient) (*Data, func(), error) {
+func NewData(c *conf.Data, logger log.Logger, redisClient *redis.Client, uc userV1.UserClient, rc roleV1.RoleManagerClient,
+	kafkaClient *kafkaClient, sc seminarV1.SeminarClient) (*Data, func(), error) {
 	cleanup := func() {
 		log.NewHelper(logger).Info("closing the data resources")
 	}
-	return &Data{uc: uc, rc: rc, sc: sc, redisClient: redisClient}, cleanup, nil
+	return &Data{uc: uc, rc: rc, sc: sc, kafkaClient: kafkaClient, redisClient: redisClient}, cleanup, nil
+}
+
+func NewKafkaClient(c *conf.Data) *kafkaClient {
+	kafkaWriters := make(map[string]*kafka.Writer)
+	kafkaReaders := make(map[string]*kafka.Reader)
+	return &kafkaClient{kafkaWriters: kafkaWriters, kafkaReaders: kafkaReaders}
 }
 
 func NewRedis(c *conf.Data) *redis.Client {

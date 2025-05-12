@@ -26,18 +26,20 @@ import (
 func wireApp(confServer *conf.Server, confService *conf.Service, confData *conf.Data, registry *conf.Registry, logger log.Logger) (*kratos.App, func(), error) {
 	db := data.NewMysql(confData)
 	client := data.NewRedis(confData)
+	kafkaClient := data.NewKafkaClient(confData)
 	discovery := server.NewDiscovery(registry)
 	roleManagerClient := data.NewRoleServiceClient(confService, discovery)
 	embedder := data.NewEmbedder(confData)
 	retriever := data.NewRetriever(client, embedder)
-	dataData, cleanup, err := data.NewData(confData, logger, db, client, roleManagerClient, embedder, retriever)
+	dataData, cleanup, err := data.NewData(confData, logger, db, client, kafkaClient, roleManagerClient, embedder, retriever)
 	if err != nil {
 		return nil, nil, err
 	}
 	seminarRepo := data.NewSeminarRepo(dataData, logger)
+	broadcastRepo := data.NewBroadcastRepo(dataData, logger)
 	topicCache := biz.NewTopicCache()
 	roleCache := biz.NewRoleCache()
-	seminarUsecase := biz.NewSeminarUsecase(seminarRepo, topicCache, roleCache, roleManagerClient, logger)
+	seminarUsecase := biz.NewSeminarUsecase(seminarRepo, broadcastRepo, topicCache, roleCache, roleManagerClient, logger)
 	ragRepo := data.NewRAGRepo(dataData, logger)
 	ragUsecase := biz.NewRAGUsecase(ragRepo, logger)
 	seminarService := service.NewSeminarService(seminarUsecase, ragUsecase)

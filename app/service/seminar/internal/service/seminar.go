@@ -8,7 +8,6 @@ import (
 
 	v1 "github.com/Fl0rencess720/Ayana/api/gateway/seminar/v1"
 	"github.com/Fl0rencess720/Ayana/app/service/seminar/internal/biz"
-	"google.golang.org/grpc"
 )
 
 type SeminarService struct {
@@ -88,16 +87,18 @@ func (s *SeminarService) GetTopicsMetadata(ctx context.Context, req *v1.GetTopic
 	}
 	return reply, nil
 }
-func (s *SeminarService) StartTopic(req *v1.StartTopicRequest, stream grpc.ServerStreamingServer[v1.StreamOutputReply]) error {
+func (s *SeminarService) StartTopic(ctx context.Context, req *v1.StartTopicRequest) (*v1.StartTopicReply, error) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Errorf("panic: %v", r)
 		}
 	}()
-	if err := s.uc.StartTopic(req.TopicId, stream); err != nil {
-		return err
+	if err := s.uc.StartTopic(ctx, req.TopicId); err != nil {
+		return nil, err
 	}
-	return nil
+	return &v1.StartTopicReply{
+		Message: "success",
+	}, nil
 }
 
 func (s *SeminarService) StopTopic(ctx context.Context, req *v1.StopTopicRequest) (*v1.StopTopicReply, error) {

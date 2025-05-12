@@ -8,10 +8,8 @@ import (
 	"math/rand"
 	"sync"
 
-	v1 "github.com/Fl0rencess720/Ayana/api/gateway/seminar/v1"
 	"github.com/cloudwego/eino-ext/components/model/deepseek"
 	"github.com/cloudwego/eino/schema"
-	"google.golang.org/grpc"
 	"gorm.io/gorm"
 )
 
@@ -35,15 +33,28 @@ type RoleCache struct {
 }
 
 type RoleScheduler struct {
+	topicUID       string
 	moderator      *Role
 	roles          []*Role
 	current        *Role
 	currentRoleIdx int
+	brepo          BroadcastRepo
 }
 
 func NewRoleCache() *RoleCache {
 	return &RoleCache{
 		Roles: make(map[string][]*Role),
+	}
+}
+
+func NewRoleScheduler(topicUID string, moderator *Role, roles []*Role, current *Role, currentRoleIdx int, brepo BroadcastRepo) *RoleScheduler {
+	return &RoleScheduler{
+		topicUID:       topicUID,
+		moderator:      moderator,
+		roles:          roles,
+		current:        current,
+		currentRoleIdx: currentRoleIdx,
+		brepo:          brepo,
 	}
 }
 
@@ -105,7 +116,8 @@ func (rs *RoleScheduler) NextRole() (*Role, RoleType) {
 	return rs.current, PARTICIPANT
 }
 
-func (role *Role) Call(messages []*schema.Message, stream grpc.ServerStreamingServer[v1.StreamOutputReply], signalChan chan StateSignal) (*schema.Message, StateSignal, error) {
+func (rs *RoleScheduler) Call(messages []*schema.Message, signalChan chan StateSignal, tokenChan chan *TokenMessage) (*schema.Message, StateSignal, error) {
+	role := rs.current
 	ctx := context.Background()
 	ctxFromPausing, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -143,6 +155,7 @@ func (role *Role) Call(messages []*schema.Message, stream grpc.ServerStreamingSe
 	}, 1)
 	go func() {
 		defer close(resultChan)
+		position := 0
 		for {
 			resp, err := aiStream.Recv()
 			if err != nil {
@@ -171,9 +184,11 @@ func (role *Role) Call(messages []*schema.Message, stream grpc.ServerStreamingSe
 			}
 			if reasoning, ok := deepseek.GetReasoningContent(resp); ok {
 				message.Content += reasoning
-				if sendErr := stream.Send(&v1.StreamOutputReply{
-					RoleUID: role.Uid,
-					Content: &v1.StreamOutputReply_Reasoning{Reasoning: reasoning},
+				if sendErr := rs.brepo.SendMessageToKafka(ctx, rs.topicUID, &TokenMessage{
+					RoleUID:     role.Uid,
+					ContentType: "reasoning",
+					Content:     reasoning,
+					Position:    position,
 				}); sendErr != nil {
 					resultChan <- struct {
 						*schema.Message
@@ -185,9 +200,11 @@ func (role *Role) Call(messages []*schema.Message, stream grpc.ServerStreamingSe
 			}
 			if len(resp.Content) > 0 {
 				message.Content += resp.Content
-				if sendErr := stream.Send(&v1.StreamOutputReply{
-					RoleUID: role.Uid,
-					Content: &v1.StreamOutputReply_Text{Text: resp.Content},
+				if sendErr := rs.brepo.SendMessageToKafka(ctx, rs.topicUID, &TokenMessage{
+					RoleUID:     role.Uid,
+					ContentType: "text",
+					Content:     resp.Content,
+					Position:    position,
 				}); sendErr != nil {
 					resultChan <- struct {
 						*schema.Message
@@ -197,6 +214,7 @@ func (role *Role) Call(messages []*schema.Message, stream grpc.ServerStreamingSe
 					return
 				}
 			}
+			position++
 		}
 	}()
 	select {

@@ -11,6 +11,8 @@ import (
 	"github.com/Fl0rencess720/Ayana/pkgs/utils"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport/http"
+	"github.com/segmentio/kafka-go"
+	"go.uber.org/zap"
 )
 
 type SeminarRepo interface {
@@ -19,8 +21,9 @@ type SeminarRepo interface {
 }
 
 type SeminarUsecase struct {
-	repo UserRepo
-	log  *log.Helper
+	repo  UserRepo
+	brepo BroadcastRepo
+	log   *log.Helper
 
 	seminarClient v1.SeminarClient
 }
@@ -52,8 +55,8 @@ type Topic struct {
 	Content      string
 }
 
-func NewSeminarUsecase(repo UserRepo, logger log.Logger, seminarClient v1.SeminarClient) *SeminarUsecase {
-	seminarUsecase := &SeminarUsecase{repo: repo, log: log.NewHelper(logger), seminarClient: seminarClient}
+func NewSeminarUsecase(repo UserRepo, brepo BroadcastRepo, logger log.Logger, seminarClient v1.SeminarClient) *SeminarUsecase {
+	seminarUsecase := &SeminarUsecase{repo: repo, brepo: brepo, log: log.NewHelper(logger), seminarClient: seminarClient}
 	globalSeminarUsecase = seminarUsecase
 	return seminarUsecase
 
@@ -96,7 +99,7 @@ func (uc *SeminarUsecase) GetTopicsMetadata(ctx context.Context, req *v1.GetTopi
 func StartTopic(ctx http.Context) (interface{}, error) {
 	req := v1.StartTopicRequest{}
 	req.TopicId = ctx.Query().Get("topic_id")
-	stream, err := globalSeminarUsecase.seminarClient.StartTopic(ctx, &req)
+	_, err := globalSeminarUsecase.seminarClient.StartTopic(ctx, &req)
 	if err != nil {
 		return nil, err
 	}
@@ -107,36 +110,39 @@ func StartTopic(ctx http.Context) (interface{}, error) {
 	w.Header().Set("Transfer-Encoding", "chunked")
 	ctx.Response().WriteHeader(nethttp.StatusOK)
 	flusher, _ := w.(http.Flusher)
-	for {
-		resp, err := stream.Recv()
-		if err == io.EOF {
-			fmt.Fprintf(w, "event: end\ndata: %s\n\n", "end")
-			flusher.Flush()
-			return nil, nil
-		}
-		if err != nil {
-			fmt.Fprintf(w, "event: error\ndata: %s\n\n", err.Error())
-			flusher.Flush()
-			return nil, nil
-		}
-
-		switch content := resp.Content.(type) {
-		case *v1.StreamOutputReply_Reasoning:
-			sseRespReasoning := sseResp{
-				RoleUID: resp.RoleUID,
-				Content: content.Reasoning,
-			}
-			fmt.Fprintf(w, "event: reasoning\ndata: %v\n\n", sseRespReasoning)
-		case *v1.StreamOutputReply_Text:
-			sseRespText := sseResp{
-				RoleUID: resp.RoleUID,
-				Content: content.Text,
-			}
-			fmt.Fprintf(w, "event: text\ndata: %v\n\n", sseRespText)
-		}
-		flusher.Flush()
+	if err := globalSeminarUsecase.brepo.AddKafkaReader(req.TopicId, kafka.LastOffset); err != nil {
+		return nil, err
 	}
+	tokenChan := make(chan *TokenMessage, 50)
 
+	go func() {
+		defer close(tokenChan)
+		if err := globalSeminarUsecase.brepo.ReadMessagesByOffset(ctx, req.TopicId, tokenChan); err != nil {
+			zap.L().Error(err.Error())
+			return
+		}
+	}()
+
+	for {
+		select {
+		case token := <-tokenChan:
+			if token == nil {
+				continue
+			}
+			if token.ContentType == "reasoning" {
+				fmt.Fprintf(w, "event: reasoning\ndata: %v\n\n", sseResp{RoleUID: token.RoleUID, Content: token.Content})
+			} else if token.ContentType == "text" {
+				fmt.Fprintf(w, "event: text\ndata: %v\n\n", sseResp{RoleUID: token.RoleUID, Content: token.Content})
+			} else if token.ContentType == "end" {
+				fmt.Fprintf(w, "event: end\ndata: %v\n\n", "")
+				flusher.Flush()
+				return nil, nil
+			}
+			flusher.Flush()
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
+	}
 }
 
 func (uc *SeminarUsecase) StopTopic(ctx context.Context, req *v1.StopTopicRequest) (*v1.StopTopicReply, error) {
