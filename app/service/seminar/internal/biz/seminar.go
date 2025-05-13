@@ -46,8 +46,14 @@ const (
 
 func NewSeminarUsecase(repo SeminarRepo, brepo BroadcastRepo, topicCache *TopicCache,
 	roleCache *RoleCache, roleClient roleV1.RoleManagerClient, logger log.Logger) *SeminarUsecase {
-	return &SeminarUsecase{repo: repo, brepo: brepo, topicCache: topicCache, roleCache: roleCache,
+	s := &SeminarUsecase{repo: repo, brepo: brepo, topicCache: topicCache, roleCache: roleCache,
 		roleClient: roleClient, log: log.NewHelper(logger)}
+	go func() {
+		if err := s.brepo.ReadPauseSignalFromKafka(context.Background()); err != nil {
+			zap.L().Error("read pause signal from kafka failed", zap.Error(err))
+		}
+	}()
+	return s
 }
 
 func (uc *SeminarUsecase) CreateTopic(ctx context.Context, phone string, topic *Topic) error {
@@ -100,6 +106,12 @@ func (uc *SeminarUsecase) StartTopic(ctx context.Context, topicUID string) error
 		topic.signalChan = make(chan StateSignal, 1)
 		uc.topicCache.SetTopic(topic)
 	}
+
+	if err := uc.brepo.AddTopicPauseChannel(ctx, topicUID, topic.signalChan); err != nil {
+		zap.L().Error("add topic pause channel failed", zap.Error(err))
+	}
+	defer uc.brepo.DeleteTopicPauseContext(ctx, topicUID)
+
 	rolesReply, err := uc.roleClient.GetRolesAndModeratorByUIDs(context.Background(), &roleV1.GetRolesAndModeratorByUIDsRequest{Phone: topic.Phone, Moderator: topic.Moderator, Uids: topic.Participants})
 	if err != nil {
 		return err
@@ -239,7 +251,9 @@ func (uc *SeminarUsecase) StopTopic(ctx context.Context, topicID string) error {
 	if err != nil {
 		return err
 	}
-	topic.signalChan <- Pause
+	if err := uc.brepo.SendPauseSignalToKafka(ctx, topic.UID); err != nil {
+		return err
+	}
 	return nil
 }
 

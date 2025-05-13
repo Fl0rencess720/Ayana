@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	roleV1 "github.com/Fl0rencess720/Ayana/api/gateway/role/v1"
@@ -30,7 +31,9 @@ var ProviderSet = wire.NewSet(NewData, NewSeminarRepo, NewRAGRepo, NewMysql, New
 	NewEmbedder, NewRetriever, NewRoleServiceClient, NewBroadcastRepo, NewKafkaClient)
 
 type kafkaClient struct {
-	kafkaWriter *kafka.Writer
+	kafkaWriter       *kafka.Writer
+	pauseSignalReader *kafka.Reader
+	pauseSignalWriter *kafka.Writer
 }
 
 // Data .
@@ -41,6 +44,9 @@ type Data struct {
 	embedder    *embedding.Embedder
 	retriever   *rr.Retriever
 	roleClient  roleV1.RoleManagerClient
+
+	mu                   sync.Mutex
+	topicPauseContextMap map[string]chan biz.StateSignal
 }
 
 // NewData .
@@ -49,7 +55,8 @@ func NewData(c *conf.Data, logger log.Logger, mysqlClient *gorm.DB, redisClient 
 	cleanup := func() {
 		log.NewHelper(logger).Info("closing the data resources")
 	}
-	return &Data{mysqlClient: mysqlClient, redisClient: redisClient, kafkaClient: kafkaClient, roleClient: roleClient, embedder: embedder, retriever: retriever}, cleanup, nil
+	topicPauseContextMap := make(map[string]chan biz.StateSignal)
+	return &Data{mysqlClient: mysqlClient, redisClient: redisClient, kafkaClient: kafkaClient, roleClient: roleClient, embedder: embedder, retriever: retriever, topicPauseContextMap: topicPauseContextMap}, cleanup, nil
 }
 
 func NewKafkaClient(c *conf.Data) *kafkaClient {
@@ -58,8 +65,19 @@ func NewKafkaClient(c *conf.Data) *kafkaClient {
 		Topic:   kafkatopic.TOPIC,
 		Async:   true,
 	})
+	pauseSignalReader := kafka.NewReader(kafka.ReaderConfig{
+		Brokers: []string{c.Kafka.Addr},
+		Topic:   kafkatopic.PAUSE_SIGNAL_TOPIC,
+	})
+	pauseSignalWriter := kafka.NewWriter(kafka.WriterConfig{
+		Brokers: []string{c.Kafka.Addr},
+		Topic:   kafkatopic.PAUSE_SIGNAL_TOPIC,
+		Async:   true,
+	})
 	return &kafkaClient{
-		kafkaWriter: writer,
+		kafkaWriter:       writer,
+		pauseSignalReader: pauseSignalReader,
+		pauseSignalWriter: pauseSignalWriter,
 	}
 }
 

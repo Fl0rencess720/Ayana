@@ -5,6 +5,7 @@ import (
 
 	v1 "github.com/Fl0rencess720/Ayana/api/gateway/seminar/v1"
 	"github.com/Fl0rencess720/Ayana/app/gateway/interface/internal/biz"
+	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/transport/http"
 )
 
@@ -47,6 +48,11 @@ func (s *SeminarService) GetTopicsMetadata(ctx context.Context, req *v1.GetTopic
 	return reply, nil
 }
 func StartTopic(ctx http.Context) error {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Errorf("panic: %v", r)
+		}
+	}()
 	h := ctx.Middleware(func(c context.Context, req interface{}) (interface{}, error) {
 		return biz.StartTopic(ctx)
 	})
@@ -66,6 +72,11 @@ func (s *SeminarService) StopTopic(ctx context.Context, req *v1.StopTopicRequest
 }
 
 func ResumeTopic(ctx http.Context) error {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Errorf("panic: %v", r)
+		}
+	}()
 	h := ctx.Middleware(func(c context.Context, req interface{}) (interface{}, error) {
 		return biz.StartTopic(ctx)
 	})

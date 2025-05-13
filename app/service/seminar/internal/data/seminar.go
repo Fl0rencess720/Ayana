@@ -6,7 +6,6 @@ import (
 
 	"github.com/Fl0rencess720/Ayana/app/service/seminar/internal/biz"
 	"github.com/go-kratos/kratos/v2/log"
-	"github.com/redis/go-redis/v9"
 )
 
 type seminarRepo struct {
@@ -74,20 +73,12 @@ func (r *seminarRepo) LockTopic(ctx context.Context, topicUID string, lockerUID 
 }
 
 func (r *seminarRepo) UnlockTopic(ctx context.Context, topicUID string, lockerUID string) error {
-	script := redis.NewScript(`
-		if redis.call("GET", KEYS[1]) == ARGV[1] then
-			return redis.call("DEL", KEYS[1])
-		else
-			return 0
-		end
-	`)
-
-	res, err := script.Run(ctx, r.data.redisClient, []string{topicUID}, lockerUID).Int64()
+	res, err := r.data.redisClient.Del(ctx, topicUID).Result()
 	if err != nil {
 		return fmt.Errorf("unlock failed: %v", err)
 	}
 	if res != 1 {
-		return fmt.Errorf("unlock failed: lock not exists or value mismatch")
+		return fmt.Errorf("unlock failed: key does not exist")
 	}
 	return nil
 }
