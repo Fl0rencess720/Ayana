@@ -23,7 +23,7 @@ type SeminarRepo interface {
 	SaveSpeech(ctx context.Context, speech *Speech) error
 	SaveSpeechToRedis(ctx context.Context, speech *Speech) error
 	LockTopic(ctx context.Context, topicUID, lockerUID string) error
-	UnlockTopic(ctx context.Context, topicUID, lockerUID string) error
+	UnlockTopic(topicUID, lockerUID string) error
 }
 
 type SeminarUsecase struct {
@@ -92,7 +92,7 @@ func (uc *SeminarUsecase) StartTopic(ctx context.Context, topicUID string) error
 	if err := uc.repo.LockTopic(ctx, topicUID, lockerUID); err != nil {
 		zap.L().Error("lock topic failed", zap.Error(err))
 	}
-	defer uc.repo.UnlockTopic(ctx, topicUID, lockerUID)
+	defer uc.repo.UnlockTopic(topicUID, lockerUID)
 
 	topic, err := uc.topicCache.GetTopic(topicUID)
 	if err != nil {
@@ -151,29 +151,28 @@ func (uc *SeminarUsecase) StartTopic(ctx context.Context, topicUID string) error
 	}
 	uc.roleCache.SetRoles(topicUID, roles)
 
-	currentRole := &Role{RoleType: UNKNOWN}
-	currentRoleIdx := -1
+	// currentRole := &Role{RoleType: UNKNOWN}
+	// currentRoleIdx := -1
+	role := moderator
+	roleType := MODERATOR
 	if len(topic.Speeches) != 0 {
-		currentUID := topic.Speeches[len(topic.Speeches)-1].RoleUID
-		if currentUID == moderator.Uid {
-			currentRole = moderator
-		} else {
-			if len(topic.Speeches) > 1 {
-				currentUID = topic.Speeches[len(topic.Speeches)-2].RoleUID
+		lastRoleUID := topic.Speeches[len(topic.Speeches)-1].RoleUID
+		msg := topic.Speeches[len(topic.Speeches)-1].Content
+		if lastRoleUID == moderator.Uid {
+			nextRoleName, err := findNextRoleNameFromMessage(msg)
+			if err != nil {
+				return err
 			}
-			for i, role := range roles {
-				if role.Uid == currentUID {
-					currentRole = role
-					currentRoleIdx = i
-					break
-				}
-			}
+			role = mroles[nextRoleName]
+			roleType = PARTICIPANT
 		}
 	}
 	// 角色调度器
-	roleScheduler := NewRoleScheduler(topicUID, moderator, roles, currentRole, currentRoleIdx, uc.brepo)
+	roleScheduler := NewRoleScheduler(topicUID, moderator, roles, role, -1, uc.brepo)
 
-	role, roleType := roleScheduler.NextRole()
+	// role, roleType := roleScheduler.NextRole()
+	roleScheduler.current = role
+
 	topic.State = &PreparingState{}
 	topic.State.nextState(topic)
 

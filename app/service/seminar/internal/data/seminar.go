@@ -72,7 +72,8 @@ func (r *seminarRepo) LockTopic(ctx context.Context, topicUID string, lockerUID 
 	return nil
 }
 
-func (r *seminarRepo) UnlockTopic(ctx context.Context, topicUID string, lockerUID string) error {
+func (r *seminarRepo) UnlockTopic(topicUID string, lockerUID string) error {
+	ctx := context.Background()
 	res, err := r.data.redisClient.Del(ctx, topicUID).Result()
 	if err != nil {
 		return fmt.Errorf("unlock failed: %v", err)
