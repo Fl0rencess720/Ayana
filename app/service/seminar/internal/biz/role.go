@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"math/rand"
 	"sync"
+	"time"
 
 	"github.com/cloudwego/eino-ext/components/model/deepseek"
 	"github.com/cloudwego/eino/schema"
@@ -57,6 +59,123 @@ func NewRoleScheduler(topicUID string, moderator *Role, roles []*Role, current *
 		brepo:          brepo,
 	}
 }
+
+type TokenBuffer struct {
+	messages    []*TokenMessage
+	mu          sync.Mutex
+	batchSize   int
+	flushTicker *time.Ticker
+	sendChan    chan []*TokenMessage
+	done        chan struct{}
+	closeOnce   sync.Once
+}
+
+func NewTokenBuffer(batchSize int, flushInterval time.Duration) *TokenBuffer {
+	tb := &TokenBuffer{
+		messages:    make([]*TokenMessage, 0, batchSize*2),
+		batchSize:   batchSize,
+		flushTicker: time.NewTicker(flushInterval),
+		sendChan:    make(chan []*TokenMessage, 10),
+		done:        make(chan struct{}),
+	}
+
+	return tb
+}
+
+func (tb *TokenBuffer) Add(token *TokenMessage) bool {
+	tb.mu.Lock()
+	tb.messages = append(tb.messages, token)
+	needFlush := len(tb.messages) >= tb.batchSize
+	tb.mu.Unlock()
+
+	return needFlush
+}
+
+func (tb *TokenBuffer) Flush() {
+	tb.mu.Lock()
+	if len(tb.messages) == 0 {
+		tb.mu.Unlock()
+		return
+	}
+
+	toSend := make([]*TokenMessage, len(tb.messages))
+	copy(toSend, tb.messages)
+	tb.messages = tb.messages[:0]
+	tb.mu.Unlock()
+
+	select {
+	case tb.sendChan <- toSend:
+	case <-tb.done:
+	}
+}
+
+func (tb *TokenBuffer) safeCloseSendChan() {
+	tb.mu.Lock()
+	defer tb.mu.Unlock()
+
+	select {
+	case <-tb.done:
+	default:
+		close(tb.sendChan)
+	}
+}
+
+func (tb *TokenBuffer) safeCloseDone() {
+	tb.closeOnce.Do(func() {
+		close(tb.done)
+	})
+}
+
+func (tb *TokenBuffer) Start(ctx context.Context, sender func(context.Context, []*TokenMessage) error) {
+	go func() {
+		defer tb.flushTicker.Stop()
+
+		for {
+			select {
+			case <-tb.flushTicker.C:
+				tb.Flush()
+			case batch, ok := <-tb.sendChan:
+				if !ok {
+					// sendChan已关闭，退出循环
+					return
+				}
+
+				// 异步发送到Kafka，如果出错也继续处理
+				go func(b []*TokenMessage) {
+					if err := sender(ctx, b); err != nil {
+						log.Printf("Error sending batch to Kafka: %v", err)
+					}
+				}(batch)
+			case <-tb.done:
+				// 关闭时发送所有剩余消息
+				tb.Flush()
+
+				// 安全关闭发送通道
+				tb.safeCloseSendChan()
+
+				// 处理通道中剩余的批次
+				for batch := range tb.sendChan {
+					if err := sender(ctx, batch); err != nil {
+						log.Printf("Error sending final batch to Kafka: %v", err)
+					}
+				}
+				return
+			case <-ctx.Done():
+				// 仅触发done信号，不直接关闭通道
+				tb.safeCloseDone()
+			}
+		}
+	}()
+}
+
+// Stop 停止后台处理
+func (tb *TokenBuffer) Stop() {
+	// 安全地关闭done通道
+	tb.safeCloseDone()
+}
+
+// BatchSendTokensToKafka 发送一批token到Kafka的函数类型
+type BatchSendTokensToKafka func(context.Context, []*TokenMessage) error
 
 func (rc *RoleCache) GetRoles(topicID string) []*Role {
 	rc.RLock()
@@ -118,13 +237,18 @@ func (rs *RoleScheduler) NextRole() (*Role, RoleType) {
 
 func (rs *RoleScheduler) Call(messages []*schema.Message, signalChan chan StateSignal, tokenChan chan *TokenMessage) (*schema.Message, StateSignal, error) {
 	role := rs.current
-	ctx := context.Background()
-	ctxFromPausing, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx, mainCancel := context.WithCancel(context.Background())
+	defer mainCancel()
+
+	// 创建一个用于暂停检测的context
+	ctxFromPausing, pauseCancel := context.WithCancel(ctx)
+	defer pauseCancel()
+
+	// 监听暂停信号
 	go func() {
 		if signal, ok := <-signalChan; ok {
 			if signal == Pause {
-				cancel()
+				pauseCancel() // 触发暂停
 				return
 			}
 			if signal == Normal {
@@ -132,7 +256,7 @@ func (rs *RoleScheduler) Call(messages []*schema.Message, signalChan chan StateS
 			}
 		}
 	}()
-
+	// 初始化聊天模型
 	cm, err := deepseek.NewChatModel(ctx, &deepseek.ChatModelConfig{
 		APIKey: role.ApiKey,
 		Model:  role.ModelName,
@@ -140,22 +264,39 @@ func (rs *RoleScheduler) Call(messages []*schema.Message, signalChan chan StateS
 	if err != nil {
 		return nil, Error, err
 	}
-
+	// 创建AI流
 	aiStream, err := cm.Stream(ctx, messages)
 	if err != nil {
 		return nil, Error, err
 	}
 	defer aiStream.Close()
 
+	// 创建token缓冲区
+	tokenBuffer := NewTokenBuffer(10, 50*time.Millisecond)
+
+	// 创建发送函数
+	batchSender := func(ctx context.Context, tokens []*TokenMessage) error {
+		// 假设rs.brepo有一个批量发送方法
+		return rs.brepo.SendTokensToKafkaBatch(ctx, rs.topicUID, tokens)
+	}
+
+	// 启动异步处理
+	tokenBuffer.Start(ctx, batchSender)
+	defer tokenBuffer.Stop()
+
+	// 创建响应消息
 	message := &schema.Message{Role: schema.User}
 	resultChan := make(chan struct {
 		*schema.Message
 		StateSignal
 		error
 	}, 1)
+
+	// 处理AI流的goroutine
 	go func() {
 		defer close(resultChan)
-		position := 0
+		isFirstToken := true
+
 		for {
 			resp, err := aiStream.Recv()
 			if err != nil {
@@ -168,6 +309,8 @@ func (rs *RoleScheduler) Call(messages []*schema.Message, signalChan chan StateS
 					return
 				}
 				if errors.Is(err, io.EOF) {
+					// 确保所有消息都被发送
+					tokenBuffer.Flush()
 					resultChan <- struct {
 						*schema.Message
 						StateSignal
@@ -182,46 +325,53 @@ func (rs *RoleScheduler) Call(messages []*schema.Message, signalChan chan StateS
 				}{nil, Error, fmt.Errorf("stream error: %w", err)}
 				return
 			}
-			if reasoning, ok := deepseek.GetReasoningContent(resp); ok {
+			// 处理reasoning内容
+			if reasoning, ok := deepseek.GetReasoningContent(resp); ok && reasoning != "" {
 				message.Content += reasoning
-				if sendErr := rs.brepo.SendMessageToKafka(ctx, rs.topicUID, &TokenMessage{
+				token := &TokenMessage{
+					TopicUID:    rs.topicUID,
 					RoleUID:     role.Uid,
 					ContentType: "reasoning",
 					Content:     reasoning,
-					Position:    position,
-				}); sendErr != nil {
-					resultChan <- struct {
-						*schema.Message
-						StateSignal
-						error
-					}{nil, Error, sendErr}
-					return
+					IsFirst:     isFirstToken,
+				}
+
+				// 添加到缓冲区，如果需要立即刷新则刷新
+				if tokenBuffer.Add(token) {
+					tokenBuffer.Flush()
 				}
 			}
+
+			// 处理主要内容
 			if len(resp.Content) > 0 {
 				message.Content += resp.Content
-				if sendErr := rs.brepo.SendMessageToKafka(ctx, rs.topicUID, &TokenMessage{
+				token := &TokenMessage{
+					TopicUID:    rs.topicUID,
 					RoleUID:     role.Uid,
 					ContentType: "text",
 					Content:     resp.Content,
-					Position:    position,
-				}); sendErr != nil {
-					resultChan <- struct {
-						*schema.Message
-						StateSignal
-						error
-					}{nil, Error, sendErr}
-					return
+					IsFirst:     isFirstToken,
+				}
+
+				// 添加到缓冲区，如果需要立即刷新则刷新
+				if tokenBuffer.Add(token) {
+					tokenBuffer.Flush()
 				}
 			}
-			position++
+
+			isFirstToken = false
 		}
 	}()
+
+	// 等待结果或暂停信号
 	select {
 	case <-ctxFromPausing.Done():
 		return nil, Pause, nil
 	case result := <-resultChan:
-		signalChan <- Normal
+		// 如果操作正常完成，发送正常信号
+		if result.StateSignal == Normal {
+			signalChan <- Normal
+		}
 		return result.Message, result.StateSignal, result.error
 	}
 }

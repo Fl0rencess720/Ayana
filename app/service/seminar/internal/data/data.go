@@ -7,6 +7,7 @@ import (
 	roleV1 "github.com/Fl0rencess720/Ayana/api/gateway/role/v1"
 	"github.com/Fl0rencess720/Ayana/app/service/seminar/internal/biz"
 	"github.com/Fl0rencess720/Ayana/app/service/seminar/internal/conf"
+	"github.com/Fl0rencess720/Ayana/pkgs/kafkatopic"
 	embedding "github.com/cloudwego/eino-ext/components/embedding/ark"
 	rr "github.com/cloudwego/eino-ext/components/retriever/redis"
 	"github.com/go-kratos/kratos/v2/log"
@@ -29,8 +30,7 @@ var ProviderSet = wire.NewSet(NewData, NewSeminarRepo, NewRAGRepo, NewMysql, New
 	NewEmbedder, NewRetriever, NewRoleServiceClient, NewBroadcastRepo, NewKafkaClient)
 
 type kafkaClient struct {
-	kafkaWriters map[string]*kafka.Writer
-	kafkaReaders map[string]*kafka.Reader
+	kafkaWriter *kafka.Writer
 }
 
 // Data .
@@ -53,9 +53,14 @@ func NewData(c *conf.Data, logger log.Logger, mysqlClient *gorm.DB, redisClient 
 }
 
 func NewKafkaClient(c *conf.Data) *kafkaClient {
-	kafkaWriters := make(map[string]*kafka.Writer)
-	kafkaReaders := make(map[string]*kafka.Reader)
-	return &kafkaClient{kafkaWriters: kafkaWriters, kafkaReaders: kafkaReaders}
+	writer := kafka.NewWriter(kafka.WriterConfig{
+		Brokers: []string{c.Kafka.Addr},
+		Topic:   kafkatopic.TOPIC,
+		Async:   true,
+	})
+	return &kafkaClient{
+		kafkaWriter: writer,
+	}
 }
 
 func NewEmbedder(c *conf.Data) *embedding.Embedder {

@@ -2,12 +2,15 @@ package data
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	roleV1 "github.com/Fl0rencess720/Ayana/api/gateway/role/v1"
 	seminarV1 "github.com/Fl0rencess720/Ayana/api/gateway/seminar/v1"
 	userV1 "github.com/Fl0rencess720/Ayana/api/gateway/user/v1"
+	"github.com/Fl0rencess720/Ayana/app/gateway/interface/internal/biz"
 	"github.com/Fl0rencess720/Ayana/app/gateway/interface/internal/conf"
+	"github.com/Fl0rencess720/Ayana/pkgs/kafkatopic"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
@@ -21,20 +24,30 @@ import (
 )
 
 // ProviderSet is data providers.
-var ProviderSet = wire.NewSet(NewData, NewRoleRepo, NewBroadcastRepo, NewUserRepo, NewRedis, NewRoleServiceClient, NewUserServiceClient, NewSeminarServiceClient, NewKafkaClient)
+var ProviderSet = wire.NewSet(NewData, NewRoleRepo, NewBroadcastRepo, NewSeminarRepo, NewUserRepo, NewRedis, NewRoleServiceClient, NewUserServiceClient, NewSeminarServiceClient, NewKafkaClient)
 
 type kafkaClient struct {
-	kafkaWriters map[string]*kafka.Writer
-	kafkaReaders map[string]*kafka.Reader
+	readers []*kafka.Reader
+}
+
+type clientConn struct {
+	tokenMessageChan chan *biz.TokenMessage
+	isclosed         bool
 }
 
 // Data .
 type Data struct {
 	redisClient *redis.Client
 	kafkaClient *kafkaClient
-	rc          roleV1.RoleManagerClient
-	uc          userV1.UserClient
-	sc          seminarV1.SeminarClient
+
+	messageCache  map[string][]*biz.TokenMessage
+	clientConnMap map[string][]*clientConn
+
+	rc roleV1.RoleManagerClient
+	uc userV1.UserClient
+	sc seminarV1.SeminarClient
+
+	mu sync.Mutex
 }
 
 // NewData .
@@ -43,13 +56,24 @@ func NewData(c *conf.Data, logger log.Logger, redisClient *redis.Client, uc user
 	cleanup := func() {
 		log.NewHelper(logger).Info("closing the data resources")
 	}
-	return &Data{uc: uc, rc: rc, sc: sc, kafkaClient: kafkaClient, redisClient: redisClient}, cleanup, nil
+	messageCache := make(map[string][]*biz.TokenMessage)
+	clientConnMap := make(map[string][]*clientConn)
+	return &Data{uc: uc, rc: rc, sc: sc, kafkaClient: kafkaClient, clientConnMap: clientConnMap, messageCache: messageCache, redisClient: redisClient}, cleanup, nil
 }
 
 func NewKafkaClient(c *conf.Data) *kafkaClient {
-	kafkaWriters := make(map[string]*kafka.Writer)
-	kafkaReaders := make(map[string]*kafka.Reader)
-	return &kafkaClient{kafkaWriters: kafkaWriters, kafkaReaders: kafkaReaders}
+	var readers []*kafka.Reader
+	for i := 0; i < kafkatopic.PARTITIONSIZE; i++ {
+		reader := kafka.NewReader(kafka.ReaderConfig{
+			Brokers: []string{c.Kafka.Addr},
+			Topic:   kafkatopic.TOPIC,
+			GroupID: kafkatopic.GROUP,
+		})
+		readers = append(readers, reader)
+	}
+	return &kafkaClient{
+		readers: readers,
+	}
 }
 
 func NewRedis(c *conf.Data) *redis.Client {

@@ -13,6 +13,12 @@ data:
     read_timeout: 0.2s
     write_timeout: 0.2s
     dial_timeout: 1s
+  kafka:
+    addr: localhost:9094
+    topic: "ayana_seminar_tokens"
+    partition: 0
+    read_timeout: 0.2s
+    write_timeout: 0.2s
 trace:
   endpoint: 127.0.0.1:4318
 

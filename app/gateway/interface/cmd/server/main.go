@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"time"
 
 	"github.com/go-kratos/kratos/v2/transport/http"
 
@@ -46,6 +47,7 @@ func newApp(logger log.Logger, hs *http.Server, rr registry.Registrar) *kratos.A
 		kratos.ID(id),
 		kratos.Name(Name),
 		kratos.Version(Version),
+		kratos.StopTimeout(5*time.Second),
 		kratos.Metadata(map[string]string{}),
 		kratos.Logger(logger),
 		kratos.Server(

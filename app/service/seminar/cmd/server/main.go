@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"time"
 
 	"github.com/Fl0rencess720/Ayana/app/service/seminar/internal/conf"
 	"github.com/Fl0rencess720/Ayana/pkgs/viperConf"
@@ -45,6 +46,7 @@ func newApp(logger log.Logger, gs *grpc.Server, rr registry.Registrar) *kratos.A
 		kratos.ID(id),
 		kratos.Name(Name),
 		kratos.Version(Version),
+		kratos.StopTimeout(5*time.Second),
 		kratos.Metadata(map[string]string{}),
 		kratos.Logger(logger),
 		kratos.Server(

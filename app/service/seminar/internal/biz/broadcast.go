@@ -11,10 +11,10 @@ type TokenMessage struct {
 	RoleType    string `json:"role_type"`
 	ContentType string `json:"content_type"`
 	Content     string `json:"content"`
-	Position    int    `json:"position"`
+	IsFirst     bool   `json:"is_first"`
 }
 
 type BroadcastRepo interface {
-	AddKafkaWriter(topic string) error
-	SendMessageToKafka(ctx context.Context, topic string, message *TokenMessage) error
+	SendTokenToKafka(ctx context.Context, topic string, message *TokenMessage) error
+	SendTokensToKafkaBatch(ctx context.Context, topicUID string, tokens []*TokenMessage) error
 }

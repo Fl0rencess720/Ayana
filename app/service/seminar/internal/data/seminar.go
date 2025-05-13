@@ -2,9 +2,11 @@ package data
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Fl0rencess720/Ayana/app/service/seminar/internal/biz"
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/redis/go-redis/v9"
 )
 
 type seminarRepo struct {
@@ -60,6 +62,32 @@ func (r *seminarRepo) SaveSpeech(ctx context.Context, speech *biz.Speech) error 
 func (r *seminarRepo) SaveSpeechToRedis(ctx context.Context, speech *biz.Speech) error {
 	if err := r.data.redisClient.Set(ctx, speech.UID, speech, 0).Err(); err != nil {
 		return err
+	}
+	return nil
+}
+
+func (r *seminarRepo) LockTopic(ctx context.Context, topicUID string, lockerUID string) error {
+	if err := r.data.redisClient.SetNX(ctx, topicUID, lockerUID, 0).Err(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *seminarRepo) UnlockTopic(ctx context.Context, topicUID string, lockerUID string) error {
+	script := redis.NewScript(`
+		if redis.call("GET", KEYS[1]) == ARGV[1] then
+			return redis.call("DEL", KEYS[1])
+		else
+			return 0
+		end
+	`)
+
+	res, err := script.Run(ctx, r.data.redisClient, []string{topicUID}, lockerUID).Int64()
+	if err != nil {
+		return fmt.Errorf("unlock failed: %v", err)
+	}
+	if res != 1 {
+		return fmt.Errorf("unlock failed: lock not exists or value mismatch")
 	}
 	return nil
 }

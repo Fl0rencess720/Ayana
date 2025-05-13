@@ -10,7 +10,9 @@ import (
 	"github.com/cloudwego/eino/components/prompt"
 	"github.com/cloudwego/eino/schema"
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/google/uuid"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
 type SeminarRepo interface {
@@ -20,6 +22,8 @@ type SeminarRepo interface {
 	GetTopicsMetadata(ctx context.Context, phone string) ([]Topic, error)
 	SaveSpeech(ctx context.Context, speech *Speech) error
 	SaveSpeechToRedis(ctx context.Context, speech *Speech) error
+	LockTopic(ctx context.Context, topicUID, lockerUID string) error
+	UnlockTopic(ctx context.Context, topicUID, lockerUID string) error
 }
 
 type SeminarUsecase struct {
@@ -78,6 +82,12 @@ func (uc *SeminarUsecase) GetTopicsMetadata(ctx context.Context, phone string) (
 }
 
 func (uc *SeminarUsecase) StartTopic(ctx context.Context, topicUID string) error {
+	lockerUID := uuid.New().String()
+	if err := uc.repo.LockTopic(ctx, topicUID, lockerUID); err != nil {
+		zap.L().Error("lock topic failed", zap.Error(err))
+	}
+	defer uc.repo.UnlockTopic(ctx, topicUID, lockerUID)
+
 	topic, err := uc.topicCache.GetTopic(topicUID)
 	if err != nil {
 		return err
@@ -94,7 +104,6 @@ func (uc *SeminarUsecase) StartTopic(ctx context.Context, topicUID string) error
 	if err != nil {
 		return err
 	}
-
 	// 加载角色
 	moderator := &Role{
 		Uid:         rolesReply.Moderator.Uid,
@@ -119,7 +128,6 @@ func (uc *SeminarUsecase) StartTopic(ctx context.Context, topicUID string) error
 			RoleType:    PARTICIPANT,
 		})
 	}
-
 	// key为name，value为Role
 	mroles := make(map[string]*Role)
 	for _, r := range roles {
@@ -177,10 +185,12 @@ func (uc *SeminarUsecase) StartTopic(ctx context.Context, topicUID string) error
 		return err
 	}
 	tokenChan := make(chan *TokenMessage, 50)
-	//  开始调用角色，进入循环
+
 	for {
 		message, signal, err := roleScheduler.Call(messages, topic.signalChan, tokenChan)
 		if err != nil {
+			fmt.Printf("err: %v\n", err)
+			zap.L().Error("角色调用失败", zap.Error(err))
 			return err
 		}
 		if signal == Pause {
@@ -212,12 +222,15 @@ func (uc *SeminarUsecase) StartTopic(ctx context.Context, topicUID string) error
 			role = moderator
 			roleType = MODERATOR
 		}
+		roleScheduler.current = role
 		message.Content = buildMessageContent(newSpeech)
 		messages, err = buildMessages(roleType, role, nroles, append(messages, message)[1:])
 		if err != nil {
 			return err
 		}
+
 	}
+
 	return nil
 }
 

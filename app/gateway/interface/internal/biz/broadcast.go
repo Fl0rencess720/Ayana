@@ -2,8 +2,6 @@ package biz
 
 import (
 	"context"
-
-	"github.com/segmentio/kafka-go"
 )
 
 type TokenMessage struct {
@@ -13,11 +11,11 @@ type TokenMessage struct {
 	RoleType    string `json:"role_type"`
 	ContentType string `json:"content_type"`
 	Content     string `json:"content"`
-	Position    int    `json:"position"`
+	IsFirst     bool   `json:"is_first"`
 }
 
 type BroadcastRepo interface {
-	AddKafkaReader(topic string, offset int64) error
-	ReadMessagesByOffset(ctx context.Context, topic string, tokenChan chan *TokenMessage) error
-	ReadLastestMessage(ctx context.Context, topic string) (kafka.Message, error)
+	RegisterConnChannel(ctx context.Context, topic string, connChan chan *TokenMessage) error
+	UngisterConnChannel(ctx context.Context, topic string, connChan chan *TokenMessage) error
+	ReadTopic(ctx context.Context, topic string) error
 }
