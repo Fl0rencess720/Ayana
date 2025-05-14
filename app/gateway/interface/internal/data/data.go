@@ -47,7 +47,8 @@ type Data struct {
 	uc userV1.UserClient
 	sc seminarV1.SeminarClient
 
-	mu sync.Mutex
+	mu  sync.Mutex
+	rmu sync.Mutex
 }
 
 // NewData .
@@ -65,9 +66,10 @@ func NewKafkaClient(c *conf.Data) *kafkaClient {
 	var readers []*kafka.Reader
 	for i := 0; i < kafkatopic.PARTITIONSIZE; i++ {
 		reader := kafka.NewReader(kafka.ReaderConfig{
-			Brokers: []string{c.Kafka.Addr},
-			Topic:   kafkatopic.TOPIC,
-			GroupID: kafkatopic.GROUP,
+			Brokers:     []string{c.Kafka.Addr},
+			Topic:       kafkatopic.TOPIC,
+			GroupID:     kafkatopic.GROUP,
+			StartOffset: kafka.LastOffset,
 		})
 		readers = append(readers, reader)
 	}

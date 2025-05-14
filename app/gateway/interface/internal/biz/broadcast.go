@@ -18,4 +18,7 @@ type BroadcastRepo interface {
 	RegisterConnChannel(ctx context.Context, topic string, connChan chan *TokenMessage) error
 	UngisterConnChannel(ctx context.Context, topic string, connChan chan *TokenMessage) error
 	ReadTopic(ctx context.Context, topic string) error
+	GetMessageCache(topicUID string) []*TokenMessage
+	LockMutex()
+	UnlockMutex()
 }

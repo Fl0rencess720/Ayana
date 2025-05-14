@@ -68,8 +68,8 @@ func NoneProtoRoutesRegister(srv *http.Server) {
 	seminarRouter := seminarRoute.Group("/topic")
 	seminarRouter.GET("starting", service.StartTopic)
 	seminarRouter.GET("resuming", service.ResumeTopic)
+	seminarRouter.GET("streaming", service.GetTopicSream)
 
 	documentRoute := srv.Route("/document")
 	documentRoute.POST("upload", service.UploadDocument)
-
 }

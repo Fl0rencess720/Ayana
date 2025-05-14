@@ -87,6 +87,22 @@ func ResumeTopic(ctx http.Context) error {
 	return nil
 }
 
+func GetTopicSream(ctx http.Context) error {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Errorf("panic: %v", r)
+		}
+	}()
+	h := ctx.Middleware(func(c context.Context, req interface{}) (interface{}, error) {
+		return biz.GetTopicStream(ctx)
+	})
+	_, err := h(ctx, nil)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func UploadDocument(ctx http.Context) error {
 	h := ctx.Middleware(func(c context.Context, req interface{}) (interface{}, error) {
 		file, handler, err := ctx.Request().FormFile("file")

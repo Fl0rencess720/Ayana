@@ -26,10 +26,10 @@ func NewBroadcastRepo(data *Data, logger log.Logger) biz.BroadcastRepo {
 }
 
 func (r *broadcastRepo) RegisterConnChannel(ctx context.Context, topic string, connChan chan *biz.TokenMessage) error {
-	r.data.mu.Lock()
+	r.data.rmu.Lock()
 	r.data.clientConnMap[topic] = append(r.data.clientConnMap[topic], &clientConn{tokenMessageChan: connChan, isclosed: false})
+	r.data.rmu.Unlock()
 	r.log.Info("RegisterConnChannel", zap.String("topic", topic))
-	r.data.mu.Unlock()
 	return nil
 }
 
@@ -47,7 +47,11 @@ func (r *broadcastRepo) UngisterConnChannel(ctx context.Context, topic string, c
 // ReadTopic 从 Kafka 主题读取消息并处理
 func (r *broadcastRepo) ReadTopic(ctx context.Context, topic string) error {
 	readers := r.data.kafkaClient.readers
-	errChan := make(chan error, 1)
+	if len(readers) == 0 {
+		zap.L().Error("Kafka readers not initialized")
+		return fmt.Errorf("kafka readers not initialized")
+	}
+	errChan := make(chan error, len(readers))
 
 	for _, reader := range readers {
 		go func(reader *kafka.Reader) {
@@ -99,10 +103,8 @@ func (r *broadcastRepo) ReadTopic(ctx context.Context, topic string) error {
 					}
 				}
 				r.data.messageCache[tokenMsg.TopicUID] = append(r.data.messageCache[tokenMsg.TopicUID], &tokenMsg)
-				r.data.mu.Unlock()
 
 				var connsCopy []*clientConn
-				r.data.mu.Lock()
 				conns, ok := r.data.clientConnMap[tokenMsg.TopicUID]
 				if ok && len(conns) > 0 {
 					connsCopy = make([]*clientConn, len(conns))
@@ -141,4 +143,19 @@ func (r *broadcastRepo) ReadTopic(ctx context.Context, topic string) error {
 
 func (r *broadcastRepo) IndexTopicLastMessageToRedis(ctx context.Context, topic string, offset int) error {
 	return r.data.redisClient.Set(ctx, fmt.Sprintf("AyanaTopic:%s", topic), offset, 0).Err()
+}
+func (r *broadcastRepo) GetMessageCache(topicUID string) []*biz.TokenMessage {
+	if msgs, found := r.data.messageCache[topicUID]; found {
+		copiedMsgs := make([]*biz.TokenMessage, len(msgs))
+		copy(copiedMsgs, msgs)
+		return copiedMsgs
+	}
+	return nil
+}
+
+func (r *broadcastRepo) LockMutex() {
+	r.data.mu.Lock()
+}
+func (r *broadcastRepo) UnlockMutex() {
+	r.data.mu.Unlock()
 }

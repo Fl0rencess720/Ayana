@@ -160,6 +160,75 @@ func StartTopic(ctx http.Context) (interface{}, error) {
 	}
 }
 
+func GetTopicStream(ctx http.Context) (interface{}, error) {
+	topicUID := ctx.Query().Get("topic_id")
+	status, err := globalSeminarUsecase.srepo.GetTopicLockStatus(ctx, topicUID)
+	if err != nil {
+		return nil, err
+	}
+	if !status {
+		return nil, fmt.Errorf("topic is not locked")
+	}
+	w := ctx.Response()
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+	w.Header().Set("Transfer-Encoding", "chunked")
+	ctx.Response().WriteHeader(nethttp.StatusOK)
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		return nil, fmt.Errorf("response writer does not implement http.Flusher")
+	}
+	tokenChan := make(chan *TokenMessage, 50)
+	defer func() {
+		globalSeminarUsecase.brepo.UngisterConnChannel(ctx, topicUID, tokenChan)
+		close(tokenChan)
+	}()
+
+	globalSeminarUsecase.brepo.LockMutex()
+	cachedMsgs := globalSeminarUsecase.brepo.GetMessageCache(topicUID)
+	if err := globalSeminarUsecase.brepo.RegisterConnChannel(ctx, topicUID, tokenChan); err != nil {
+		return nil, err
+	}
+	fmt.Printf("cachedMsgs: %v\n", cachedMsgs)
+	globalSeminarUsecase.brepo.UnlockMutex()
+	for _, token := range cachedMsgs {
+		sseResp := sseResp{RoleUID: token.RoleUID, Content: token.Content}
+		if token.ContentType == "reasoning" {
+			fmt.Fprintf(w, "event: reasoning\ndata: %v\n\n", sseResp)
+		} else if token.ContentType == "text" {
+			fmt.Fprintf(w, "event: text\ndata: %v\n\n", sseResp)
+		} else if token.ContentType == "end" {
+			fmt.Fprintf(w, "event: end\ndata: %v\n\n", "")
+			flusher.Flush()
+			return nil, nil
+		}
+		flusher.Flush()
+	}
+	for {
+		select {
+		case token := <-tokenChan:
+			if token == nil {
+				fmt.Println("token is nil")
+				continue
+			}
+			sseResp := sseResp{RoleUID: token.RoleUID, Content: token.Content}
+			if token.ContentType == "reasoning" {
+				fmt.Fprintf(w, "event: reasoning\ndata: %v\n\n", sseResp)
+			} else if token.ContentType == "text" {
+				fmt.Fprintf(w, "event: text\ndata: %v\n\n", sseResp)
+			} else if token.ContentType == "end" {
+				fmt.Fprintf(w, "event: end\ndata: %v\n\n", "")
+				flusher.Flush()
+				return nil, nil
+			}
+			flusher.Flush()
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
+	}
+}
+
 func (uc *SeminarUsecase) StopTopic(ctx context.Context, req *v1.StopTopicRequest) (*v1.StopTopicReply, error) {
 	reply, err := uc.seminarClient.StopTopic(ctx, req)
 	if err != nil {
