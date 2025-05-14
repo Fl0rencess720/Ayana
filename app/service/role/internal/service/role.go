@@ -67,14 +67,14 @@ func (s *RoleService) GetRoles(ctx context.Context, req *v1.GetRolesRequest) (*v
 	return reply, nil
 }
 
-func (s *RoleService) GetRolesAndModeratorByUIDs(ctx context.Context, req *v1.GetRolesAndModeratorByUIDsRequest) (*v1.GetRolesAndModeratorByUIDsReply, error) {
-	moderator, roles, err := s.uc.GetRolesAndModeratorByUIDs(ctx, req.Phone, req.Moderator, req.Uids)
+func (s *RoleService) GetModeratorAndParticipantsByUIDs(ctx context.Context, req *v1.GetModeratorAndParticipantsByUIDsRequest) (*v1.GetModeratorAndParticipantsByUIDsReply, error) {
+	moderator, roles, err := s.uc.GetModeratorAndParticipantsByUIDs(ctx, req.Phone, req.Moderator, req.Uids)
 	if err != nil {
 		return nil, err
 	}
-	reply := &v1.GetRolesAndModeratorByUIDsReply{}
+	reply := &v1.GetModeratorAndParticipantsByUIDsReply{}
 	for _, role := range roles {
-		reply.Roles = append(reply.Roles, &v1.Role{
+		reply.Participants = append(reply.Participants, &v1.Role{
 			Uid:         role.Uid,
 			Name:        role.RoleName,
 			Description: role.Description,

@@ -28,7 +28,6 @@ type Topic struct {
 	gorm.Model
 	UID          string           `gorm:"index;column:uid;type:varchar(255)"`
 	Content      string           `gorm:"column:content;type:text"`
-	State        State            `gorm:"-;"`
 	Moderator    string           `gorm:"column:moderator;type:varchar(255)"`
 	Participants []string         `gorm:"column:participants;type:json;serializer:json"`
 	Speeches     []Speech         `gorm:"foreignKey:TopicUID;references:UID"`
@@ -64,7 +63,6 @@ func NewTopic(content, moderator string, participants []string) (*Topic, error) 
 	}
 	return &Topic{
 		Content:      content,
-		State:        &PreparingState{},
 		UID:          uid,
 		Moderator:    moderator,
 		Participants: participants,
@@ -72,22 +70,6 @@ func NewTopic(content, moderator string, participants []string) (*Topic, error) 
 		Title:        "新主题",
 		signalChan:   make(chan StateSignal, 1),
 	}, nil
-}
-
-func (topic *Topic) GetState() string {
-	return topic.State.getState()
-}
-
-func (topic *Topic) Start() error {
-	return topic.State.start(topic)
-}
-
-func (topic *Topic) Pause() error {
-	return topic.State.pause(topic)
-}
-
-func (topic *Topic) Resume() error {
-	return topic.State.resume(topic)
 }
 
 func NewTopicCache() *TopicCache {

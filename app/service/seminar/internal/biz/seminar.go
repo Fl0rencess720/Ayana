@@ -8,7 +8,6 @@ import (
 	roleV1 "github.com/Fl0rencess720/Ayana/api/gateway/role/v1"
 	"github.com/Fl0rencess720/Ayana/pkgs/utils"
 	"github.com/cloudwego/eino-ext/components/model/deepseek"
-	"github.com/cloudwego/eino/components/prompt"
 	"github.com/cloudwego/eino/schema"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/uuid"
@@ -100,12 +99,14 @@ func (uc *SeminarUsecase) GetTopicsMetadata(ctx context.Context, phone string) (
 }
 
 func (uc *SeminarUsecase) StartTopic(ctx context.Context, topicUID string) error {
+	// 分布式锁的value
 	lockerUID := uuid.New().String()
 	if err := uc.repo.LockTopic(ctx, topicUID, lockerUID); err != nil {
 		zap.L().Error("lock topic failed", zap.Error(err))
 	}
 	defer uc.repo.UnlockTopic(topicUID, lockerUID)
 
+	// 获取主题详情
 	topic, err := uc.topicCache.GetTopic(topicUID)
 	if err != nil {
 		return err
@@ -119,16 +120,18 @@ func (uc *SeminarUsecase) StartTopic(ctx context.Context, topicUID string) error
 		uc.topicCache.SetTopic(topic)
 	}
 
+	// 添加暂停信号通道
 	if err := uc.brepo.AddTopicPauseChannel(ctx, topicUID, topic.signalChan); err != nil {
 		zap.L().Error("add topic pause channel failed", zap.Error(err))
 	}
 	defer uc.brepo.DeleteTopicPauseContext(ctx, topicUID)
 
-	rolesReply, err := uc.roleClient.GetRolesAndModeratorByUIDs(context.Background(), &roleV1.GetRolesAndModeratorByUIDsRequest{Phone: topic.Phone, Moderator: topic.Moderator, Uids: topic.Participants})
+	// 获取该主题的所有角色
+	rolesReply, err := uc.roleClient.GetModeratorAndParticipantsByUIDs(context.Background(), &roleV1.GetModeratorAndParticipantsByUIDsRequest{Phone: topic.Phone, Moderator: topic.Moderator, Uids: topic.Participants})
 	if err != nil {
 		return err
 	}
-	// 加载角色
+	// 加载主持人
 	moderator := &Role{
 		Uid:         rolesReply.Moderator.Uid,
 		RoleName:    rolesReply.Moderator.Name,
@@ -139,9 +142,10 @@ func (uc *SeminarUsecase) StartTopic(ctx context.Context, topicUID string) error
 		ModelName:   rolesReply.Moderator.Model.Name,
 		RoleType:    MODERATOR,
 	}
-	roles := []*Role{}
-	for _, r := range rolesReply.Roles {
-		roles = append(roles, &Role{
+	// 加载参与者
+	participants := []*Role{}
+	for _, r := range rolesReply.Participants {
+		participants = append(participants, &Role{
 			Uid:         r.Uid,
 			RoleName:    r.Name,
 			Description: r.Description,
@@ -152,41 +156,15 @@ func (uc *SeminarUsecase) StartTopic(ctx context.Context, topicUID string) error
 			RoleType:    PARTICIPANT,
 		})
 	}
-	// key为name，value为Role
-	mroles := make(map[string]*Role)
-	for _, r := range roles {
-		mroles[r.RoleName] = r
-	}
-	nroles := []string{}
-	for k := range mroles {
-		nroles = append(nroles, k)
-	}
-	uc.roleCache.SetRoles(topicUID, roles)
 
-	// currentRole := &Role{RoleType: UNKNOWN}
-	// currentRoleIdx := -1
-	role := moderator
-	roleType := MODERATOR
-	if len(topic.Speeches) != 0 {
-		lastRoleUID := topic.Speeches[len(topic.Speeches)-1].RoleUID
-		msg := topic.Speeches[len(topic.Speeches)-1].Content
-		if lastRoleUID == moderator.Uid {
-			nextRoleName, err := findNextRoleNameFromMessage(msg)
-			if err != nil {
-				return err
-			}
-			role = mroles[nextRoleName]
-			roleType = PARTICIPANT
-		}
+	//  将加载的所有角色添加到角色缓存中
+	uc.roleCache.SetRoles(topicUID, append(participants, moderator))
+
+	// 初始化角色调度器
+	roleScheduler, err := NewRoleScheduler(topic, moderator, participants, uc.brepo)
+	if err != nil {
+		return err
 	}
-	// 角色调度器
-	roleScheduler := NewRoleScheduler(topicUID, moderator, roles, role, -1, uc.brepo)
-
-	// role, roleType := roleScheduler.NextRole()
-	roleScheduler.current = role
-
-	topic.State = &PreparingState{}
-	topic.State.nextState(topic)
 
 	previousMessages := []*schema.Message{{Role: schema.User, Content: "@研讨会管理员:研讨会的主题是---" + topic.Content + "。请主持人做好准备！"}}
 	for i, speech := range topic.Speeches {
@@ -203,10 +181,13 @@ func (uc *SeminarUsecase) StartTopic(ctx context.Context, topicUID string) error
 			})
 		}
 	}
-	messages, err := buildMessages(roleType, moderator, nroles, previousMessages)
+
+	roleScheduler.NextRole(topic.Speeches[len(topic.Speeches)-1].Content)
+	messages, err := roleScheduler.state.buildMessages(roleScheduler, previousMessages)
 	if err != nil {
 		return err
 	}
+
 	tokenChan := make(chan *TokenMessage, 50)
 
 	for {
@@ -217,14 +198,13 @@ func (uc *SeminarUsecase) StartTopic(ctx context.Context, topicUID string) error
 			return err
 		}
 		if signal == Pause {
-			topic.State.nextState(topic)
 			uc.topicCache.SetTopic(topic)
 			break
 		}
 		newSpeech := Speech{
 			Content:  message.Content,
-			RoleUID:  role.Uid,
-			RoleName: role.RoleName,
+			RoleUID:  roleScheduler.current.Uid,
+			RoleName: roleScheduler.current.RoleName,
 			TopicUID: topic.UID,
 			Time:     time.Now(),
 		}
@@ -232,28 +212,16 @@ func (uc *SeminarUsecase) StartTopic(ctx context.Context, topicUID string) error
 		if err := uc.repo.SaveSpeech(context.Background(), &newSpeech); err != nil {
 			return err
 		}
-		nextRoleName := ""
-		if roleType == MODERATOR {
-			nextRoleName, err = findNextRoleNameFromMessage(message.Content)
-			if err != nil {
-				return err
-			}
-			role = mroles[nextRoleName]
-			roleType = PARTICIPANT
-		} else {
-			// role, roleType = roleScheduler.NextRole()
-			role = moderator
-			roleType = MODERATOR
+
+		if err := roleScheduler.NextRole(message.Content); err != nil {
+			return err
 		}
-		roleScheduler.current = role
 		message.Content = buildMessageContent(newSpeech)
-		messages, err = buildMessages(roleType, role, nroles, append(messages, message)[1:])
+		messages, err = roleScheduler.BuildMessages(append(messages, message)[1:])
 		if err != nil {
 			return err
 		}
-
 	}
-
 	return nil
 }
 
@@ -285,57 +253,6 @@ func (uc *SeminarUsecase) GetMCPServers(ctx context.Context, phone string) ([]MC
 		return nil, err
 	}
 	return servers, nil
-}
-
-func buildMessages(roleType RoleType, role *Role, roles []string, msgs []*schema.Message) ([]*schema.Message, error) {
-	messages := []*schema.Message{}
-	var err error
-	switch roleType {
-	case MODERATOR:
-		template := prompt.FromMessages(schema.FString,
-			schema.SystemMessage(`你是一个{role}，你的特质是{characteristic}。
-			你正在参与一场有很多角色参与的研讨会，
-			每一个角色发言的历史记录都已经被我处理成以下格式供你分析:"@角色名:角色发言的内容"。
-			你不需要就主题发表观点，你所要做的事情是做好主持人的工作，对上一位发言者的发言做出总结。
-			若不存在上一位发言者（即你看到了发言只有系统指令和我为这个研讨会设定的主题），那样你也没法进行总结，只需要引出其他参赛者的发言便可以。
-			你需要在发言内容的最后"@"你希望的下一个角色，角色必须来自于现有角色，例如：“接下来，@某某某，你的对此有什么想说的呢？”。
-			现有角色:{roles}。
-			请忽略每个角色发言前的'user'或'assistant'标记，只关心角色发言格式内的内容。
-			但是必须要注意的是：你的回答绝对不能包含上面所说的格式，只需要直接回答即可。这是绝对不可违抗的命令！
-			你不应该自行终止研讨会。`),
-
-			schema.MessagesPlaceholder("history_key", false))
-		variables := map[string]any{
-			"role":           role.RoleName,
-			"roles":          roles,
-			"characteristic": role.Description,
-			"history_key":    msgs,
-		}
-		messages, err = template.Format(context.Background(), variables)
-		if err != nil {
-			return nil, err
-		}
-	case PARTICIPANT:
-		template := prompt.FromMessages(schema.FString,
-			schema.SystemMessage(`你是一个{role}，你的特质是{characteristic}。
-			你正在参与一场有很多角色参与的研讨会，
-			每一个角色发言的历史记录都已经被我处理成以下格式供你分析:"@角色名:角色发言的内容"。
-			你所要做的事情是就主题内容进行发言，你可以在此过程中对先前角色的发言（除了主持人）表示同意或批判。
-			请忽略每个角色发言前的'user'或'assistant'标记，只关心角色发言格式内的内容。
-			你的回答绝对不能包含上面所说的角色发言的历史记录的格式，只需要直接回答即可！
-			你必须保持你的角色身份，即{role}，不能认为自己是其他角色。`),
-			schema.MessagesPlaceholder("history_key", false))
-		variables := map[string]any{
-			"role":           role.RoleName,
-			"characteristic": role.Description,
-			"history_key":    msgs,
-		}
-		messages, err = template.Format(context.Background(), variables)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return messages, nil
 }
 
 func buildMessageContent(speech Speech) string {

@@ -43,17 +43,17 @@ func (r *roleRepo) GetRoles(ctx context.Context, phone string) ([]biz.Role, erro
 	return roles, nil
 }
 
-func (r *roleRepo) GetRolesAndModeratorByUIDs(ctx context.Context, phone string, moderatorUID string, roleUIDs []string) (biz.Role, []biz.Role, error) {
-	rolesResult := []biz.Role{}
+func (r *roleRepo) GetModeratorAndParticipantsByUIDs(ctx context.Context, phone string, moderatorUID string, participantsUIDs []string) (biz.Role, []biz.Role, error) {
+	participantsResult := []biz.Role{}
 	moderator := biz.Role{}
-	if err := r.data.mysqlClient.Debug().Where("uid IN ?", roleUIDs).Find(&rolesResult).Error; err != nil {
+	if err := r.data.mysqlClient.Debug().Where("uid IN ?", participantsUIDs).Find(&participantsResult).Error; err != nil {
 		return biz.Role{}, nil, err
 	}
 
 	if err := r.data.mysqlClient.Debug().Where("uid = ?", moderatorUID).Find(&moderator).Error; err != nil {
 		return biz.Role{}, nil, err
 	}
-	return moderator, rolesResult, nil
+	return moderator, participantsResult, nil
 }
 
 func (r *roleRepo) DeleteRole(ctx context.Context, uid string) error {

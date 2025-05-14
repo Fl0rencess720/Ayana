@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"math/rand"
 	"sync"
 	"time"
 
@@ -35,12 +34,14 @@ type RoleCache struct {
 }
 
 type RoleScheduler struct {
-	topicUID       string
-	moderator      *Role
-	roles          []*Role
-	current        *Role
-	currentRoleIdx int
-	brepo          BroadcastRepo
+	topicUID     string
+	moderator    *Role
+	participants []*Role
+	current      *Role
+	roleMap      map[string]*Role
+	roleNames    []string
+	state        RoleState
+	brepo        BroadcastRepo
 }
 
 func NewRoleCache() *RoleCache {
@@ -49,15 +50,46 @@ func NewRoleCache() *RoleCache {
 	}
 }
 
-func NewRoleScheduler(topicUID string, moderator *Role, roles []*Role, current *Role, currentRoleIdx int, brepo BroadcastRepo) *RoleScheduler {
-	return &RoleScheduler{
-		topicUID:       topicUID,
-		moderator:      moderator,
-		roles:          roles,
-		current:        current,
-		currentRoleIdx: currentRoleIdx,
-		brepo:          brepo,
+func NewRoleScheduler(topic *Topic, moderator *Role, participants []*Role, brepo BroadcastRepo) (*RoleScheduler, error) {
+
+	// 构建 参与者名->参与者实例 的映射
+	// key为name，value为Role
+	roleMap := make(map[string]*Role)
+	for _, p := range participants {
+		roleMap[p.RoleName] = p
 	}
+	// 构建参与者名切片，用于后续选取下一个参与者
+	roleNames := []string{}
+	for _, p := range participants {
+		roleNames = append(roleNames, p.RoleName)
+	}
+
+	lastRole := &Role{RoleType: UNKNOWN}
+	var state RoleState
+	if len(topic.Speeches) != 0 {
+		lastRoleUID := topic.Speeches[len(topic.Speeches)-1].RoleUID
+		lastRoleName := topic.Speeches[len(topic.Speeches)-1].RoleName
+		if lastRoleUID == moderator.Uid {
+			lastRole = moderator
+			state = ModeratorState{}
+		} else {
+			lastRole = roleMap[lastRoleName]
+			state = ParticipantState{}
+		}
+	} else {
+		state = UnknownState{}
+	}
+
+	return &RoleScheduler{
+		topicUID:     topic.UID,
+		moderator:    moderator,
+		participants: participants,
+		roleMap:      roleMap,
+		roleNames:    roleNames,
+		state:        state,
+		current:      lastRole,
+		brepo:        brepo,
+	}, nil
 }
 
 type TokenBuffer struct {
@@ -195,44 +227,26 @@ func (rc *RoleCache) DeleteRoles(topicID string) {
 	delete(rc.Roles, topicID)
 }
 
-func (rs *RoleScheduler) NextRole() (*Role, RoleType) {
-	if rs.current.RoleType != MODERATOR {
-		rs.currentRoleIdx = -1
-		rs.current = rs.moderator
-		return rs.moderator, MODERATOR
-	}
+// 获取当前状态
+func (rs *RoleScheduler) getState() RoleState {
+	return rs.state
+}
 
-	if rs.currentRoleIdx == -1 {
-		if len(rs.roles) == 0 {
-			return rs.moderator, MODERATOR
-		}
-		randomIndex := rand.Intn(len(rs.roles))
-		rs.current = rs.roles[randomIndex]
-		rs.currentRoleIdx = randomIndex
-		return rs.current, PARTICIPANT
+// 设置新状态
+func (rs *RoleScheduler) setState(state RoleState) {
+	rs.state = state
+}
+func (rs *RoleScheduler) NextRole(msgContent string) error {
+	role, err := rs.state.nextRole(rs, msgContent)
+	if err != nil {
+		return err
 	}
+	rs.current = role
+	return nil
+}
 
-	pre := rs.roles[:rs.currentRoleIdx]
-	tail := []*Role{}
-	if rs.currentRoleIdx+1 < len(rs.roles) {
-		tail = rs.roles[rs.currentRoleIdx+1:]
-	}
-	selectingRoles := append(pre, tail...)
-
-	if len(selectingRoles) == 0 {
-		rs.currentRoleIdx = -1
-		rs.current = rs.moderator
-		return rs.moderator, MODERATOR
-	}
-
-	randomIndex := rand.Intn(len(selectingRoles))
-	originalIdx := rs.currentRoleIdx
-	if randomIndex >= originalIdx {
-		randomIndex++
-	}
-	rs.current = selectingRoles[randomIndex]
-	rs.currentRoleIdx = randomIndex
-	return rs.current, PARTICIPANT
+func (rs *RoleScheduler) BuildMessages(msgs []*schema.Message) ([]*schema.Message, error) {
+	return rs.state.buildMessages(rs, msgs)
 }
 
 func (rs *RoleScheduler) Call(messages []*schema.Message, signalChan chan StateSignal, tokenChan chan *TokenMessage) (*schema.Message, StateSignal, error) {

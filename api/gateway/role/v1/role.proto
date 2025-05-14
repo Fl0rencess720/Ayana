@@ -26,7 +26,7 @@ service RoleManager {
       body: "*"
     };
   }
-  rpc GetRolesAndModeratorByUIDs (GetRolesAndModeratorByUIDsRequest) returns (GetRolesAndModeratorByUIDsReply) {
+  rpc GetModeratorAndParticipantsByUIDs (GetModeratorAndParticipantsByUIDsRequest) returns (GetModeratorAndParticipantsByUIDsReply) {
   }
   rpc GetAvailableModels (GetAvailableModelsRequest) returns (GetAvailableModelsReply) {
     option (google.api.http) = {
@@ -103,13 +103,13 @@ message GetAvailableModelsReply{
 }
 
 
-message GetRolesAndModeratorByUIDsRequest {
+message GetModeratorAndParticipantsByUIDsRequest {
   string phone = 1;
   string moderator = 2;
   repeated string uids = 3;
 }
 
-message GetRolesAndModeratorByUIDsReply {
+message GetModeratorAndParticipantsByUIDsReply {
   Role moderator = 1;
-  repeated Role roles = 2;
+  repeated Role participants = 2;
 }

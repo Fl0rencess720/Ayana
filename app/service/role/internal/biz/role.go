@@ -11,7 +11,7 @@ type RoleRepo interface {
 	CreateRole(ctx context.Context, phone string, role Role) (string, error)
 	GetRoles(ctx context.Context, phone string) ([]Role, error)
 	GetRolesFromRedis(ctx context.Context, phone string) ([]Role, error)
-	GetRolesAndModeratorByUIDs(ctx context.Context, phone string, moderatorUID string, roleUIDs []string) (Role, []Role, error)
+	GetModeratorAndParticipantsByUIDs(ctx context.Context, phone string, moderatorUID string, participantsUIDs []string) (Role, []Role, error)
 	DeleteRole(ctx context.Context, uid string) error
 	RolesToRedis(ctx context.Context, phone string, roles []Role) error
 	SetRole(ctx context.Context, phone, uid string, role Role) error
@@ -71,21 +71,21 @@ func (uc *RoleUsecase) GetRoles(ctx context.Context, phone string) ([]Role, erro
 	return roles, nil
 }
 
-func (uc *RoleUsecase) GetRolesAndModeratorByUIDs(ctx context.Context, phone string, moderatorUID string, RoleUIDs []string) (Role, []Role, error) {
+func (uc *RoleUsecase) GetModeratorAndParticipantsByUIDs(ctx context.Context, phone string, moderatorUID string, participantsUIDs []string) (Role, []Role, error) {
 	rolesFromRedis, err := uc.repo.GetRolesFromRedis(ctx, phone)
 	if err == nil {
-		moderator, roles := rolesFilter(rolesFromRedis, moderatorUID, RoleUIDs)
-		return moderator, roles, nil
+		moderator, participants := rolesFilter(rolesFromRedis, moderatorUID, participantsUIDs)
+		return moderator, participants, nil
 	} else {
 		uc.log.Error(err)
 	}
-	moderatorFromDB, rolesFromDB, err := uc.repo.GetRolesAndModeratorByUIDs(ctx, phone, moderatorUID, RoleUIDs)
+	moderatorFromDB, participantsFromDB, err := uc.repo.GetModeratorAndParticipantsByUIDs(ctx, phone, moderatorUID, participantsUIDs)
 	if err != nil {
 		return Role{}, nil, err
 	}
 
-	allRoles := append(rolesFromDB, moderatorFromDB)
-	moderator, roles := rolesFilter(allRoles, moderatorUID, RoleUIDs)
+	allRoles := append(participantsFromDB, moderatorFromDB)
+	moderator, roles := rolesFilter(allRoles, moderatorUID, participantsUIDs)
 	if err = uc.repo.RolesToRedis(ctx, phone, allRoles); err != nil {
 		uc.log.Error(err)
 	}
