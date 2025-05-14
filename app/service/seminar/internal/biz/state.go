@@ -51,7 +51,7 @@ func (s ModeratorState) nextRole(scheduler *RoleScheduler, msgContent string) (*
 }
 
 func (s ModeratorState) buildMessages(scheduler *RoleScheduler, msgs []*schema.Message) ([]*schema.Message, error) {
-	messages := []*schema.Message{}
+	var messages []*schema.Message
 	var err error
 	template := prompt.FromMessages(schema.FString,
 		schema.SystemMessage(`你是一个{role}，你的特质是{characteristic}。
@@ -93,7 +93,7 @@ func (s ParticipantState) nextRole(scheduler *RoleScheduler, msgContent string) 
 }
 
 func (s ParticipantState) buildMessages(scheduler *RoleScheduler, msgs []*schema.Message) ([]*schema.Message, error) {
-	messages := []*schema.Message{}
+	var messages []*schema.Message
 	var err error
 	template := prompt.FromMessages(schema.FString,
 		schema.SystemMessage(`你是一个{role}，你的特质是{characteristic}。

@@ -181,8 +181,12 @@ func (uc *SeminarUsecase) StartTopic(ctx context.Context, topicUID string) error
 			})
 		}
 	}
+	if len(topic.Speeches) > 0 {
+		roleScheduler.NextRole(topic.Speeches[len(topic.Speeches)-1].Content)
+	} else {
+		roleScheduler.NextRole("")
+	}
 
-	roleScheduler.NextRole(topic.Speeches[len(topic.Speeches)-1].Content)
 	messages, err := roleScheduler.state.buildMessages(roleScheduler, previousMessages)
 	if err != nil {
 		return err

@@ -190,7 +190,6 @@ func GetTopicStream(ctx http.Context) (interface{}, error) {
 	if err := globalSeminarUsecase.brepo.RegisterConnChannel(ctx, topicUID, tokenChan); err != nil {
 		return nil, err
 	}
-	fmt.Printf("cachedMsgs: %v\n", cachedMsgs)
 	globalSeminarUsecase.brepo.UnlockMutex()
 	for _, token := range cachedMsgs {
 		sseResp := sseResp{RoleUID: token.RoleUID, Content: token.Content}
