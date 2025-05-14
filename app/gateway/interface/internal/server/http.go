@@ -73,3 +73,4 @@ func NoneProtoRoutesRegister(srv *http.Server) {
 	documentRoute := srv.Route("/document")
 	documentRoute.POST("upload", service.UploadDocument)
 }
+

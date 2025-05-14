@@ -96,6 +96,42 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Ayana.v1.SetRoleReply'
+    /seminar/mcp/add:
+        post:
+            tags:
+                - Seminar
+            operationId: Seminar_AddMCPServer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Ayana.v1.AddMCPServerReqeust'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Ayana.v1.AddMCPServerReply'
+    /seminar/mcp/getting:
+        post:
+            tags:
+                - Seminar
+            operationId: Seminar_GetMCPServers
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Ayana.v1.GetMCPServersRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Ayana.v1.GetMCPServersReply'
     /seminar/topic/creating:
         post:
             tags:
@@ -279,6 +315,22 @@ paths:
                                 $ref: '#/components/schemas/Ayana.v1.RegisterReply'
 components:
     schemas:
+        Ayana.v1.AddMCPServerReply:
+            type: object
+            properties:
+                message:
+                    type: string
+        Ayana.v1.AddMCPServerReqeust:
+            type: object
+            properties:
+                name:
+                    type: string
+                url:
+                    type: string
+                requestHeader:
+                    type: string
+                phone:
+                    type: string
         Ayana.v1.CreateRoleReply:
             type: object
             properties:
@@ -350,6 +402,18 @@ components:
         Ayana.v1.GetAvailableModelsRequest:
             type: object
             properties: {}
+        Ayana.v1.GetMCPServersReply:
+            type: object
+            properties:
+                servers:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Ayana.v1.MCPServer'
+        Ayana.v1.GetMCPServersRequest:
+            type: object
+            properties:
+                phone:
+                    type: string
         Ayana.v1.GetProfileReply:
             type: object
             properties:
@@ -403,6 +467,17 @@ components:
                 phone:
                     type: string
                 password:
+                    type: string
+        Ayana.v1.MCPServer:
+            type: object
+            properties:
+                uid:
+                    type: string
+                name:
+                    type: string
+                url:
+                    type: string
+                requestHeader:
                     type: string
         Ayana.v1.Model:
             type: object

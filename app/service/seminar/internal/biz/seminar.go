@@ -6,6 +6,7 @@ import (
 	"time"
 
 	roleV1 "github.com/Fl0rencess720/Ayana/api/gateway/role/v1"
+	"github.com/Fl0rencess720/Ayana/pkgs/utils"
 	"github.com/cloudwego/eino-ext/components/model/deepseek"
 	"github.com/cloudwego/eino/components/prompt"
 	"github.com/cloudwego/eino/schema"
@@ -24,6 +25,8 @@ type SeminarRepo interface {
 	SaveSpeechToRedis(ctx context.Context, speech *Speech) error
 	LockTopic(ctx context.Context, topicUID, lockerUID string) error
 	UnlockTopic(topicUID, lockerUID string) error
+	AddMCPServerToMysql(ctx context.Context, server *MCPServer) error
+	GetMCPServersFromMysql(ctx context.Context) ([]MCPServer, error)
 }
 
 type SeminarUsecase struct {
@@ -34,6 +37,15 @@ type SeminarUsecase struct {
 	roleClient roleV1.RoleManagerClient
 	topicCache *TopicCache
 	roleCache  *RoleCache
+}
+
+type MCPServer struct {
+	ID            uint   `gorm:"primaryKey"`
+	UID           string `gorm:"unique;index"`
+	Name          string
+	URL           string
+	RequestHeader string
+	Phone         string `gorm:"index"`
 }
 
 type RoleType uint8
@@ -254,6 +266,25 @@ func (uc *SeminarUsecase) StopTopic(ctx context.Context, topicID string) error {
 		return err
 	}
 	return nil
+}
+
+func (uc *SeminarUsecase) AddMCPServer(ctx context.Context, phone, name, url, requestHeader string) error {
+	uid, err := utils.GetSnowflakeID(0)
+	if err != nil {
+		return err
+	}
+	if err := uc.repo.AddMCPServerToMysql(ctx, &MCPServer{UID: uid, Name: name, URL: url, RequestHeader: requestHeader, Phone: phone}); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (uc *SeminarUsecase) GetMCPServers(ctx context.Context, phone string) ([]MCPServer, error) {
+	servers, err := uc.repo.GetMCPServersFromMysql(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return servers, nil
 }
 
 func buildMessages(roleType RoleType, role *Role, roles []string, msgs []*schema.Message) ([]*schema.Message, error) {

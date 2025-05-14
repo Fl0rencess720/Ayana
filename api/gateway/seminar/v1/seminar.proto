@@ -45,7 +45,18 @@ service Seminar {
   rpc ResumeTopic (StartTopicRequest) returns (stream StreamOutputReply) {
   }
   rpc UploadDocument(stream UploadDocumentRequest) returns (UploadDocumentReply) {
-
+  }
+  rpc AddMCPServer(AddMCPServerReqeust) returns (AddMCPServerReply) {
+    option (google.api.http) = {
+      post: "/seminar/mcp/add"
+      body: "*"
+    };
+  }
+  rpc GetMCPServers(GetMCPServersRequest) returns (GetMCPServersReply) {
+    option (google.api.http) = {
+      post: "/seminar/mcp/getting"
+      body: "*"
+    };
   }
 }
 
@@ -150,3 +161,33 @@ message UploadDocumentRequest {
 message UploadDocumentReply {
   string message = 1;
 } 
+
+
+
+
+message AddMCPServerReqeust {
+  string name = 1;
+  string url = 2;
+  string request_header = 3;
+  string phone = 4;
+}
+
+message AddMCPServerReply {
+  string message = 1;
+}
+
+message GetMCPServersRequest {
+  string phone = 1;
+}
+
+message MCPServer {
+  string uid = 1;
+  string name = 2;
+  string url = 3;
+  string request_header = 4;
+}
+
+message GetMCPServersReply {
+ 
+  repeated MCPServer servers = 1;
+}

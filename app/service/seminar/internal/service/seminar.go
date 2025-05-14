@@ -122,3 +122,26 @@ func (s *SeminarService) UploadDocument(stream v1.Seminar_UploadDocumentServer) 
 		Message: "success",
 	})
 }
+
+func (s *SeminarService) AddMCPServer(ctx context.Context, req *v1.AddMCPServerReqeust) (*v1.AddMCPServerReply, error) {
+	if err := s.uc.AddMCPServer(ctx, req.Phone, req.Name, req.Url, req.RequestHeader); err != nil {
+		return nil, err
+	}
+	return &v1.AddMCPServerReply{Message: "success"}, nil
+}
+
+func (s *SeminarService) GetMCPServers(ctx context.Context, req *v1.GetMCPServersRequest) (*v1.GetMCPServersReply, error) {
+	servers, err := s.uc.GetMCPServers(ctx, req.Phone)
+	if err != nil {
+		return nil, err
+	}
+	reply := &v1.GetMCPServersReply{}
+	for _, server := range servers {
+		reply.Servers = append(reply.Servers, &v1.MCPServer{
+			Name:          server.Name,
+			RequestHeader: server.RequestHeader,
+			Url:           server.URL,
+		})
+	}
+	return reply, nil
+}

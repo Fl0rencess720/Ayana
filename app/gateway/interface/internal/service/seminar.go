@@ -121,3 +121,19 @@ func UploadDocument(ctx http.Context) error {
 		"message": "上传成功",
 	})
 }
+
+func (s *SeminarService) AddMCPServer(ctx context.Context, req *v1.AddMCPServerReqeust) (*v1.AddMCPServerReply, error) {
+	reply, err := s.uc.AddMCPServer(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return reply, nil
+}
+
+func (s *SeminarService) GetMCPServers(ctx context.Context, req *v1.GetMCPServersRequest) (*v1.GetMCPServersReply, error) {
+	reply, err := s.uc.GetMCPServers(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return reply, nil
+}

@@ -265,3 +265,21 @@ func UploadDocument(ctx context.Context, file multipart.File, handler *multipart
 	}
 	return reply, nil
 }
+
+func (uc *SeminarUsecase) AddMCPServer(ctx context.Context, req *v1.AddMCPServerReqeust) (*v1.AddMCPServerReply, error) {
+	req.Phone = utils.GetPhoneFromContext(ctx)
+	reply, err := uc.seminarClient.AddMCPServer(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return reply, nil
+}
+
+func (uc *SeminarUsecase) GetMCPServers(ctx context.Context, req *v1.GetMCPServersRequest) (*v1.GetMCPServersReply, error) {
+	req.Phone = utils.GetPhoneFromContext(ctx)
+	reply, err := uc.seminarClient.GetMCPServers(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return reply, nil
+}

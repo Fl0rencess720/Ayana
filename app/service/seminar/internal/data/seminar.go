@@ -83,3 +83,18 @@ func (r *seminarRepo) UnlockTopic(topicUID string, lockerUID string) error {
 	}
 	return nil
 }
+
+func (r *seminarRepo) AddMCPServerToMysql(ctx context.Context, server *biz.MCPServer) error {
+	if err := r.data.mysqlClient.Create(server).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *seminarRepo) GetMCPServersFromMysql(ctx context.Context) ([]biz.MCPServer, error) {
+	var servers []biz.MCPServer
+	if err := r.data.mysqlClient.Model(&biz.MCPServer{}).Find(&servers).Error; err != nil {
+		return nil, err
+	}
+	return servers, nil
+}
