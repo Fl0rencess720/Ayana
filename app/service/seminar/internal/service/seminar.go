@@ -93,7 +93,7 @@ func (s *SeminarService) StartTopic(ctx context.Context, req *v1.StartTopicReque
 			log.Errorf("panic: %v", r)
 		}
 	}()
-	if err := s.uc.StartTopic(ctx, req.TopicId); err != nil {
+	if err := s.uc.StartTopic(ctx, req.Phone, req.TopicId); err != nil {
 		return nil, err
 	}
 	return &v1.StartTopicReply{

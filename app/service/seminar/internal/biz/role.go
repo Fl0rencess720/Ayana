@@ -10,7 +10,12 @@ import (
 	"time"
 
 	"github.com/cloudwego/eino-ext/components/model/deepseek"
+	mcpp "github.com/cloudwego/eino-ext/components/tool/mcp"
+	"github.com/cloudwego/eino/components/tool"
 	"github.com/cloudwego/eino/schema"
+	"github.com/mark3labs/mcp-go/client"
+	"github.com/mark3labs/mcp-go/mcp"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -249,28 +254,28 @@ func (rs *RoleScheduler) BuildMessages(msgs []*schema.Message) ([]*schema.Messag
 	return rs.state.buildMessages(rs, msgs)
 }
 
-func (rs *RoleScheduler) Call(messages []*schema.Message, signalChan chan StateSignal, tokenChan chan *TokenMessage) (*schema.Message, StateSignal, error) {
+// Call 负责初始化资源并处理整个对话流程
+func (rs *RoleScheduler) Call(messages []*schema.Message, mcpservers []MCPServer, signalChan chan StateSignal, tokenChan chan *TokenMessage) (*schema.Message, StateSignal, error) {
 	role := rs.current
-	ctx, mainCancel := context.WithCancel(context.Background())
-	defer mainCancel()
 
-	// 创建一个用于暂停检测的context
-	ctxFromPausing, pauseCancel := context.WithCancel(ctx)
-	defer pauseCancel()
+	ctx := context.Background()
 
-	// 监听暂停信号
+	pauseCtx, pauseCancel := context.WithCancel(ctx)
+
+	done := make(chan struct{})
+	defer close(done)
+
 	go func() {
-		if signal, ok := <-signalChan; ok {
-			if signal == Pause {
-				pauseCancel() // 触发暂停
-				return
+		select {
+		case signal, ok := <-signalChan:
+			if ok && signal == Pause {
+				pauseCancel() // 只取消暂停检测的 context
 			}
-			if signal == Normal {
-				return
-			}
+		case <-done:
+			return
 		}
 	}()
-	// 初始化聊天模型
+
 	cm, err := deepseek.NewChatModel(ctx, &deepseek.ChatModelConfig{
 		APIKey: role.ApiKey,
 		Model:  role.ModelName,
@@ -278,114 +283,285 @@ func (rs *RoleScheduler) Call(messages []*schema.Message, signalChan chan StateS
 	if err != nil {
 		return nil, Error, err
 	}
-	// 创建AI流
-	aiStream, err := cm.Stream(ctx, messages)
-	if err != nil {
-		return nil, Error, err
-	}
-	defer aiStream.Close()
 
-	// 创建token缓冲区
+	mcpTools, mcpToolsInfo, err := getHealthyMCPServers(ctx, mcpservers)
+	if err != nil {
+		zap.L().Error("Error getting healthy MCP servers", zap.Error(err))
+	}
+
+	if len(mcpToolsInfo) > 0 {
+		if err := cm.BindTools(mcpToolsInfo); err != nil {
+			zap.L().Error("Error binding tools to chat model", zap.Error(err))
+		}
+	}
+
 	tokenBuffer := NewTokenBuffer(10, 50*time.Millisecond)
 
-	// 创建发送函数
-	batchSender := func(ctx context.Context, tokens []*TokenMessage) error {
-		// 假设rs.brepo有一个批量发送方法
-		return rs.brepo.SendTokensToKafkaBatch(ctx, rs.topicUID, tokens)
+	batchSender := func(sendCtx context.Context, tokens []*TokenMessage) error {
+		return rs.brepo.SendTokensToKafkaBatch(sendCtx, rs.topicUID, tokens)
 	}
 
-	// 启动异步处理
 	tokenBuffer.Start(ctx, batchSender)
 	defer tokenBuffer.Stop()
 
-	// 创建响应消息
-	message := &schema.Message{Role: schema.User}
 	resultChan := make(chan struct {
 		*schema.Message
 		StateSignal
 		error
 	}, 1)
 
-	// 处理AI流的goroutine
 	go func() {
-		defer close(resultChan)
-		isFirstToken := true
-
-		for {
-			resp, err := aiStream.Recv()
-			if err != nil {
-				if errors.Is(err, context.Canceled) {
-					resultChan <- struct {
-						*schema.Message
-						StateSignal
-						error
-					}{nil, Pause, nil}
-					return
-				}
-				if errors.Is(err, io.EOF) {
-					// 确保所有消息都被发送
-					tokenBuffer.Flush()
-					resultChan <- struct {
-						*schema.Message
-						StateSignal
-						error
-					}{message, Normal, nil}
-					return
-				}
-				resultChan <- struct {
-					*schema.Message
-					StateSignal
-					error
-				}{nil, Error, fmt.Errorf("stream error: %w", err)}
-				return
-			}
-			// 处理reasoning内容
-			if reasoning, ok := deepseek.GetReasoningContent(resp); ok && reasoning != "" {
-				message.Content += reasoning
-				token := &TokenMessage{
-					TopicUID:    rs.topicUID,
-					RoleUID:     role.Uid,
-					ContentType: "reasoning",
-					Content:     reasoning,
-					IsFirst:     isFirstToken,
-				}
-
-				// 添加到缓冲区，如果需要立即刷新则刷新
-				if tokenBuffer.Add(token) {
-					tokenBuffer.Flush()
-				}
-			}
-
-			// 处理主要内容
-			if len(resp.Content) > 0 {
-				message.Content += resp.Content
-				token := &TokenMessage{
-					TopicUID:    rs.topicUID,
-					RoleUID:     role.Uid,
-					ContentType: "text",
-					Content:     resp.Content,
-					IsFirst:     isFirstToken,
-				}
-
-				// 添加到缓冲区，如果需要立即刷新则刷新
-				if tokenBuffer.Add(token) {
-					tokenBuffer.Flush()
-				}
-			}
-
-			isFirstToken = false
-		}
+		msg, signal, err := rs.processConversation(
+			ctx, pauseCtx, done, cm, mcpTools,
+			messages, tokenBuffer,
+		)
+		resultChan <- struct {
+			*schema.Message
+			StateSignal
+			error
+		}{msg, signal, err}
 	}()
 
-	// 等待结果或暂停信号
 	select {
-	case <-ctxFromPausing.Done():
+	case <-pauseCtx.Done():
 		return nil, Pause, nil
 	case result := <-resultChan:
-		// 如果操作正常完成，发送正常信号
 		if result.StateSignal == Normal {
-			signalChan <- Normal
+			select {
+			case signalChan <- Normal:
+			default:
+			}
 		}
 		return result.Message, result.StateSignal, result.error
+	}
+}
+
+func getHealthyMCPServers(ctx context.Context, mcpServers []MCPServer) ([]tool.BaseTool, []*schema.ToolInfo, error) {
+	tools := []tool.BaseTool{}
+	toolsInfo := []*schema.ToolInfo{}
+	for _, mcpServer := range mcpServers {
+		if mcpServer.Status == 0 {
+			continue
+		}
+		cli, err := client.NewSSEMCPClient(mcpServer.URL)
+		if err != nil {
+			zap.L().Error("failed to create MCP client", zap.Error(err))
+			continue
+		}
+
+		if err = cli.Start(ctx); err != nil {
+			zap.L().Error("failed to start MCP client", zap.Error(err))
+			continue
+		}
+
+		initRequest := mcp.InitializeRequest{}
+		initRequest.Params.ProtocolVersion = mcp.LATEST_PROTOCOL_VERSION
+		initRequest.Params.ClientInfo = mcp.Implementation{
+			Name:    "eino-llm-app",
+			Version: "1.0.0",
+		}
+
+		_, err = cli.Initialize(ctx, initRequest)
+		if err != nil {
+			fmt.Printf("err: %v\n", err)
+			zap.L().Error("failed to initialize MCP client", zap.Error(err))
+			continue
+		}
+
+		tools, err := mcpp.GetTools(ctx, &mcpp.Config{
+			Cli: cli,
+		})
+		if err != nil {
+			fmt.Printf("err: %v\n", err)
+			zap.L().Error("failed to get tools", zap.Error(err))
+		}
+		for _, tool := range tools {
+			t, err := tool.Info(ctx)
+			if err != nil {
+				zap.L().Error("failed to get tool info", zap.Error(err))
+				continue
+			}
+			tools = append(tools, tool)
+			toolsInfo = append(toolsInfo, t)
+		}
+	}
+	return tools, toolsInfo, nil
+}
+
+func invoke(ctx context.Context, toolCalls []schema.ToolCall, mcpTools []tool.BaseTool) []*schema.Message {
+	toolsReply := []*schema.Message{}
+	for _, toolCall := range toolCalls {
+		var selectedTool tool.InvokableTool
+		for _, t := range mcpTools {
+			info, _ := t.Info(ctx)
+			if info.Name == toolCall.Function.Name {
+				if invokable, ok := t.(tool.InvokableTool); ok {
+					selectedTool = invokable
+					break
+				}
+			}
+		}
+
+		if selectedTool != nil {
+			fmt.Println("正在调用工具：", toolCall.Function.Name)
+			result, err := selectedTool.InvokableRun(ctx, toolCall.Function.Arguments)
+			if err != nil {
+				zap.L().Error("工具执行失败", zap.Error(err))
+				continue
+			}
+			toolsReply = append(toolsReply, schema.ToolMessage(result, toolCall.ID))
+		}
+	}
+	return toolsReply
+}
+
+// processConversation 处理与AI模型的对话流程，包括工具调用
+func (rs *RoleScheduler) processConversation(
+	ctx context.Context, // 主上下文
+	pauseCtx context.Context, // 暂停监听上下文
+	done chan struct{}, // 主函数结束信号
+	cm *deepseek.ChatModel,
+	mcpTools []tool.BaseTool,
+	messages []*schema.Message,
+	tokenBuffer *TokenBuffer,
+) (*schema.Message, StateSignal, error) {
+	// 准备结果消息
+	message := &schema.Message{Role: schema.User}
+
+	// 开始处理对话
+	currentMessages := messages
+
+	for {
+		// 每个循环创建一个可取消的上下文，用于控制单次流处理
+		streamCtx, streamCancel := context.WithCancel(ctx)
+
+		// 创建监听器以响应暂停
+		go func() {
+			select {
+			case <-pauseCtx.Done():
+				streamCancel() // 暂停时取消当前流处理
+			case <-done:
+				return // 主函数结束，退出该 goroutine
+			}
+		}()
+
+		aiStream, err := cm.Stream(streamCtx, currentMessages)
+		if err != nil {
+			streamCancel()
+			if pauseCtx.Err() != nil {
+				return nil, Pause, nil
+			} else {
+				return nil, Error, err
+			}
+		}
+
+		var toolCallMessages []*schema.Message
+		var hasTool bool
+
+		// 处理当前流
+		hasToolCall := false
+		streamErr := func() error {
+			defer aiStream.Close()
+			defer streamCancel()
+
+			for {
+				resp, err := aiStream.Recv()
+				if err != nil {
+					// 检查是否是由于暂停引起的取消
+					if pauseCtx.Err() != nil {
+						return pauseCtx.Err()
+					}
+
+					// 正常结束
+					if errors.Is(err, io.EOF) {
+						// 如果有工具调用，准备下一轮
+						if hasTool && len(toolCallMessages) > 0 {
+							hasToolCall = true
+							return nil // 返回nil表示正常结束，hasToolCall标记有工具调用
+						}
+
+						// 没有工具调用，完成整个对话
+						tokenBuffer.Flush()
+						return nil // 正常结束，没有工具调用
+					}
+
+					// 其他错误
+					return fmt.Errorf("stream error: %w", err)
+				}
+
+				// 处理工具调用
+				if len(resp.ToolCalls) > 0 {
+					hasTool = true
+					toolCallMessages = append(toolCallMessages, resp)
+					continue
+				}
+
+				// 处理 reasoning 内容
+				if reasoning, ok := deepseek.GetReasoningContent(resp); ok && reasoning != "" {
+					message.Content += reasoning
+					token := &TokenMessage{
+						TopicUID:    rs.topicUID,
+						RoleUID:     rs.current.Uid,
+						ContentType: "reasoning",
+						Content:     reasoning,
+					}
+
+					if tokenBuffer.Add(token) {
+						tokenBuffer.Flush()
+					}
+				}
+
+				// 处理主要内容
+				if len(resp.Content) > 0 {
+					message.Content += resp.Content
+					token := &TokenMessage{
+						TopicUID:    rs.topicUID,
+						RoleUID:     rs.current.Uid,
+						ContentType: "text",
+						Content:     resp.Content,
+					}
+
+					if tokenBuffer.Add(token) {
+						tokenBuffer.Flush()
+					}
+				}
+			}
+		}()
+
+		// 检查流处理结果
+		if streamErr != nil {
+			// 如果发生暂停
+			if pauseCtx.Err() != nil {
+				return nil, Pause, nil
+			}
+			// 其他错误
+			return nil, Error, streamErr
+		}
+
+		// 如果收到暂停信号，退出
+		if pauseCtx.Err() != nil {
+			return nil, Pause, nil
+		}
+
+		// 处理工具调用
+		if hasToolCall && len(toolCallMessages) > 0 {
+			toolMsg, err := schema.ConcatMessages(toolCallMessages)
+			if err != nil {
+				zap.L().Error("failed to concat messages", zap.Error(err))
+				return nil, Error, err
+			}
+
+			// 执行工具调用
+			toolsReply := invoke(ctx, toolMsg.ToolCalls, mcpTools)
+
+			// 更新消息并继续会话
+			currentMessages = append(currentMessages, toolMsg)
+			currentMessages = append(currentMessages, toolsReply...)
+			continue // 继续外层循环，进行下一次 Stream
+		}
+
+		// 如果没有工具调用，结束对话
+		tokenBuffer.Flush()
+		return message, Normal, nil
 	}
 }

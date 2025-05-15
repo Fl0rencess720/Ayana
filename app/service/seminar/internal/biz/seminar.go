@@ -25,7 +25,7 @@ type SeminarRepo interface {
 	LockTopic(ctx context.Context, topicUID, lockerUID string) error
 	UnlockTopic(topicUID, lockerUID string) error
 	AddMCPServerToMysql(ctx context.Context, server *MCPServer) error
-	GetMCPServersFromMysql(ctx context.Context) ([]MCPServer, error)
+	GetMCPServersFromMysql(ctx context.Context, phone string) ([]MCPServer, error)
 }
 
 type SeminarUsecase struct {
@@ -44,6 +44,7 @@ type MCPServer struct {
 	Name          string
 	URL           string
 	RequestHeader string
+	Status        uint
 	Phone         string `gorm:"index"`
 }
 
@@ -98,7 +99,7 @@ func (uc *SeminarUsecase) GetTopicsMetadata(ctx context.Context, phone string) (
 	return topics, nil
 }
 
-func (uc *SeminarUsecase) StartTopic(ctx context.Context, topicUID string) error {
+func (uc *SeminarUsecase) StartTopic(ctx context.Context, phone, topicUID string) error {
 	// 分布式锁的value
 	lockerUID := uuid.New().String()
 	if err := uc.repo.LockTopic(ctx, topicUID, lockerUID); err != nil {
@@ -194,10 +195,14 @@ func (uc *SeminarUsecase) StartTopic(ctx context.Context, topicUID string) error
 
 	tokenChan := make(chan *TokenMessage, 50)
 
+	mcpservers, err := uc.repo.GetMCPServersFromMysql(ctx, phone)
+	if err != nil {
+		zap.L().Error("get mcp servers from mysql failed", zap.Error(err))
+	}
+
 	for {
-		message, signal, err := roleScheduler.Call(messages, topic.signalChan, tokenChan)
+		message, signal, err := roleScheduler.Call(messages, mcpservers, topic.signalChan, tokenChan)
 		if err != nil {
-			fmt.Printf("err: %v\n", err)
 			zap.L().Error("角色调用失败", zap.Error(err))
 			return err
 		}
@@ -216,7 +221,6 @@ func (uc *SeminarUsecase) StartTopic(ctx context.Context, topicUID string) error
 		if err := uc.repo.SaveSpeech(context.Background(), &newSpeech); err != nil {
 			return err
 		}
-
 		if err := roleScheduler.NextRole(message.Content); err != nil {
 			return err
 		}
@@ -252,7 +256,7 @@ func (uc *SeminarUsecase) AddMCPServer(ctx context.Context, phone, name, url, re
 }
 
 func (uc *SeminarUsecase) GetMCPServers(ctx context.Context, phone string) ([]MCPServer, error) {
-	servers, err := uc.repo.GetMCPServersFromMysql(ctx)
+	servers, err := uc.repo.GetMCPServersFromMysql(ctx, phone)
 	if err != nil {
 		return nil, err
 	}
@@ -272,7 +276,7 @@ func findNextRoleNameFromMessage(msg string) (string, error) {
 	}
 	output, err := cm.Generate(context.Background(), []*schema.Message{{
 		Role:    schema.System,
-		Content: "你将接收一个字符串，你需要从字符串中找出下一个角色的名字，大多数情况角色名字会在@字符后，除了角色的名字以外不要输出任何其他内容。",
+		Content: "你将接收一个字符串，你需要从字符串中找出下一个角色的名字，大多数情况下角色名字会在@字符后，除了角色的名字以外不要输出任何其他内容。",
 	}, {Role: schema.User, Content: msg}},
 	)
 	if err != nil {

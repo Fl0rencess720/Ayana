@@ -91,9 +91,9 @@ func (r *seminarRepo) AddMCPServerToMysql(ctx context.Context, server *biz.MCPSe
 	return nil
 }
 
-func (r *seminarRepo) GetMCPServersFromMysql(ctx context.Context) ([]biz.MCPServer, error) {
+func (r *seminarRepo) GetMCPServersFromMysql(ctx context.Context, phone string) ([]biz.MCPServer, error) {
 	var servers []biz.MCPServer
-	if err := r.data.mysqlClient.Model(&biz.MCPServer{}).Find(&servers).Error; err != nil {
+	if err := r.data.mysqlClient.Model(&biz.MCPServer{}).Where("phone = ?", phone).Find(&servers).Error; err != nil {
 		return nil, err
 	}
 	return servers, nil

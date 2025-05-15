@@ -100,10 +100,10 @@ func (uc *SeminarUsecase) GetTopicsMetadata(ctx context.Context, req *v1.GetTopi
 	return reply, nil
 }
 
-func StartTopic(ctx http.Context) (interface{}, error) {
+func StartTopic(ctx http.Context, c context.Context) (interface{}, error) {
 	req := v1.StartTopicRequest{}
 	req.TopicId = ctx.Query().Get("topic_id")
-
+	req.Phone = utils.GetPhoneFromContext(c)
 	status, err := globalSeminarUsecase.srepo.GetTopicLockStatus(ctx, req.TopicId)
 	if err != nil {
 		return nil, err

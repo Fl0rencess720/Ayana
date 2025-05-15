@@ -54,7 +54,7 @@ func StartTopic(ctx http.Context) error {
 		}
 	}()
 	h := ctx.Middleware(func(c context.Context, req interface{}) (interface{}, error) {
-		return biz.StartTopic(ctx)
+		return biz.StartTopic(ctx, c)
 	})
 	_, err := h(ctx, nil)
 	if err != nil {
@@ -78,7 +78,7 @@ func ResumeTopic(ctx http.Context) error {
 		}
 	}()
 	h := ctx.Middleware(func(c context.Context, req interface{}) (interface{}, error) {
-		return biz.StartTopic(ctx)
+		return biz.StartTopic(ctx, c)
 	})
 	_, err := h(ctx, nil)
 	if err != nil {

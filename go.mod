@@ -11,6 +11,7 @@ require (
 	github.com/cloudwego/eino-ext/components/indexer/redis v0.0.0-20250429121045-a2545a66f5cf
 	github.com/cloudwego/eino-ext/components/model/deepseek v0.0.0-20250429121045-a2545a66f5cf
 	github.com/cloudwego/eino-ext/components/retriever/redis v0.0.0-20250507115047-b20720df8528
+	github.com/cloudwego/eino-ext/components/tool/mcp v0.0.0-20250514085234-473e80da5261
 	github.com/go-kratos/kratos/contrib/registry/consul/v2 v2.0.0-20250429074618-c82f7957223f
 	github.com/go-kratos/kratos/v2 v2.8.4
 	github.com/go-redis/redis/extra/redisotel v0.3.0
@@ -20,6 +21,7 @@ require (
 	github.com/google/wire v0.6.0
 	github.com/gorilla/handlers v1.5.2
 	github.com/hashicorp/consul/api v1.32.1
+	github.com/mark3labs/mcp-go v0.27.1
 	github.com/natefinch/lumberjack v2.0.0+incompatible
 	github.com/redis/go-redis/v9 v9.7.0
 	github.com/segmentio/kafka-go v0.4.47
@@ -115,6 +117,7 @@ require (
 	github.com/volcengine/volc-sdk-golang v1.0.23 // indirect
 	github.com/volcengine/volcengine-go-sdk v1.0.181 // indirect
 	github.com/yargevad/filepathx v1.0.0 // indirect
+	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.35.0 // indirect
