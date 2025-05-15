@@ -22,7 +22,7 @@
 * 存储: MySQL
 * 缓存: Redis
 * 消息队列: Kafka
-* 向量数据库: Redis Stack
+* 向量数据库: Milvus
 
 
 
