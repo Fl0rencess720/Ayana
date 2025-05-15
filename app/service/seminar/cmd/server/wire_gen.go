@@ -26,12 +26,14 @@ import (
 func wireApp(confServer *conf.Server, confService *conf.Service, confData *conf.Data, registry *conf.Registry, logger log.Logger) (*kratos.App, func(), error) {
 	db := data.NewMysql(confData)
 	client := data.NewRedis(confData)
+	milvusclientClient := data.NewMilvus(confData)
 	kafkaClient := data.NewKafkaClient(confData)
 	discovery := server.NewDiscovery(registry)
 	roleManagerClient := data.NewRoleServiceClient(confService, discovery)
 	embedder := data.NewEmbedder(confData)
-	retriever := data.NewRetriever(client, embedder)
-	dataData, cleanup, err := data.NewData(confData, logger, db, client, kafkaClient, roleManagerClient, embedder, retriever)
+	hybridIndexer := data.NewIndexer(milvusclientClient, embedder)
+	hybridRetriever := data.NewRetriever(milvusclientClient, embedder)
+	dataData, cleanup, err := data.NewData(confData, logger, db, client, milvusclientClient, kafkaClient, roleManagerClient, embedder, hybridIndexer, hybridRetriever)
 	if err != nil {
 		return nil, nil, err
 	}

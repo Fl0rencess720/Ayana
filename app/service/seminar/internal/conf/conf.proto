@@ -48,9 +48,15 @@ message Data {
     google.protobuf.Duration read_timeout = 3;
     google.protobuf.Duration write_timeout = 4;
   }
+  message Milvus {
+    string endpoint = 1;
+    string collection = 2;
+    string ApiKey = 3;
+  }
   Database database = 1;
   Redis redis = 2;
   Kafka kafka = 3;
+  Milvus milvus = 4;
 }
 
 message Jwtc {

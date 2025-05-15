@@ -20,6 +20,10 @@ data:
     partition: 0
     read_timeout: 0.2s
     write_timeout: 0.2s
+  milvus:
+    endpoint: 127.0.0.1:19530
+    collection: "ayana_documents"
+    ApiKey: "root:Milvus"
 
 trace:
   endpoint: 127.0.0.1:4318
