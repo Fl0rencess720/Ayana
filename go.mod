@@ -8,9 +8,7 @@ require (
 	github.com/cloudwego/eino-ext/components/document/parser/pdf v0.0.0-20250429121045-a2545a66f5cf
 	github.com/cloudwego/eino-ext/components/document/transformer/splitter/recursive v0.0.0-20250429121045-a2545a66f5cf
 	github.com/cloudwego/eino-ext/components/embedding/ark v0.0.0-20250429121045-a2545a66f5cf
-	github.com/cloudwego/eino-ext/components/indexer/redis v0.0.0-20250429121045-a2545a66f5cf
 	github.com/cloudwego/eino-ext/components/model/deepseek v0.0.0-20250429121045-a2545a66f5cf
-	github.com/cloudwego/eino-ext/components/retriever/redis v0.0.0-20250507115047-b20720df8528
 	github.com/cloudwego/eino-ext/components/tool/mcp v0.0.0-20250514085234-473e80da5261
 	github.com/go-kratos/kratos/contrib/registry/consul/v2 v2.0.0-20250429074618-c82f7957223f
 	github.com/go-kratos/kratos/v2 v2.8.4
@@ -22,7 +20,6 @@ require (
 	github.com/gorilla/handlers v1.5.2
 	github.com/hashicorp/consul/api v1.32.1
 	github.com/mark3labs/mcp-go v0.27.1
-	github.com/milvus-io/milvus-sdk-go/v2 v2.4.2
 	github.com/milvus-io/milvus/client/v2 v2.5.3
 	github.com/natefinch/lumberjack v2.0.0+incompatible
 	github.com/redis/go-redis/v9 v9.7.0
@@ -39,6 +36,11 @@ require (
 	google.golang.org/protobuf v1.36.6
 	gorm.io/driver/mysql v1.5.7
 	gorm.io/gorm v1.26.0
+)
+
+require (
+	github.com/oasdiff/yaml v0.0.0-20250309154309-f31be36b4037 // indirect
+	github.com/oasdiff/yaml3 v0.0.0-20250309153720-d2182401db90 // indirect
 )
 
 require (
@@ -69,14 +71,14 @@ require (
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/form3tech-oss/jwt-go v3.2.3+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
-	github.com/getkin/kin-openapi v0.118.0 // indirect
+	github.com/getkin/kin-openapi v0.131.0 // indirect
 	github.com/getsentry/sentry-go v0.12.0 // indirect
 	github.com/go-kratos/aegis v0.2.0 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
-	github.com/go-openapi/jsonpointer v0.19.6 // indirect
-	github.com/go-openapi/swag v0.22.3 // indirect
+	github.com/go-openapi/jsonpointer v0.21.0 // indirect
+	github.com/go-openapi/swag v0.23.0 // indirect
 	github.com/go-playground/form/v4 v4.2.0 // indirect
 	github.com/go-redis/redis/extra/rediscmd v0.2.0 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
@@ -100,7 +102,6 @@ require (
 	github.com/hashicorp/go-rootcerts v1.0.2 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/serf v0.10.1 // indirect
-	github.com/invopop/yaml v0.1.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
@@ -128,7 +129,7 @@ require (
 	github.com/opencontainers/runtime-spec v1.0.2 // indirect
 	github.com/panjf2000/ants/v2 v2.7.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
-	github.com/perimeterx/marshmallow v1.1.4 // indirect
+	github.com/perimeterx/marshmallow v1.1.5 // indirect
 	github.com/pierrec/lz4/v4 v4.1.15 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
