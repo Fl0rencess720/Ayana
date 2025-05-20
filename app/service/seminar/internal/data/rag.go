@@ -65,11 +65,10 @@ func (hi *HybridIndexer) Store(ctx context.Context, uid string, docs []*schema.D
 		return err
 	}
 	denseVector := convertFloat64ToFloat32(v2)
-	_, err = hi.Client.Insert(ctx, milvusclient.NewColumnBasedInsertOption("my_collection").
-		WithInt64Column("id", []int64{0, 1, 2}).
+	_, err = hi.Client.Insert(ctx, milvusclient.NewColumnBasedInsertOption("ayana_documents").
 		WithVarcharColumn("text", texts).
 		WithVarcharColumn("uid", uids).
-		WithFloatVectorColumn("dense", len(texts), denseVector),
+		WithFloatVectorColumn("dense", len(v2[0]), denseVector),
 	)
 	if err != nil {
 		return err

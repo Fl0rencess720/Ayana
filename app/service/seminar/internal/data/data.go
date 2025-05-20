@@ -161,7 +161,7 @@ func NewMilvus(c *conf.Data) *milvusclient.Client {
 	if err != nil {
 		panic(err)
 	}
-	has, err := client.HasCollection(ctx, milvusclient.NewHasCollectionOption(c.Milvus.Endpoint))
+	has, err := client.HasCollection(ctx, milvusclient.NewHasCollectionOption(c.Milvus.Collection))
 	if err != nil {
 		zap.L().Error("init Milvus client failed", zap.Error(err))
 		return nil
@@ -173,7 +173,8 @@ func NewMilvus(c *conf.Data) *milvusclient.Client {
 	schema.WithField(entity.NewField().
 		WithName("id").
 		WithDataType(entity.FieldTypeInt64).
-		WithIsPrimaryKey(true),
+		WithIsPrimaryKey(true).
+		WithIsAutoID(true),
 	).WithField(entity.NewField().
 		WithName("uid").
 		WithDataType(entity.FieldTypeVarChar).
@@ -181,7 +182,8 @@ func NewMilvus(c *conf.Data) *milvusclient.Client {
 	).WithField(entity.NewField().
 		WithName("text").
 		WithDataType(entity.FieldTypeVarChar).
-		WithMaxLength(1000),
+		WithMaxLength(1000).
+		WithEnableAnalyzer(true),
 	).WithField(entity.NewField().
 		WithName("sparse").
 		WithDataType(entity.FieldTypeSparseVector),
