@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -144,12 +145,17 @@ func StartTopic(ctx http.Context, c context.Context) (interface{}, error) {
 				continue
 			}
 			sseResp := sseResp{RoleUID: token.RoleUID, Content: token.Content}
+			jsonData, err := json.Marshal(sseResp)
+			if err != nil {
+				zap.L().Error("JSON marshal error", zap.Error(err))
+				continue
+			}
 			if token.ContentType == "reasoning" {
-				fmt.Fprintf(w, "event: reasoning\ndata: %v\n\n", sseResp)
+				fmt.Fprintf(w, "event: reasoning\ndata: %s\n\n", jsonData)
 			} else if token.ContentType == "text" {
-				fmt.Fprintf(w, "event: text\ndata: %v\n\n", sseResp)
+				fmt.Fprintf(w, "event: text\ndata: %s\n\n", jsonData)
 			} else if token.ContentType == "end" {
-				fmt.Fprintf(w, "event: end\ndata: %v\n\n", "")
+				fmt.Fprintf(w, "event: end\ndata: %s\n\n", "{}")
 				flusher.Flush()
 				return nil, nil
 			}
@@ -212,12 +218,17 @@ func GetTopicStream(ctx http.Context) (interface{}, error) {
 				continue
 			}
 			sseResp := sseResp{RoleUID: token.RoleUID, Content: token.Content}
+			jsonData, err := json.Marshal(sseResp)
+			if err != nil {
+				zap.L().Error("JSON marshal error", zap.Error(err))
+				continue
+			}
 			if token.ContentType == "reasoning" {
-				fmt.Fprintf(w, "event: reasoning\ndata: %v\n\n", sseResp)
+				fmt.Fprintf(w, "event: reasoning\ndata: %s\n\n", jsonData)
 			} else if token.ContentType == "text" {
-				fmt.Fprintf(w, "event: text\ndata: %v\n\n", sseResp)
+				fmt.Fprintf(w, "event: text\ndata: %s\n\n", jsonData)
 			} else if token.ContentType == "end" {
-				fmt.Fprintf(w, "event: end\ndata: %v\n\n", "")
+				fmt.Fprintf(w, "event: end\ndata: %s\n\n", "{}")
 				flusher.Flush()
 				return nil, nil
 			}

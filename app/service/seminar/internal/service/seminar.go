@@ -81,6 +81,7 @@ func (s *SeminarService) GetTopicsMetadata(ctx context.Context, req *v1.GetTopic
 		reply.Topics = append(reply.Topics, &v1.TopicMetadata{
 			Uid:          topic.UID,
 			Participants: topic.Participants,
+			Moderator:    topic.Moderator,
 			Content:      topic.Content,
 			Documents:    documents,
 		})

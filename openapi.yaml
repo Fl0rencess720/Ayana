@@ -609,6 +609,8 @@ components:
                     type: string
                 content:
                     type: string
+                moderator:
+                    type: string
                 participants:
                     type: array
                     items:

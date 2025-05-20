@@ -63,8 +63,9 @@ service Seminar {
 message TopicMetadata {
   string uid = 1;
   string content = 2;
-  repeated string participants = 3;
-  repeated Document documents = 4;
+  string moderator = 3;
+  repeated string participants = 4;
+  repeated Document documents = 5;
 }
 
 message Speech {
@@ -112,6 +113,7 @@ message DeleteTopicReply {
 
 message StartTopicRequest {
   string topicId = 1;
+  string phone = 2;
 }
 
 message StartTopicReply {

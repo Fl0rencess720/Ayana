@@ -30,7 +30,7 @@ type Topic struct {
 	Content      string           `gorm:"column:content;type:text"`
 	Moderator    string           `gorm:"column:moderator;type:varchar(255)"`
 	Participants []string         `gorm:"column:participants;type:json;serializer:json"`
-	Speeches     []Speech         `gorm:"foreignKey:TopicUID;references:UID"`
+	Speeches     []Speech         `gorm:"foreignKey:TopicUID;references:UID;constraint:OnDelete:CASCADE;"`
 	Title        string           `gorm:"column:title;type:varchar(255)"`
 	TitleImage   string           `gorm:"column:title_image;type:varchar(255)"`
 	Phone        string           `gorm:"column:phone;type:varchar(255)"`

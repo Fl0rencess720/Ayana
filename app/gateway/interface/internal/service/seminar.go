@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	v1 "github.com/Fl0rencess720/Ayana/api/gateway/seminar/v1"
 	"github.com/Fl0rencess720/Ayana/app/gateway/interface/internal/biz"
@@ -53,6 +54,7 @@ func StartTopic(ctx http.Context) error {
 			log.Errorf("panic: %v", r)
 		}
 	}()
+	fmt.Println("啊啊啊")
 	h := ctx.Middleware(func(c context.Context, req interface{}) (interface{}, error) {
 		return biz.StartTopic(ctx, c)
 	})
