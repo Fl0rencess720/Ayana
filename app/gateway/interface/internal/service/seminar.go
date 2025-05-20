@@ -122,6 +122,14 @@ func UploadDocument(ctx http.Context) error {
 	})
 }
 
+func (s *SeminarService) GetDocuments(ctx context.Context, req *v1.GetDocumentsRequest) (*v1.GetDocumentsReply, error) {
+	reply, err := s.uc.GetDocuments(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return reply, nil
+}
+
 func (s *SeminarService) AddMCPServer(ctx context.Context, req *v1.AddMCPServerReqeust) (*v1.AddMCPServerReply, error) {
 	reply, err := s.uc.AddMCPServer(ctx, req)
 	if err != nil {

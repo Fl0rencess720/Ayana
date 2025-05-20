@@ -20,6 +20,7 @@ type RAGRepo interface {
 	DocumentToVectorDB(ctx context.Context, uid string, docs []*schema.Document) error
 	DocumentToMysql(ctx context.Context, document Document) error
 	RetrieveDocuments(ctx context.Context, query, uid string) ([]*schema.Document, error)
+	GetDocumentsFromMysql(ctx context.Context, phone string) ([]Document, error)
 }
 
 type RAGUsecase struct {
@@ -47,7 +48,6 @@ func NewRAGUsecase(repo RAGRepo, logger log.Logger) *RAGUsecase {
 	return &RAGUsecase{repo: repo, log: log.NewHelper(logger)}
 }
 
-// Wanderful EveryAgent
 func (uc *RAGUsecase) UploadDocument(stream v1.Seminar_UploadDocumentServer) error {
 	var (
 		buf         bytes.Buffer
@@ -107,6 +107,14 @@ func (uc *RAGUsecase) UploadDocument(stream v1.Seminar_UploadDocumentServer) err
 		return err
 	}
 	return nil
+}
+
+func (uc *RAGUsecase) GetDocuments(ctx context.Context, phone string) ([]Document, error) {
+	docs, err := uc.repo.GetDocumentsFromMysql(ctx, phone)
+	if err != nil {
+		return nil, err
+	}
+	return docs, nil
 }
 
 // TODO: 对象优化

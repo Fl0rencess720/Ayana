@@ -27,6 +27,7 @@ const (
 	Seminar_StopTopic_FullMethodName         = "/Ayana.v1.Seminar/StopTopic"
 	Seminar_ResumeTopic_FullMethodName       = "/Ayana.v1.Seminar/ResumeTopic"
 	Seminar_UploadDocument_FullMethodName    = "/Ayana.v1.Seminar/UploadDocument"
+	Seminar_GetDocuments_FullMethodName      = "/Ayana.v1.Seminar/GetDocuments"
 	Seminar_AddMCPServer_FullMethodName      = "/Ayana.v1.Seminar/AddMCPServer"
 	Seminar_GetMCPServers_FullMethodName     = "/Ayana.v1.Seminar/GetMCPServers"
 )
@@ -45,6 +46,7 @@ type SeminarClient interface {
 	StopTopic(ctx context.Context, in *StopTopicRequest, opts ...grpc.CallOption) (*StopTopicReply, error)
 	ResumeTopic(ctx context.Context, in *StartTopicRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[StreamOutputReply], error)
 	UploadDocument(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[UploadDocumentRequest, UploadDocumentReply], error)
+	GetDocuments(ctx context.Context, in *GetDocumentsRequest, opts ...grpc.CallOption) (*GetDocumentsReply, error)
 	AddMCPServer(ctx context.Context, in *AddMCPServerReqeust, opts ...grpc.CallOption) (*AddMCPServerReply, error)
 	GetMCPServers(ctx context.Context, in *GetMCPServersRequest, opts ...grpc.CallOption) (*GetMCPServersReply, error)
 }
@@ -149,6 +151,16 @@ func (c *seminarClient) UploadDocument(ctx context.Context, opts ...grpc.CallOpt
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Seminar_UploadDocumentClient = grpc.ClientStreamingClient[UploadDocumentRequest, UploadDocumentReply]
 
+func (c *seminarClient) GetDocuments(ctx context.Context, in *GetDocumentsRequest, opts ...grpc.CallOption) (*GetDocumentsReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetDocumentsReply)
+	err := c.cc.Invoke(ctx, Seminar_GetDocuments_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *seminarClient) AddMCPServer(ctx context.Context, in *AddMCPServerReqeust, opts ...grpc.CallOption) (*AddMCPServerReply, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AddMCPServerReply)
@@ -183,6 +195,7 @@ type SeminarServer interface {
 	StopTopic(context.Context, *StopTopicRequest) (*StopTopicReply, error)
 	ResumeTopic(*StartTopicRequest, grpc.ServerStreamingServer[StreamOutputReply]) error
 	UploadDocument(grpc.ClientStreamingServer[UploadDocumentRequest, UploadDocumentReply]) error
+	GetDocuments(context.Context, *GetDocumentsRequest) (*GetDocumentsReply, error)
 	AddMCPServer(context.Context, *AddMCPServerReqeust) (*AddMCPServerReply, error)
 	GetMCPServers(context.Context, *GetMCPServersRequest) (*GetMCPServersReply, error)
 	mustEmbedUnimplementedSeminarServer()
@@ -218,6 +231,9 @@ func (UnimplementedSeminarServer) ResumeTopic(*StartTopicRequest, grpc.ServerStr
 }
 func (UnimplementedSeminarServer) UploadDocument(grpc.ClientStreamingServer[UploadDocumentRequest, UploadDocumentReply]) error {
 	return status.Errorf(codes.Unimplemented, "method UploadDocument not implemented")
+}
+func (UnimplementedSeminarServer) GetDocuments(context.Context, *GetDocumentsRequest) (*GetDocumentsReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDocuments not implemented")
 }
 func (UnimplementedSeminarServer) AddMCPServer(context.Context, *AddMCPServerReqeust) (*AddMCPServerReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddMCPServer not implemented")
@@ -372,6 +388,24 @@ func _Seminar_UploadDocument_Handler(srv interface{}, stream grpc.ServerStream) 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Seminar_UploadDocumentServer = grpc.ClientStreamingServer[UploadDocumentRequest, UploadDocumentReply]
 
+func _Seminar_GetDocuments_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDocumentsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SeminarServer).GetDocuments(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Seminar_GetDocuments_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SeminarServer).GetDocuments(ctx, req.(*GetDocumentsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Seminar_AddMCPServer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AddMCPServerReqeust)
 	if err := dec(in); err != nil {
@@ -438,6 +472,10 @@ var Seminar_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "StopTopic",
 			Handler:    _Seminar_StopTopic_Handler,
+		},
+		{
+			MethodName: "GetDocuments",
+			Handler:    _Seminar_GetDocuments_Handler,
 		},
 		{
 			MethodName: "AddMCPServer",

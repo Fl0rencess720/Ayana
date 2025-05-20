@@ -46,6 +46,12 @@ service Seminar {
   }
   rpc UploadDocument(stream UploadDocumentRequest) returns (UploadDocumentReply) {
   }
+  rpc GetDocuments(GetDocumentsRequest) returns (GetDocumentsReply) {
+    option (google.api.http) = {
+      post: "/seminar/document/getting"
+      body: "*"
+    };
+  }
   rpc AddMCPServer(AddMCPServerReqeust) returns (AddMCPServerReply) {
     option (google.api.http) = {
       post: "/seminar/mcp/add"
@@ -164,8 +170,13 @@ message UploadDocumentReply {
   string message = 1;
 } 
 
+message GetDocumentsRequest {
+  string phone = 1;
+}
 
-
+message GetDocumentsReply {
+  repeated Document documents = 1;
+}
 
 message AddMCPServerReqeust {
   string name = 1;
@@ -193,3 +204,4 @@ message GetMCPServersReply {
  
   repeated MCPServer servers = 1;
 }
+

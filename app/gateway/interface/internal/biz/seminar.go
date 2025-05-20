@@ -276,6 +276,15 @@ func UploadDocument(ctx context.Context, file multipart.File, handler *multipart
 	return reply, nil
 }
 
+func (uc *SeminarUsecase) GetDocuments(ctx context.Context, req *v1.GetDocumentsRequest) (*v1.GetDocumentsReply, error) {
+	req.Phone = utils.GetPhoneFromContext(ctx)
+	reply, err := uc.seminarClient.GetDocuments(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return reply, nil
+}
+
 func (uc *SeminarUsecase) AddMCPServer(ctx context.Context, req *v1.AddMCPServerReqeust) (*v1.AddMCPServerReply, error) {
 	req.Phone = utils.GetPhoneFromContext(ctx)
 	reply, err := uc.seminarClient.AddMCPServer(ctx, req)

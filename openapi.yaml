@@ -96,6 +96,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Ayana.v1.SetRoleReply'
+    /seminar/document/getting:
+        post:
+            tags:
+                - Seminar
+            operationId: Seminar_GetDocuments
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Ayana.v1.GetDocumentsRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Ayana.v1.GetDocumentsReply'
     /seminar/mcp/add:
         post:
             tags:
@@ -402,6 +420,18 @@ components:
         Ayana.v1.GetAvailableModelsRequest:
             type: object
             properties: {}
+        Ayana.v1.GetDocumentsReply:
+            type: object
+            properties:
+                documents:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Ayana.v1.Document'
+        Ayana.v1.GetDocumentsRequest:
+            type: object
+            properties:
+                phone:
+                    type: string
         Ayana.v1.GetMCPServersReply:
             type: object
             properties:

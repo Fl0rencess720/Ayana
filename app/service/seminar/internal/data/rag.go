@@ -41,6 +41,14 @@ func (r *ragRepo) DocumentToMysql(ctx context.Context, document biz.Document) er
 	return nil
 }
 
+func (r *ragRepo) GetDocumentsFromMysql(ctx context.Context, phone string) ([]biz.Document, error) {
+	var documents []biz.Document
+	if err := r.data.mysqlClient.Model(&biz.Document{}).Where("phone = ?", phone).Find(&documents).Error; err != nil {
+		return nil, err
+	}
+	return documents, nil
+}
+
 func (r *ragRepo) RetrieveDocuments(ctx context.Context, uid, query string) ([]*schema.Document, error) {
 	filter := `uid == "` + uid + `"`
 	docs, err := r.data.retriever.Retrieve(ctx, query, filter)

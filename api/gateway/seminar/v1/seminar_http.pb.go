@@ -22,6 +22,7 @@ const _ = http.SupportPackageIsVersion1
 const OperationSeminarAddMCPServer = "/Ayana.v1.Seminar/AddMCPServer"
 const OperationSeminarCreateTopic = "/Ayana.v1.Seminar/CreateTopic"
 const OperationSeminarDeleteTopic = "/Ayana.v1.Seminar/DeleteTopic"
+const OperationSeminarGetDocuments = "/Ayana.v1.Seminar/GetDocuments"
 const OperationSeminarGetMCPServers = "/Ayana.v1.Seminar/GetMCPServers"
 const OperationSeminarGetTopic = "/Ayana.v1.Seminar/GetTopic"
 const OperationSeminarGetTopicsMetadata = "/Ayana.v1.Seminar/GetTopicsMetadata"
@@ -31,6 +32,7 @@ type SeminarHTTPServer interface {
 	AddMCPServer(context.Context, *AddMCPServerReqeust) (*AddMCPServerReply, error)
 	CreateTopic(context.Context, *CreateTopicRequest) (*CreateTopicReply, error)
 	DeleteTopic(context.Context, *DeleteTopicRequest) (*DeleteTopicReply, error)
+	GetDocuments(context.Context, *GetDocumentsRequest) (*GetDocumentsReply, error)
 	GetMCPServers(context.Context, *GetMCPServersRequest) (*GetMCPServersReply, error)
 	// GetTopic 获取讨论主题的详细信息，进入讨论时加载
 	GetTopic(context.Context, *GetTopicRequest) (*GetTopicReply, error)
@@ -46,6 +48,7 @@ func RegisterSeminarHTTPServer(s *http.Server, srv SeminarHTTPServer) {
 	r.POST("/seminar/topic/getting", _Seminar_GetTopic0_HTTP_Handler(srv))
 	r.POST("/seminar/topic/deleting", _Seminar_DeleteTopic0_HTTP_Handler(srv))
 	r.POST("/seminar/topic/stopping", _Seminar_StopTopic0_HTTP_Handler(srv))
+	r.POST("/seminar/document/getting", _Seminar_GetDocuments0_HTTP_Handler(srv))
 	r.POST("/seminar/mcp/add", _Seminar_AddMCPServer0_HTTP_Handler(srv))
 	r.POST("/seminar/mcp/getting", _Seminar_GetMCPServers0_HTTP_Handler(srv))
 }
@@ -160,6 +163,28 @@ func _Seminar_StopTopic0_HTTP_Handler(srv SeminarHTTPServer) func(ctx http.Conte
 	}
 }
 
+func _Seminar_GetDocuments0_HTTP_Handler(srv SeminarHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetDocumentsRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSeminarGetDocuments)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetDocuments(ctx, req.(*GetDocumentsRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*GetDocumentsReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 func _Seminar_AddMCPServer0_HTTP_Handler(srv SeminarHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in AddMCPServerReqeust
@@ -208,6 +233,7 @@ type SeminarHTTPClient interface {
 	AddMCPServer(ctx context.Context, req *AddMCPServerReqeust, opts ...http.CallOption) (rsp *AddMCPServerReply, err error)
 	CreateTopic(ctx context.Context, req *CreateTopicRequest, opts ...http.CallOption) (rsp *CreateTopicReply, err error)
 	DeleteTopic(ctx context.Context, req *DeleteTopicRequest, opts ...http.CallOption) (rsp *DeleteTopicReply, err error)
+	GetDocuments(ctx context.Context, req *GetDocumentsRequest, opts ...http.CallOption) (rsp *GetDocumentsReply, err error)
 	GetMCPServers(ctx context.Context, req *GetMCPServersRequest, opts ...http.CallOption) (rsp *GetMCPServersReply, err error)
 	GetTopic(ctx context.Context, req *GetTopicRequest, opts ...http.CallOption) (rsp *GetTopicReply, err error)
 	GetTopicsMetadata(ctx context.Context, req *GetTopicsMetadataRequest, opts ...http.CallOption) (rsp *GetTopicsMetadataReply, err error)
@@ -253,6 +279,19 @@ func (c *SeminarHTTPClientImpl) DeleteTopic(ctx context.Context, in *DeleteTopic
 	pattern := "/seminar/topic/deleting"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationSeminarDeleteTopic))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SeminarHTTPClientImpl) GetDocuments(ctx context.Context, in *GetDocumentsRequest, opts ...http.CallOption) (*GetDocumentsReply, error) {
+	var out GetDocumentsReply
+	pattern := "/seminar/document/getting"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationSeminarGetDocuments))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

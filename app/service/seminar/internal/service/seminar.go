@@ -124,6 +124,22 @@ func (s *SeminarService) UploadDocument(stream v1.Seminar_UploadDocumentServer) 
 	})
 }
 
+func (s *SeminarService) GetDocuments(ctx context.Context, req *v1.GetDocumentsRequest) (*v1.GetDocumentsReply, error) {
+	documents, err := s.ruc.GetDocuments(ctx, req.Phone)
+	if err != nil {
+		return nil, err
+	}
+	reply := &v1.GetDocumentsReply{}
+	for _, document := range documents {
+		reply.Documents = append(reply.Documents, &v1.Document{
+			Filename:  document.Filename,
+			TotalSize: strconv.Itoa(int(document.TotalSize)),
+			Uid:       document.UID,
+		})
+	}
+	return reply, nil
+}
+
 func (s *SeminarService) AddMCPServer(ctx context.Context, req *v1.AddMCPServerReqeust) (*v1.AddMCPServerReply, error) {
 	if err := s.uc.AddMCPServer(ctx, req.Phone, req.Name, req.Url, req.RequestHeader); err != nil {
 		return nil, err
