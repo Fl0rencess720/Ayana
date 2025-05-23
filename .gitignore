@@ -35,3 +35,6 @@ bin/
 .idea/
 *.swp
 dev/
+
+# Environment
+.env

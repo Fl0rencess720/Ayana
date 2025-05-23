@@ -31,6 +31,9 @@ const (
 	Seminar_AddMCPServer_FullMethodName         = "/Ayana.v1.Seminar/AddMCPServer"
 	Seminar_GetMCPServers_FullMethodName        = "/Ayana.v1.Seminar/GetMCPServers"
 	Seminar_CheckMCPServerHealth_FullMethodName = "/Ayana.v1.Seminar/CheckMCPServerHealth"
+	Seminar_DeleteMCPServer_FullMethodName      = "/Ayana.v1.Seminar/DeleteMCPServer"
+	Seminar_EnableMCPServer_FullMethodName      = "/Ayana.v1.Seminar/EnableMCPServer"
+	Seminar_DisableMCPServer_FullMethodName     = "/Ayana.v1.Seminar/DisableMCPServer"
 )
 
 // SeminarClient is the client API for Seminar service.
@@ -51,6 +54,9 @@ type SeminarClient interface {
 	AddMCPServer(ctx context.Context, in *AddMCPServerReqeust, opts ...grpc.CallOption) (*AddMCPServerReply, error)
 	GetMCPServers(ctx context.Context, in *GetMCPServersRequest, opts ...grpc.CallOption) (*GetMCPServersReply, error)
 	CheckMCPServerHealth(ctx context.Context, in *CheckMCPServerHealthReqeust, opts ...grpc.CallOption) (*CheckMCPServerHealthReply, error)
+	DeleteMCPServer(ctx context.Context, in *DeleteMCPServerRequest, opts ...grpc.CallOption) (*DeleteMCPServerReply, error)
+	EnableMCPServer(ctx context.Context, in *EnableMCPServerRequest, opts ...grpc.CallOption) (*EnableMCPServerReply, error)
+	DisableMCPServer(ctx context.Context, in *DisableMCPServerRequest, opts ...grpc.CallOption) (*DisableMCPServerReply, error)
 }
 
 type seminarClient struct {
@@ -193,6 +199,36 @@ func (c *seminarClient) CheckMCPServerHealth(ctx context.Context, in *CheckMCPSe
 	return out, nil
 }
 
+func (c *seminarClient) DeleteMCPServer(ctx context.Context, in *DeleteMCPServerRequest, opts ...grpc.CallOption) (*DeleteMCPServerReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteMCPServerReply)
+	err := c.cc.Invoke(ctx, Seminar_DeleteMCPServer_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *seminarClient) EnableMCPServer(ctx context.Context, in *EnableMCPServerRequest, opts ...grpc.CallOption) (*EnableMCPServerReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EnableMCPServerReply)
+	err := c.cc.Invoke(ctx, Seminar_EnableMCPServer_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *seminarClient) DisableMCPServer(ctx context.Context, in *DisableMCPServerRequest, opts ...grpc.CallOption) (*DisableMCPServerReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DisableMCPServerReply)
+	err := c.cc.Invoke(ctx, Seminar_DisableMCPServer_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SeminarServer is the server API for Seminar service.
 // All implementations must embed UnimplementedSeminarServer
 // for forward compatibility.
@@ -211,6 +247,9 @@ type SeminarServer interface {
 	AddMCPServer(context.Context, *AddMCPServerReqeust) (*AddMCPServerReply, error)
 	GetMCPServers(context.Context, *GetMCPServersRequest) (*GetMCPServersReply, error)
 	CheckMCPServerHealth(context.Context, *CheckMCPServerHealthReqeust) (*CheckMCPServerHealthReply, error)
+	DeleteMCPServer(context.Context, *DeleteMCPServerRequest) (*DeleteMCPServerReply, error)
+	EnableMCPServer(context.Context, *EnableMCPServerRequest) (*EnableMCPServerReply, error)
+	DisableMCPServer(context.Context, *DisableMCPServerRequest) (*DisableMCPServerReply, error)
 	mustEmbedUnimplementedSeminarServer()
 }
 
@@ -256,6 +295,15 @@ func (UnimplementedSeminarServer) GetMCPServers(context.Context, *GetMCPServersR
 }
 func (UnimplementedSeminarServer) CheckMCPServerHealth(context.Context, *CheckMCPServerHealthReqeust) (*CheckMCPServerHealthReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckMCPServerHealth not implemented")
+}
+func (UnimplementedSeminarServer) DeleteMCPServer(context.Context, *DeleteMCPServerRequest) (*DeleteMCPServerReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteMCPServer not implemented")
+}
+func (UnimplementedSeminarServer) EnableMCPServer(context.Context, *EnableMCPServerRequest) (*EnableMCPServerReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EnableMCPServer not implemented")
+}
+func (UnimplementedSeminarServer) DisableMCPServer(context.Context, *DisableMCPServerRequest) (*DisableMCPServerReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DisableMCPServer not implemented")
 }
 func (UnimplementedSeminarServer) mustEmbedUnimplementedSeminarServer() {}
 func (UnimplementedSeminarServer) testEmbeddedByValue()                 {}
@@ -476,6 +524,60 @@ func _Seminar_CheckMCPServerHealth_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Seminar_DeleteMCPServer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteMCPServerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SeminarServer).DeleteMCPServer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Seminar_DeleteMCPServer_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SeminarServer).DeleteMCPServer(ctx, req.(*DeleteMCPServerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Seminar_EnableMCPServer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EnableMCPServerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SeminarServer).EnableMCPServer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Seminar_EnableMCPServer_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SeminarServer).EnableMCPServer(ctx, req.(*EnableMCPServerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Seminar_DisableMCPServer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DisableMCPServerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SeminarServer).DisableMCPServer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Seminar_DisableMCPServer_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SeminarServer).DisableMCPServer(ctx, req.(*DisableMCPServerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Seminar_ServiceDesc is the grpc.ServiceDesc for Seminar service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -522,6 +624,18 @@ var Seminar_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CheckMCPServerHealth",
 			Handler:    _Seminar_CheckMCPServerHealth_Handler,
+		},
+		{
+			MethodName: "DeleteMCPServer",
+			Handler:    _Seminar_DeleteMCPServer_Handler,
+		},
+		{
+			MethodName: "EnableMCPServer",
+			Handler:    _Seminar_EnableMCPServer_Handler,
+		},
+		{
+			MethodName: "DisableMCPServer",
+			Handler:    _Seminar_DisableMCPServer_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

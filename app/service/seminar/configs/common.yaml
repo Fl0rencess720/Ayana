@@ -1,8 +1,9 @@
 project:
   mode: dev
 jwtc:
-  accessSecret: test
-  refreshSecret: test
+  accessSecret: ${AYANA_ACCESS_SECRET}
+  refreshSecret: ${AYANA_REFRESH_SECRET}
+
 rag:
-  api_key: test
-  model: test
+  api_key: ${AYANA_RAG_API_KEY}
+  model: ${AYANA_RAG_MODEL}

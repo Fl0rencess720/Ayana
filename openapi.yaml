@@ -132,6 +132,60 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Ayana.v1.AddMCPServerReply'
+    /seminar/mcp/delete:
+        post:
+            tags:
+                - Seminar
+            operationId: Seminar_DeleteMCPServer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Ayana.v1.DeleteMCPServerRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Ayana.v1.DeleteMCPServerReply'
+    /seminar/mcp/disable:
+        post:
+            tags:
+                - Seminar
+            operationId: Seminar_DisableMCPServer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Ayana.v1.DisableMCPServerRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Ayana.v1.DisableMCPServerReply'
+    /seminar/mcp/enable:
+        post:
+            tags:
+                - Seminar
+            operationId: Seminar_EnableMCPServer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Ayana.v1.EnableMCPServerRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Ayana.v1.EnableMCPServerReply'
     /seminar/mcp/getting:
         post:
             tags:
@@ -409,6 +463,16 @@ components:
                     type: array
                     items:
                         type: string
+        Ayana.v1.DeleteMCPServerReply:
+            type: object
+            properties:
+                message:
+                    type: string
+        Ayana.v1.DeleteMCPServerRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
         Ayana.v1.DeleteRoleReply:
             type: object
             properties:
@@ -431,6 +495,16 @@ components:
             properties:
                 uid:
                     type: string
+        Ayana.v1.DisableMCPServerReply:
+            type: object
+            properties:
+                message:
+                    type: string
+        Ayana.v1.DisableMCPServerRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
         Ayana.v1.Document:
             type: object
             properties:
@@ -439,6 +513,18 @@ components:
                 filename:
                     type: string
                 totalSize:
+                    type: string
+        Ayana.v1.EnableMCPServerReply:
+            type: object
+            properties:
+                message:
+                    type: string
+        Ayana.v1.EnableMCPServerRequest:
+            type: object
+            properties:
+                uid:
+                    type: string
+                url:
                     type: string
         Ayana.v1.GetAvailableModelsReply:
             type: object

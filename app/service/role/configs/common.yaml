@@ -1,5 +1,5 @@
 project:
   mode: dev
 jwtc:
-  accessSecret: test
-  refreshSecret: test
+  accessSecret: ${AYANA_ACCESS_SECRET}
+  refreshSecret: ${AYANA_REFRESH_SECRET}

@@ -22,7 +22,10 @@ const _ = http.SupportPackageIsVersion1
 const OperationSeminarAddMCPServer = "/Ayana.v1.Seminar/AddMCPServer"
 const OperationSeminarCheckMCPServerHealth = "/Ayana.v1.Seminar/CheckMCPServerHealth"
 const OperationSeminarCreateTopic = "/Ayana.v1.Seminar/CreateTopic"
+const OperationSeminarDeleteMCPServer = "/Ayana.v1.Seminar/DeleteMCPServer"
 const OperationSeminarDeleteTopic = "/Ayana.v1.Seminar/DeleteTopic"
+const OperationSeminarDisableMCPServer = "/Ayana.v1.Seminar/DisableMCPServer"
+const OperationSeminarEnableMCPServer = "/Ayana.v1.Seminar/EnableMCPServer"
 const OperationSeminarGetDocuments = "/Ayana.v1.Seminar/GetDocuments"
 const OperationSeminarGetMCPServers = "/Ayana.v1.Seminar/GetMCPServers"
 const OperationSeminarGetTopic = "/Ayana.v1.Seminar/GetTopic"
@@ -33,7 +36,10 @@ type SeminarHTTPServer interface {
 	AddMCPServer(context.Context, *AddMCPServerReqeust) (*AddMCPServerReply, error)
 	CheckMCPServerHealth(context.Context, *CheckMCPServerHealthReqeust) (*CheckMCPServerHealthReply, error)
 	CreateTopic(context.Context, *CreateTopicRequest) (*CreateTopicReply, error)
+	DeleteMCPServer(context.Context, *DeleteMCPServerRequest) (*DeleteMCPServerReply, error)
 	DeleteTopic(context.Context, *DeleteTopicRequest) (*DeleteTopicReply, error)
+	DisableMCPServer(context.Context, *DisableMCPServerRequest) (*DisableMCPServerReply, error)
+	EnableMCPServer(context.Context, *EnableMCPServerRequest) (*EnableMCPServerReply, error)
 	GetDocuments(context.Context, *GetDocumentsRequest) (*GetDocumentsReply, error)
 	GetMCPServers(context.Context, *GetMCPServersRequest) (*GetMCPServersReply, error)
 	// GetTopic 获取讨论主题的详细信息，进入讨论时加载
@@ -54,6 +60,9 @@ func RegisterSeminarHTTPServer(s *http.Server, srv SeminarHTTPServer) {
 	r.POST("/seminar/mcp/add", _Seminar_AddMCPServer0_HTTP_Handler(srv))
 	r.POST("/seminar/mcp/getting", _Seminar_GetMCPServers0_HTTP_Handler(srv))
 	r.POST("/seminar/mcp/health", _Seminar_CheckMCPServerHealth0_HTTP_Handler(srv))
+	r.POST("/seminar/mcp/delete", _Seminar_DeleteMCPServer0_HTTP_Handler(srv))
+	r.POST("/seminar/mcp/enable", _Seminar_EnableMCPServer0_HTTP_Handler(srv))
+	r.POST("/seminar/mcp/disable", _Seminar_DisableMCPServer0_HTTP_Handler(srv))
 }
 
 func _Seminar_CreateTopic0_HTTP_Handler(srv SeminarHTTPServer) func(ctx http.Context) error {
@@ -254,11 +263,80 @@ func _Seminar_CheckMCPServerHealth0_HTTP_Handler(srv SeminarHTTPServer) func(ctx
 	}
 }
 
+func _Seminar_DeleteMCPServer0_HTTP_Handler(srv SeminarHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DeleteMCPServerRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSeminarDeleteMCPServer)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DeleteMCPServer(ctx, req.(*DeleteMCPServerRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DeleteMCPServerReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Seminar_EnableMCPServer0_HTTP_Handler(srv SeminarHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in EnableMCPServerRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSeminarEnableMCPServer)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.EnableMCPServer(ctx, req.(*EnableMCPServerRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*EnableMCPServerReply)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _Seminar_DisableMCPServer0_HTTP_Handler(srv SeminarHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DisableMCPServerRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSeminarDisableMCPServer)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DisableMCPServer(ctx, req.(*DisableMCPServerRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*DisableMCPServerReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type SeminarHTTPClient interface {
 	AddMCPServer(ctx context.Context, req *AddMCPServerReqeust, opts ...http.CallOption) (rsp *AddMCPServerReply, err error)
 	CheckMCPServerHealth(ctx context.Context, req *CheckMCPServerHealthReqeust, opts ...http.CallOption) (rsp *CheckMCPServerHealthReply, err error)
 	CreateTopic(ctx context.Context, req *CreateTopicRequest, opts ...http.CallOption) (rsp *CreateTopicReply, err error)
+	DeleteMCPServer(ctx context.Context, req *DeleteMCPServerRequest, opts ...http.CallOption) (rsp *DeleteMCPServerReply, err error)
 	DeleteTopic(ctx context.Context, req *DeleteTopicRequest, opts ...http.CallOption) (rsp *DeleteTopicReply, err error)
+	DisableMCPServer(ctx context.Context, req *DisableMCPServerRequest, opts ...http.CallOption) (rsp *DisableMCPServerReply, err error)
+	EnableMCPServer(ctx context.Context, req *EnableMCPServerRequest, opts ...http.CallOption) (rsp *EnableMCPServerReply, err error)
 	GetDocuments(ctx context.Context, req *GetDocumentsRequest, opts ...http.CallOption) (rsp *GetDocumentsReply, err error)
 	GetMCPServers(ctx context.Context, req *GetMCPServersRequest, opts ...http.CallOption) (rsp *GetMCPServersReply, err error)
 	GetTopic(ctx context.Context, req *GetTopicRequest, opts ...http.CallOption) (rsp *GetTopicReply, err error)
@@ -313,11 +391,50 @@ func (c *SeminarHTTPClientImpl) CreateTopic(ctx context.Context, in *CreateTopic
 	return &out, nil
 }
 
+func (c *SeminarHTTPClientImpl) DeleteMCPServer(ctx context.Context, in *DeleteMCPServerRequest, opts ...http.CallOption) (*DeleteMCPServerReply, error) {
+	var out DeleteMCPServerReply
+	pattern := "/seminar/mcp/delete"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationSeminarDeleteMCPServer))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
 func (c *SeminarHTTPClientImpl) DeleteTopic(ctx context.Context, in *DeleteTopicRequest, opts ...http.CallOption) (*DeleteTopicReply, error) {
 	var out DeleteTopicReply
 	pattern := "/seminar/topic/deleting"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationSeminarDeleteTopic))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SeminarHTTPClientImpl) DisableMCPServer(ctx context.Context, in *DisableMCPServerRequest, opts ...http.CallOption) (*DisableMCPServerReply, error) {
+	var out DisableMCPServerReply
+	pattern := "/seminar/mcp/disable"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationSeminarDisableMCPServer))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SeminarHTTPClientImpl) EnableMCPServer(ctx context.Context, in *EnableMCPServerRequest, opts ...http.CallOption) (*EnableMCPServerReply, error) {
+	var out EnableMCPServerReply
+	pattern := "/seminar/mcp/enable"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationSeminarEnableMCPServer))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

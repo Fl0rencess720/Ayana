@@ -6,27 +6,27 @@ server:
 data:
   database:
     driver: mysql
-    source: root:root@tcp(127.0.0.1:3306)/ayana?parseTime=True&loc=Local
+    source: root:${MYSQL_PASSWORD}@tcp(mysql:3306)/ayana?parseTime=True&loc=Local
   redis:
-    addr: 127.0.0.1:6379
-    password: "test"
+    addr: redis:6379
+    password: ${REDIS_PASSWORD}
     db: 0
     read_timeout: 0.2s
     write_timeout: 0.2s
     dial_timeout: 1s
   kafka:
-    addr: localhost:9094
+    addr: kafka:9094
     topic: "ayana_seminar_tokens"
     partition: 0
     read_timeout: 0.2s
     write_timeout: 0.2s
   milvus:
-    endpoint: 127.0.0.1:19530
+    endpoint: milvus:19530
     collection: "ayana_documents"
-    ApiKey: "root:Milvus"
+    ApiKey: ${MILVUS_API_KEY}
 
 trace:
-  endpoint: 127.0.0.1:4318
+  endpoint: jaeger:4318
 
 
 service:

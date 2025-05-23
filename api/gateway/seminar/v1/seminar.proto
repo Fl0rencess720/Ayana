@@ -70,6 +70,24 @@ service Seminar {
       body: "*"
     };
   }
+  rpc DeleteMCPServer(DeleteMCPServerRequest) returns (DeleteMCPServerReply) {
+    option (google.api.http) = {
+      post: "/seminar/mcp/delete"
+      body: "*"
+    };
+  }
+  rpc EnableMCPServer(EnableMCPServerRequest) returns (EnableMCPServerReply) {
+    option (google.api.http) = {
+      post: "/seminar/mcp/enable"
+      body: "*"
+    };
+  }
+  rpc DisableMCPServer(DisableMCPServerRequest) returns (DisableMCPServerReply) {
+    option (google.api.http) = {
+      post: "/seminar/mcp/disable"
+      body: "*"
+    };
+  }
 }
 
 message TopicMetadata {
@@ -219,4 +237,29 @@ message CheckMCPServerHealthReqeust {
 // 0: unhealthy, 1: healthy
 message CheckMCPServerHealthReply {
   int32 health = 1;
+}
+
+message DeleteMCPServerRequest {
+  string uid = 1;
+}
+
+message DeleteMCPServerReply {
+  string message = 1;
+} 
+
+message EnableMCPServerRequest {
+  string uid = 1;
+  string url = 2;
+}
+
+message EnableMCPServerReply {
+  string message = 1;
+}
+
+message DisableMCPServerRequest {
+  string uid = 1;
+}
+
+message DisableMCPServerReply {
+  string message = 1;
 }
