@@ -158,6 +158,8 @@ func (s *SeminarService) GetMCPServers(ctx context.Context, req *v1.GetMCPServer
 			Name:          server.Name,
 			RequestHeader: server.RequestHeader,
 			Url:           server.URL,
+			Uid:           server.UID,
+			Status:        server.Status,
 		})
 	}
 	return reply, nil
@@ -170,4 +172,30 @@ func (s *SeminarService) CheckMCPServerHealth(ctx context.Context, req *v1.Check
 	}
 
 	return &v1.CheckMCPServerHealthReply{Health: health}, nil
+}
+
+func (s *SeminarService) DeleteMCPServer(ctx context.Context, req *v1.DeleteMCPServerRequest) (*v1.DeleteMCPServerReply, error) {
+	err := s.uc.DeleteMCPServer(ctx, req.Phone, req.Uid)
+	if err != nil {
+		return nil, err
+	}
+
+	return &v1.DeleteMCPServerReply{Message: "success"}, nil
+}
+
+func (s *SeminarService) EnableMCPServer(ctx context.Context, req *v1.EnableMCPServerRequest) (*v1.EnableMCPServerReply, error) {
+	status, err := s.uc.EnableMCPServer(ctx, req.Phone, req.Uid, req.Url)
+	if err != nil {
+		return nil, err
+	}
+
+	return &v1.EnableMCPServerReply{Status: status}, nil
+}
+
+func (s *SeminarService) DisableMCPServer(ctx context.Context, req *v1.DisableMCPServerRequest) (*v1.DisableMCPServerReply, error) {
+	err := s.uc.DisableMCPServer(ctx, req.Phone, req.Uid)
+	if err != nil {
+		return nil, err
+	}
+	return &v1.DisableMCPServerReply{Message: "success"}, nil
 }

@@ -98,3 +98,23 @@ func (r *seminarRepo) GetMCPServersFromMysql(ctx context.Context, phone string) 
 	}
 	return servers, nil
 }
+
+func (r *seminarRepo) DeleteMCPServerFromMysql(ctx context.Context, phone, uid string) error {
+	if err := r.data.mysqlClient.Model(&biz.MCPServer{}).Where("phone = ? AND uid = ?", phone, uid).Delete(&biz.MCPServer{}).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *seminarRepo) EnableMCPServerInMysql(ctx context.Context, phone, uid string) error {
+	if err := r.data.mysqlClient.Model(&biz.MCPServer{}).Where("phone = ? and uid = ?", phone, uid).Update("status", 1).Error; err != nil {
+		return err
+	}
+	return nil
+}
+func (r *seminarRepo) DisableMCPServerInMysql(ctx context.Context, phone, uid string) error {
+	if err := r.data.mysqlClient.Model(&biz.MCPServer{}).Where("phone = ? and uid = ?", phone, uid).Update("status", 0).Error; err != nil {
+		return err
+	}
+	return nil
+}

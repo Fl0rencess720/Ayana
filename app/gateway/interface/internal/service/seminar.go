@@ -153,3 +153,27 @@ func (s *SeminarService) CheckMCPServerHealth(ctx context.Context, req *v1.Check
 	}
 	return reply, nil
 }
+
+func (s *SeminarService) DeleteMCPServer(ctx context.Context, req *v1.DeleteMCPServerRequest) (*v1.DeleteMCPServerReply, error) {
+	reply, err := s.uc.DeleteMCPServer(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return reply, nil
+}
+
+func (s *SeminarService) EnableMCPServer(ctx context.Context, req *v1.EnableMCPServerRequest) (*v1.EnableMCPServerReply, error) {
+	reply, err := s.uc.EnableMCPServer(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return reply, nil
+}
+
+func (s *SeminarService) DisableMCPServer(ctx context.Context, req *v1.DisableMCPServerRequest) (*v1.DisableMCPServerReply, error) {
+	reply, err := s.uc.DisableMCPServer(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return reply, nil
+}

@@ -26,6 +26,9 @@ type SeminarRepo interface {
 	UnlockTopic(topicUID, lockerUID string) error
 	AddMCPServerToMysql(ctx context.Context, server *MCPServer) error
 	GetMCPServersFromMysql(ctx context.Context, phone string) ([]MCPServer, error)
+	DeleteMCPServerFromMysql(ctx context.Context, phone, uid string) error
+	EnableMCPServerInMysql(ctx context.Context, phone, uid string) error
+	DisableMCPServerInMysql(ctx context.Context, phone, uid string) error
 }
 
 type SeminarUsecase struct {
@@ -44,7 +47,7 @@ type MCPServer struct {
 	Name          string
 	URL           string
 	RequestHeader string
-	Status        uint
+	Status        int32
 	Phone         string `gorm:"index"`
 }
 
@@ -269,6 +272,33 @@ func (uc *SeminarUsecase) CheckMCPServerHealth(ctx context.Context, url string) 
 		return 0, err
 	}
 	return health, nil
+}
+
+func (uc *SeminarUsecase) DeleteMCPServer(ctx context.Context, phone string, uid string) error {
+	err := uc.repo.DeleteMCPServerFromMysql(ctx, phone, uid)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (uc *SeminarUsecase) EnableMCPServer(ctx context.Context, phone, uid, url string) (int32, error) {
+	status, err := uc.CheckMCPServerHealth(ctx, url)
+	if err != nil {
+		return 0, err
+	}
+	if err = uc.repo.EnableMCPServerInMysql(ctx, phone, uid); err != nil {
+		return status, err
+	}
+	return status, nil
+}
+
+func (uc *SeminarUsecase) DisableMCPServer(ctx context.Context, phone string, uid string) error {
+	err := uc.repo.DisableMCPServerInMysql(ctx, phone, uid)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func buildMessageContent(speech Speech) string {

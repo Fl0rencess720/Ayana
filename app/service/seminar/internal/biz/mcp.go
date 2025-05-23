@@ -41,15 +41,19 @@ func checkMCPServerHealthByPing(mcpServer MCPServer) (int32, error) {
 		return 0, err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-
-	if err := cli.Ping(ctx); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	retry := 3
+	for retry > 0 {
+		if err := cli.Ping(ctx); err != nil {
+			retry--
+			time.Sleep(1 * time.Second)
+			continue
+		}
 		cancel()
-		return 0, err
+		return 1, nil
 	}
-
 	cancel()
-	return 1, nil
+	return 0, nil
 }
 
 func getHealthyMCPServers(ctx context.Context, mcpServers []MCPServer) ([]tool.BaseTool, []*schema.ToolInfo, error) {

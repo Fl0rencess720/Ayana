@@ -473,6 +473,8 @@ components:
             properties:
                 uid:
                     type: string
+                phone:
+                    type: string
         Ayana.v1.DeleteRoleReply:
             type: object
             properties:
@@ -505,6 +507,8 @@ components:
             properties:
                 uid:
                     type: string
+                phone:
+                    type: string
         Ayana.v1.Document:
             type: object
             properties:
@@ -517,14 +521,17 @@ components:
         Ayana.v1.EnableMCPServerReply:
             type: object
             properties:
-                message:
-                    type: string
+                status:
+                    type: integer
+                    format: int32
         Ayana.v1.EnableMCPServerRequest:
             type: object
             properties:
                 uid:
                     type: string
                 url:
+                    type: string
+                phone:
                     type: string
         Ayana.v1.GetAvailableModelsReply:
             type: object
@@ -626,6 +633,9 @@ components:
                 requestHeader:
                     type: string
                 health:
+                    type: integer
+                    format: int32
+                status:
                     type: integer
                     format: int32
         Ayana.v1.Model:

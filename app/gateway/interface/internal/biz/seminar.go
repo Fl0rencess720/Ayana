@@ -310,3 +310,30 @@ func (uc *SeminarUsecase) CheckMCPServerHealth(ctx context.Context, req *v1.Chec
 	}
 	return reply, nil
 }
+
+func (uc *SeminarUsecase) DeleteMCPServer(ctx context.Context, req *v1.DeleteMCPServerRequest) (*v1.DeleteMCPServerReply, error) {
+	req.Phone = utils.GetPhoneFromContext(ctx)
+	reply, err := uc.seminarClient.DeleteMCPServer(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return reply, nil
+}
+
+func (uc *SeminarUsecase) EnableMCPServer(ctx context.Context, req *v1.EnableMCPServerRequest) (*v1.EnableMCPServerReply, error) {
+	req.Phone = utils.GetPhoneFromContext(ctx)
+	reply, err := uc.seminarClient.EnableMCPServer(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return reply, nil
+}
+
+func (uc *SeminarUsecase) DisableMCPServer(ctx context.Context, req *v1.DisableMCPServerRequest) (*v1.DisableMCPServerReply, error) {
+	req.Phone = utils.GetPhoneFromContext(ctx)
+	reply, err := uc.seminarClient.DisableMCPServer(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return reply, nil
+}

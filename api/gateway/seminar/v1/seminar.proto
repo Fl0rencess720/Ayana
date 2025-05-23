@@ -223,6 +223,7 @@ message MCPServer {
   string url = 3;
   string request_header = 4;
   int32 health = 5;
+  int32 status = 6;
 }
 
 message GetMCPServersReply {
@@ -241,6 +242,7 @@ message CheckMCPServerHealthReply {
 
 message DeleteMCPServerRequest {
   string uid = 1;
+  string phone = 2;
 }
 
 message DeleteMCPServerReply {
@@ -250,14 +252,16 @@ message DeleteMCPServerReply {
 message EnableMCPServerRequest {
   string uid = 1;
   string url = 2;
+  string phone = 3;
 }
 
 message EnableMCPServerReply {
-  string message = 1;
+  int32 status = 1;
 }
 
 message DisableMCPServerRequest {
   string uid = 1;
+  string phone = 2;
 }
 
 message DisableMCPServerReply {
