@@ -10,11 +10,9 @@ import (
 	"time"
 
 	"github.com/cloudwego/eino-ext/components/model/deepseek"
-	mcpp "github.com/cloudwego/eino-ext/components/tool/mcp"
+
 	"github.com/cloudwego/eino/components/tool"
 	"github.com/cloudwego/eino/schema"
-	"github.com/mark3labs/mcp-go/client"
-	"github.com/mark3labs/mcp-go/mcp"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -334,58 +332,6 @@ func (rs *RoleScheduler) Call(messages []*schema.Message, mcpservers []MCPServer
 		}
 		return result.Message, result.StateSignal, result.error
 	}
-}
-
-func getHealthyMCPServers(ctx context.Context, mcpServers []MCPServer) ([]tool.BaseTool, []*schema.ToolInfo, error) {
-	tools := []tool.BaseTool{}
-	toolsInfo := []*schema.ToolInfo{}
-	for _, mcpServer := range mcpServers {
-		if mcpServer.Status == 0 {
-			continue
-		}
-		cli, err := client.NewSSEMCPClient(mcpServer.URL)
-		if err != nil {
-			zap.L().Error("failed to create MCP client", zap.Error(err))
-			continue
-		}
-
-		if err = cli.Start(ctx); err != nil {
-			zap.L().Error("failed to start MCP client", zap.Error(err))
-			continue
-		}
-
-		initRequest := mcp.InitializeRequest{}
-		initRequest.Params.ProtocolVersion = mcp.LATEST_PROTOCOL_VERSION
-		initRequest.Params.ClientInfo = mcp.Implementation{
-			Name:    "eino-llm-app",
-			Version: "1.0.0",
-		}
-
-		_, err = cli.Initialize(ctx, initRequest)
-		if err != nil {
-			fmt.Printf("err: %v\n", err)
-			zap.L().Error("failed to initialize MCP client", zap.Error(err))
-			continue
-		}
-
-		tools, err := mcpp.GetTools(ctx, &mcpp.Config{
-			Cli: cli,
-		})
-		if err != nil {
-			fmt.Printf("err: %v\n", err)
-			zap.L().Error("failed to get tools", zap.Error(err))
-		}
-		for _, tool := range tools {
-			t, err := tool.Info(ctx)
-			if err != nil {
-				zap.L().Error("failed to get tool info", zap.Error(err))
-				continue
-			}
-			tools = append(tools, tool)
-			toolsInfo = append(toolsInfo, t)
-		}
-	}
-	return tools, toolsInfo, nil
 }
 
 func invoke(ctx context.Context, toolCalls []schema.ToolCall, mcpTools []tool.BaseTool) []*schema.Message {

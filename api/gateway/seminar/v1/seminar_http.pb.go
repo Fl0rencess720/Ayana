@@ -20,6 +20,7 @@ var _ = binding.EncodeURL
 const _ = http.SupportPackageIsVersion1
 
 const OperationSeminarAddMCPServer = "/Ayana.v1.Seminar/AddMCPServer"
+const OperationSeminarCheckMCPServerHealth = "/Ayana.v1.Seminar/CheckMCPServerHealth"
 const OperationSeminarCreateTopic = "/Ayana.v1.Seminar/CreateTopic"
 const OperationSeminarDeleteTopic = "/Ayana.v1.Seminar/DeleteTopic"
 const OperationSeminarGetDocuments = "/Ayana.v1.Seminar/GetDocuments"
@@ -30,6 +31,7 @@ const OperationSeminarStopTopic = "/Ayana.v1.Seminar/StopTopic"
 
 type SeminarHTTPServer interface {
 	AddMCPServer(context.Context, *AddMCPServerReqeust) (*AddMCPServerReply, error)
+	CheckMCPServerHealth(context.Context, *CheckMCPServerHealthReqeust) (*CheckMCPServerHealthReply, error)
 	CreateTopic(context.Context, *CreateTopicRequest) (*CreateTopicReply, error)
 	DeleteTopic(context.Context, *DeleteTopicRequest) (*DeleteTopicReply, error)
 	GetDocuments(context.Context, *GetDocumentsRequest) (*GetDocumentsReply, error)
@@ -51,6 +53,7 @@ func RegisterSeminarHTTPServer(s *http.Server, srv SeminarHTTPServer) {
 	r.POST("/seminar/document/getting", _Seminar_GetDocuments0_HTTP_Handler(srv))
 	r.POST("/seminar/mcp/add", _Seminar_AddMCPServer0_HTTP_Handler(srv))
 	r.POST("/seminar/mcp/getting", _Seminar_GetMCPServers0_HTTP_Handler(srv))
+	r.POST("/seminar/mcp/health", _Seminar_CheckMCPServerHealth0_HTTP_Handler(srv))
 }
 
 func _Seminar_CreateTopic0_HTTP_Handler(srv SeminarHTTPServer) func(ctx http.Context) error {
@@ -229,8 +232,31 @@ func _Seminar_GetMCPServers0_HTTP_Handler(srv SeminarHTTPServer) func(ctx http.C
 	}
 }
 
+func _Seminar_CheckMCPServerHealth0_HTTP_Handler(srv SeminarHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in CheckMCPServerHealthReqeust
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationSeminarCheckMCPServerHealth)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.CheckMCPServerHealth(ctx, req.(*CheckMCPServerHealthReqeust))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*CheckMCPServerHealthReply)
+		return ctx.Result(200, reply)
+	}
+}
+
 type SeminarHTTPClient interface {
 	AddMCPServer(ctx context.Context, req *AddMCPServerReqeust, opts ...http.CallOption) (rsp *AddMCPServerReply, err error)
+	CheckMCPServerHealth(ctx context.Context, req *CheckMCPServerHealthReqeust, opts ...http.CallOption) (rsp *CheckMCPServerHealthReply, err error)
 	CreateTopic(ctx context.Context, req *CreateTopicRequest, opts ...http.CallOption) (rsp *CreateTopicReply, err error)
 	DeleteTopic(ctx context.Context, req *DeleteTopicRequest, opts ...http.CallOption) (rsp *DeleteTopicReply, err error)
 	GetDocuments(ctx context.Context, req *GetDocumentsRequest, opts ...http.CallOption) (rsp *GetDocumentsReply, err error)
@@ -253,6 +279,19 @@ func (c *SeminarHTTPClientImpl) AddMCPServer(ctx context.Context, in *AddMCPServ
 	pattern := "/seminar/mcp/add"
 	path := binding.EncodeURL(pattern, in, false)
 	opts = append(opts, http.Operation(OperationSeminarAddMCPServer))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *SeminarHTTPClientImpl) CheckMCPServerHealth(ctx context.Context, in *CheckMCPServerHealthReqeust, opts ...http.CallOption) (*CheckMCPServerHealthReply, error) {
+	var out CheckMCPServerHealthReply
+	pattern := "/seminar/mcp/health"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationSeminarCheckMCPServerHealth))
 	opts = append(opts, http.PathTemplate(pattern))
 	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
 	if err != nil {

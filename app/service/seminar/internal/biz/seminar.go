@@ -263,6 +263,14 @@ func (uc *SeminarUsecase) GetMCPServers(ctx context.Context, phone string) ([]MC
 	return servers, nil
 }
 
+func (uc *SeminarUsecase) CheckMCPServerHealth(ctx context.Context, url string) (int32, error) {
+	health, err := checkMCPServerHealthByPing(MCPServer{URL: url})
+	if err != nil {
+		return 0, err
+	}
+	return health, nil
+}
+
 func buildMessageContent(speech Speech) string {
 	return fmt.Sprintf("@%s:%s", speech.RoleName, speech.Content)
 }

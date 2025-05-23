@@ -150,6 +150,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Ayana.v1.GetMCPServersReply'
+    /seminar/mcp/health:
+        post:
+            tags:
+                - Seminar
+            operationId: Seminar_CheckMCPServerHealth
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Ayana.v1.CheckMCPServerHealthReqeust'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Ayana.v1.CheckMCPServerHealthReply'
     /seminar/topic/creating:
         post:
             tags:
@@ -349,6 +367,18 @@ components:
                     type: string
                 phone:
                     type: string
+        Ayana.v1.CheckMCPServerHealthReply:
+            type: object
+            properties:
+                health:
+                    type: integer
+                    format: int32
+            description: '0: unhealthy, 1: healthy'
+        Ayana.v1.CheckMCPServerHealthReqeust:
+            type: object
+            properties:
+                url:
+                    type: string
         Ayana.v1.CreateRoleReply:
             type: object
             properties:
@@ -509,6 +539,9 @@ components:
                     type: string
                 requestHeader:
                     type: string
+                health:
+                    type: integer
+                    format: int32
         Ayana.v1.Model:
             type: object
             properties:

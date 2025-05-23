@@ -162,3 +162,12 @@ func (s *SeminarService) GetMCPServers(ctx context.Context, req *v1.GetMCPServer
 	}
 	return reply, nil
 }
+
+func (s *SeminarService) CheckMCPServerHealth(ctx context.Context, req *v1.CheckMCPServerHealthReqeust) (*v1.CheckMCPServerHealthReply, error) {
+	health, err := s.uc.CheckMCPServerHealth(ctx, req.Url)
+	if err != nil {
+		return nil, err
+	}
+
+	return &v1.CheckMCPServerHealthReply{Health: health}, nil
+}

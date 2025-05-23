@@ -64,6 +64,12 @@ service Seminar {
       body: "*"
     };
   }
+  rpc CheckMCPServerHealth(CheckMCPServerHealthReqeust) returns (CheckMCPServerHealthReply) {
+    option (google.api.http) = {
+      post: "/seminar/mcp/health"
+      body: "*"
+    };
+  }
 }
 
 message TopicMetadata {
@@ -198,10 +204,19 @@ message MCPServer {
   string name = 2;
   string url = 3;
   string request_header = 4;
+  int32 health = 5;
 }
 
 message GetMCPServersReply {
- 
   repeated MCPServer servers = 1;
 }
 
+
+message CheckMCPServerHealthReqeust {
+  string url = 1;
+}
+
+// 0: unhealthy, 1: healthy
+message CheckMCPServerHealthReply {
+  int32 health = 1;
+}

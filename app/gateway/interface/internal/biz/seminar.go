@@ -302,3 +302,11 @@ func (uc *SeminarUsecase) GetMCPServers(ctx context.Context, req *v1.GetMCPServe
 	}
 	return reply, nil
 }
+
+func (uc *SeminarUsecase) CheckMCPServerHealth(ctx context.Context, req *v1.CheckMCPServerHealthReqeust) (*v1.CheckMCPServerHealthReply, error) {
+	reply, err := uc.seminarClient.CheckMCPServerHealth(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return reply, nil
+}

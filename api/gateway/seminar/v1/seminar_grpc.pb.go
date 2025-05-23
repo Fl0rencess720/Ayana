@@ -19,17 +19,18 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Seminar_CreateTopic_FullMethodName       = "/Ayana.v1.Seminar/CreateTopic"
-	Seminar_GetTopicsMetadata_FullMethodName = "/Ayana.v1.Seminar/GetTopicsMetadata"
-	Seminar_GetTopic_FullMethodName          = "/Ayana.v1.Seminar/GetTopic"
-	Seminar_DeleteTopic_FullMethodName       = "/Ayana.v1.Seminar/DeleteTopic"
-	Seminar_StartTopic_FullMethodName        = "/Ayana.v1.Seminar/StartTopic"
-	Seminar_StopTopic_FullMethodName         = "/Ayana.v1.Seminar/StopTopic"
-	Seminar_ResumeTopic_FullMethodName       = "/Ayana.v1.Seminar/ResumeTopic"
-	Seminar_UploadDocument_FullMethodName    = "/Ayana.v1.Seminar/UploadDocument"
-	Seminar_GetDocuments_FullMethodName      = "/Ayana.v1.Seminar/GetDocuments"
-	Seminar_AddMCPServer_FullMethodName      = "/Ayana.v1.Seminar/AddMCPServer"
-	Seminar_GetMCPServers_FullMethodName     = "/Ayana.v1.Seminar/GetMCPServers"
+	Seminar_CreateTopic_FullMethodName          = "/Ayana.v1.Seminar/CreateTopic"
+	Seminar_GetTopicsMetadata_FullMethodName    = "/Ayana.v1.Seminar/GetTopicsMetadata"
+	Seminar_GetTopic_FullMethodName             = "/Ayana.v1.Seminar/GetTopic"
+	Seminar_DeleteTopic_FullMethodName          = "/Ayana.v1.Seminar/DeleteTopic"
+	Seminar_StartTopic_FullMethodName           = "/Ayana.v1.Seminar/StartTopic"
+	Seminar_StopTopic_FullMethodName            = "/Ayana.v1.Seminar/StopTopic"
+	Seminar_ResumeTopic_FullMethodName          = "/Ayana.v1.Seminar/ResumeTopic"
+	Seminar_UploadDocument_FullMethodName       = "/Ayana.v1.Seminar/UploadDocument"
+	Seminar_GetDocuments_FullMethodName         = "/Ayana.v1.Seminar/GetDocuments"
+	Seminar_AddMCPServer_FullMethodName         = "/Ayana.v1.Seminar/AddMCPServer"
+	Seminar_GetMCPServers_FullMethodName        = "/Ayana.v1.Seminar/GetMCPServers"
+	Seminar_CheckMCPServerHealth_FullMethodName = "/Ayana.v1.Seminar/CheckMCPServerHealth"
 )
 
 // SeminarClient is the client API for Seminar service.
@@ -49,6 +50,7 @@ type SeminarClient interface {
 	GetDocuments(ctx context.Context, in *GetDocumentsRequest, opts ...grpc.CallOption) (*GetDocumentsReply, error)
 	AddMCPServer(ctx context.Context, in *AddMCPServerReqeust, opts ...grpc.CallOption) (*AddMCPServerReply, error)
 	GetMCPServers(ctx context.Context, in *GetMCPServersRequest, opts ...grpc.CallOption) (*GetMCPServersReply, error)
+	CheckMCPServerHealth(ctx context.Context, in *CheckMCPServerHealthReqeust, opts ...grpc.CallOption) (*CheckMCPServerHealthReply, error)
 }
 
 type seminarClient struct {
@@ -181,6 +183,16 @@ func (c *seminarClient) GetMCPServers(ctx context.Context, in *GetMCPServersRequ
 	return out, nil
 }
 
+func (c *seminarClient) CheckMCPServerHealth(ctx context.Context, in *CheckMCPServerHealthReqeust, opts ...grpc.CallOption) (*CheckMCPServerHealthReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CheckMCPServerHealthReply)
+	err := c.cc.Invoke(ctx, Seminar_CheckMCPServerHealth_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SeminarServer is the server API for Seminar service.
 // All implementations must embed UnimplementedSeminarServer
 // for forward compatibility.
@@ -198,6 +210,7 @@ type SeminarServer interface {
 	GetDocuments(context.Context, *GetDocumentsRequest) (*GetDocumentsReply, error)
 	AddMCPServer(context.Context, *AddMCPServerReqeust) (*AddMCPServerReply, error)
 	GetMCPServers(context.Context, *GetMCPServersRequest) (*GetMCPServersReply, error)
+	CheckMCPServerHealth(context.Context, *CheckMCPServerHealthReqeust) (*CheckMCPServerHealthReply, error)
 	mustEmbedUnimplementedSeminarServer()
 }
 
@@ -240,6 +253,9 @@ func (UnimplementedSeminarServer) AddMCPServer(context.Context, *AddMCPServerReq
 }
 func (UnimplementedSeminarServer) GetMCPServers(context.Context, *GetMCPServersRequest) (*GetMCPServersReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMCPServers not implemented")
+}
+func (UnimplementedSeminarServer) CheckMCPServerHealth(context.Context, *CheckMCPServerHealthReqeust) (*CheckMCPServerHealthReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckMCPServerHealth not implemented")
 }
 func (UnimplementedSeminarServer) mustEmbedUnimplementedSeminarServer() {}
 func (UnimplementedSeminarServer) testEmbeddedByValue()                 {}
@@ -442,6 +458,24 @@ func _Seminar_GetMCPServers_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Seminar_CheckMCPServerHealth_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckMCPServerHealthReqeust)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SeminarServer).CheckMCPServerHealth(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Seminar_CheckMCPServerHealth_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SeminarServer).CheckMCPServerHealth(ctx, req.(*CheckMCPServerHealthReqeust))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Seminar_ServiceDesc is the grpc.ServiceDesc for Seminar service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -484,6 +518,10 @@ var Seminar_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetMCPServers",
 			Handler:    _Seminar_GetMCPServers_Handler,
+		},
+		{
+			MethodName: "CheckMCPServerHealth",
+			Handler:    _Seminar_CheckMCPServerHealth_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
