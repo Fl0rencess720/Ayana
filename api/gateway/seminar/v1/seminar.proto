@@ -127,6 +127,7 @@ message CreateTopicRequest {
   string content = 2;
   string moderator = 3;
   repeated string participants = 4;
+  repeated string documents = 5;
 }
 
 message CreateTopicReply {

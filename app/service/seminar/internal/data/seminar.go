@@ -6,6 +6,7 @@ import (
 
 	"github.com/Fl0rencess720/Ayana/app/service/seminar/internal/biz"
 	"github.com/go-kratos/kratos/v2/log"
+	"gorm.io/gorm"
 )
 
 type seminarRepo struct {
@@ -20,8 +21,27 @@ func NewSeminarRepo(data *Data, logger log.Logger) biz.SeminarRepo {
 	}
 }
 
-func (r *seminarRepo) CreateTopic(ctx context.Context, phone string, topic *biz.Topic) error {
+func (r *seminarRepo) CreateTopic(ctx context.Context, phone string, documents []string, topic *biz.Topic) error {
 	topic.Phone = phone
+
+	err := r.data.mysqlClient.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(topic).Error; err != nil {
+			return err
+		}
+		for _, document := range documents {
+			if err := tx.Create(&biz.LoadDocument{
+				DocumentUID: document,
+				TopicUID:    topic.UID,
+			}).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
 	if err := r.data.mysqlClient.Create(topic).Error; err != nil {
 		return err
 	}

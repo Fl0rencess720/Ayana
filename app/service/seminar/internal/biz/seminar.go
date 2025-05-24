@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	roleV1 "github.com/Fl0rencess720/Ayana/api/gateway/role/v1"
@@ -16,7 +17,7 @@ import (
 )
 
 type SeminarRepo interface {
-	CreateTopic(ctx context.Context, phone string, topic *Topic) error
+	CreateTopic(ctx context.Context, phone string, document []string, topic *Topic) error
 	DeleteTopic(ctx context.Context, topicUID string) error
 	GetTopic(ctx context.Context, topicUID string) (*Topic, error)
 	GetTopicsMetadata(ctx context.Context, phone string) ([]Topic, error)
@@ -71,8 +72,8 @@ func NewSeminarUsecase(repo SeminarRepo, brepo BroadcastRepo, topicCache *TopicC
 	return s
 }
 
-func (uc *SeminarUsecase) CreateTopic(ctx context.Context, phone string, topic *Topic) error {
-	if err := uc.repo.CreateTopic(ctx, phone, topic); err != nil {
+func (uc *SeminarUsecase) CreateTopic(ctx context.Context, phone string, documents []string, topic *Topic) error {
+	if err := uc.repo.CreateTopic(ctx, phone, documents, topic); err != nil {
 		return err
 	}
 	uc.topicCache.SetTopic(topic)
@@ -113,6 +114,7 @@ func (uc *SeminarUsecase) StartTopic(ctx context.Context, phone, topicUID string
 	// 获取主题详情
 	topic, err := uc.topicCache.GetTopic(topicUID)
 	if err != nil {
+		fmt.Printf("err: %v\n", err)
 		return err
 	}
 	if topic == nil {
@@ -129,6 +131,19 @@ func (uc *SeminarUsecase) StartTopic(ctx context.Context, phone, topicUID string
 		zap.L().Error("add topic pause channel failed", zap.Error(err))
 	}
 	defer uc.brepo.DeleteTopicPauseContext(ctx, topicUID)
+
+	// 检索相关文档段落
+	var docs strings.Builder
+	for _, document := range topic.Documents {
+		documents, err := globalRAGUsecase.repo.RetrieveDocuments(ctx, topic.Content, document.UID)
+		if err != nil {
+			zap.L().Error("retrieve documents failed", zap.Error(err))
+		}
+		for _, doc := range documents {
+			docs.WriteString(doc.Content)
+			docs.WriteString("\n\n")
+		}
+	}
 
 	// 获取该主题的所有角色
 	rolesReply, err := uc.roleClient.GetModeratorAndParticipantsByUIDs(context.Background(), &roleV1.GetModeratorAndParticipantsByUIDsRequest{Phone: topic.Phone, Moderator: topic.Moderator, Uids: topic.Participants})
@@ -191,13 +206,13 @@ func (uc *SeminarUsecase) StartTopic(ctx context.Context, phone, topicUID string
 		roleScheduler.NextRole("")
 	}
 
-	messages, err := roleScheduler.state.buildMessages(roleScheduler, previousMessages)
+	messages, err := roleScheduler.BuildMessages(previousMessages, docs.String())
 	if err != nil {
 		return err
 	}
 
 	tokenChan := make(chan *TokenMessage, 50)
-
+	// 获取MCP服务器信息
 	mcpservers, err := uc.repo.GetMCPServersFromMysql(ctx, phone)
 	if err != nil {
 		zap.L().Error("get mcp servers from mysql failed", zap.Error(err))
@@ -228,7 +243,7 @@ func (uc *SeminarUsecase) StartTopic(ctx context.Context, phone, topicUID string
 			return err
 		}
 		message.Content = buildMessageContent(newSpeech)
-		messages, err = roleScheduler.BuildMessages(append(messages, message)[1:])
+		messages, err = roleScheduler.BuildMessages(append(messages, message)[1:], docs.String())
 		if err != nil {
 			return err
 		}

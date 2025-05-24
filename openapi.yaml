@@ -463,6 +463,10 @@ components:
                     type: array
                     items:
                         type: string
+                documents:
+                    type: array
+                    items:
+                        type: string
         Ayana.v1.DeleteMCPServerReply:
             type: object
             properties:

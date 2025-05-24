@@ -26,7 +26,7 @@ func (s *SeminarService) CreateTopic(ctx context.Context, req *v1.CreateTopicReq
 	if err != nil {
 		return nil, err
 	}
-	s.uc.CreateTopic(ctx, req.Phone, topic)
+	s.uc.CreateTopic(ctx, req.Phone, req.Documents, topic)
 	return &v1.CreateTopicReply{Uid: topic.UID}, nil
 }
 func (s *SeminarService) DeleteTopic(ctx context.Context, req *v1.DeleteTopicRequest) (*v1.DeleteTopicReply, error) {

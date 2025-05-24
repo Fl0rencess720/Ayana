@@ -44,8 +44,11 @@ type LoadDocument struct {
 	TopicUID    string `gorm:"foreignKey:TopicUID;references:UID"`
 }
 
+var globalRAGUsecase *RAGUsecase
+
 func NewRAGUsecase(repo RAGRepo, logger log.Logger) *RAGUsecase {
-	return &RAGUsecase{repo: repo, log: log.NewHelper(logger)}
+	globalRAGUsecase = &RAGUsecase{repo: repo, log: log.NewHelper(logger)}
+	return globalRAGUsecase
 }
 
 func (uc *RAGUsecase) UploadDocument(stream v1.Seminar_UploadDocumentServer) error {

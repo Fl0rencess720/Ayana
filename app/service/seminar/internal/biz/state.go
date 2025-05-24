@@ -11,7 +11,7 @@ import (
 type RoleState interface {
 	getStateName() string
 	nextRole(scheduler *RoleScheduler, msgContent string) (*Role, error)
-	buildMessages(scheduler *RoleScheduler, msgs []*schema.Message) ([]*schema.Message, error)
+	buildMessages(scheduler *RoleScheduler, msgs []*schema.Message, docs string) ([]*schema.Message, error)
 }
 
 type UnknownState struct{}
@@ -25,7 +25,7 @@ func (s UnknownState) nextRole(scheduler *RoleScheduler, msgContent string) (*Ro
 	return scheduler.moderator, nil
 }
 
-func (s UnknownState) buildMessages(scheduler *RoleScheduler, msgs []*schema.Message) ([]*schema.Message, error) {
+func (s UnknownState) buildMessages(scheduler *RoleScheduler, msgs []*schema.Message, docs string) ([]*schema.Message, error) {
 	return nil, nil
 }
 
@@ -50,7 +50,7 @@ func (s ModeratorState) nextRole(scheduler *RoleScheduler, msgContent string) (*
 	return role, nil
 }
 
-func (s ModeratorState) buildMessages(scheduler *RoleScheduler, msgs []*schema.Message) ([]*schema.Message, error) {
+func (s ModeratorState) buildMessages(scheduler *RoleScheduler, msgs []*schema.Message, docs string) ([]*schema.Message, error) {
 	var messages []*schema.Message
 	var err error
 	template := prompt.FromMessages(schema.FString,
@@ -69,7 +69,6 @@ func (s ModeratorState) buildMessages(scheduler *RoleScheduler, msgs []*schema.M
    - 流程控制: 确保研讨会按计划进行
    - 内容总结: 准确提炼发言要点
    - 过渡衔接: 自然引导讨论方向
-   - 时间管理: 合理分配发言时间
 
 2. 分析技能
    - 语义理解: 快速把握发言核心
@@ -83,19 +82,20 @@ func (s ModeratorState) buildMessages(scheduler *RoleScheduler, msgs []*schema.M
    - 中立性: 保持绝对中立，不表达个人观点
    - 客观性: 总结发言必须忠实原意
    - 包容性: 平等对待所有角色发言
-   - 专业性: 使用专业主持用语
 
 2. 行为准则：
    - 必须遵守发言顺序规则
    - 必须从Participants中准确@下一位发言者
-   - 必须避免以@开头发言
-   - 必须确保研讨会持续进行
+   - 必须避免以"@{role}:"开头
+   - 必须确保研讨会持续进行，严禁发表终止研讨会的言论
+   - 必须扮演好你的特质
 
 3. 限制条件：
-   - 禁止自行终止研讨会
+   - 禁止发表终止研讨会的言论
    - 禁止表达个人观点
    - 禁止修改发言原意
    - 禁止跳过角色发言
+   - 严禁以"@{role}:"开头
 
 ## Workflows
 
@@ -106,8 +106,9 @@ func (s ModeratorState) buildMessages(scheduler *RoleScheduler, msgs []*schema.M
 - 步骤 4: 从Participants中合理指定下一位发言者
 - 预期结果: 研讨会流畅有序进行
 
-## Participants：
+## Participants
 - 参与者列表: {roles}
+
 
 ## OutputFormat
 
@@ -115,7 +116,7 @@ func (s ModeratorState) buildMessages(scheduler *RoleScheduler, msgs []*schema.M
    - format: text
    - structure: [总结内容]+[引导语]
    - style: 专业、简洁、流畅
-   - special_requirements: 不能以@开头
+   - special_requirements: 不能以"@{role}:"开头
 
 2. 格式规范：
    - indentation: 无特殊缩进要求
@@ -172,7 +173,7 @@ func (s ParticipantState) nextRole(scheduler *RoleScheduler, msgContent string) 
 	return scheduler.moderator, nil
 }
 
-func (s ParticipantState) buildMessages(scheduler *RoleScheduler, msgs []*schema.Message) ([]*schema.Message, error) {
+func (s ParticipantState) buildMessages(scheduler *RoleScheduler, msgs []*schema.Message, docs string) ([]*schema.Message, error) {
 	var messages []*schema.Message
 	var err error
 	template := prompt.FromMessages(schema.FString,
@@ -193,6 +194,8 @@ func (s ParticipantState) buildMessages(scheduler *RoleScheduler, msgs []*schema
    - 观点表达: 清晰表达专业观点
    - 论据支持: 提供有力证据支持观点
    - 逻辑构建: 构建严谨的逻辑链条
+   - 角色特质: 会按照角色特质进行发言
+   - 资料引用: 能够分析相关资料，引用相关资料
 
 2. 互动回应能力
    - 观点评估: 客观评估其他角色发言
@@ -205,17 +208,16 @@ func (s ParticipantState) buildMessages(scheduler *RoleScheduler, msgs []*schema
 1. 基本原则：
    - 身份一致性: 必须严格保持角色身份，即{role}
    - 主题相关性: 发言必须紧扣研讨会主题
-   - 专业性: 发言需体现专业水准
-   - 尊重性: 对他人观点保持基本尊重
+   
 
 2. 行为准则：
    - 发言规范: 直接表达观点，不使用历史记录格式
-   - 互动方式: 可对其他角色(非主持人)观点进行回应
+   - 互动方式: 可对其他角色(非主持人)观点进行回应，可以批评对方
    - 立场明确: 需清晰表明同意或反对立场
    - 论证充分: 任何观点都需提供合理依据
 
 3. 限制条件：
-   - 格式限制: 不得以@开头，不得包含历史记录格式
+   - 格式限制: 不得以"@{role}:"开头，不得包含历史记录格式
    - 身份限制: 不得以其他角色身份发言
    - 内容限制: 不得偏离主题或发表无关言论
    - 互动限制: 不得对主持人发言进行评价
@@ -228,6 +230,9 @@ func (s ParticipantState) buildMessages(scheduler *RoleScheduler, msgs []*schema
 - 步骤 3: 形成专业观点并准备论据
 - 步骤 4: 进行发言并适当回应其他角色
 - 预期结果: 贡献有价值的专业观点，推动研讨会深入
+
+## Documents
+- 主题相关资料: {docs}
 
 ## OutputFormat
 
@@ -269,6 +274,7 @@ func (s ParticipantState) buildMessages(scheduler *RoleScheduler, msgs []*schema
 		"role":           scheduler.current.RoleName,
 		"characteristic": scheduler.current.Description,
 		"history_key":    msgs,
+		"docs":           docs,
 	}
 	messages, err = template.Format(context.Background(), variables)
 	if err != nil {

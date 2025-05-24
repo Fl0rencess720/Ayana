@@ -248,8 +248,8 @@ func (rs *RoleScheduler) NextRole(msgContent string) error {
 	return nil
 }
 
-func (rs *RoleScheduler) BuildMessages(msgs []*schema.Message) ([]*schema.Message, error) {
-	return rs.state.buildMessages(rs, msgs)
+func (rs *RoleScheduler) BuildMessages(msgs []*schema.Message, docs string) ([]*schema.Message, error) {
+	return rs.state.buildMessages(rs, msgs, docs)
 }
 
 // Call 负责初始化资源并处理整个对话流程
