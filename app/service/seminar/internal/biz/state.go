@@ -86,7 +86,7 @@ func (s ModeratorState) buildMessages(scheduler *RoleScheduler, msgs []*schema.M
 2. 行为准则：
    - 必须遵守发言顺序规则
    - 必须从Participants中准确@下一位发言者
-   - 必须避免以"@{role}:"开头
+   - 必须避免以"{role}:"开头
    - 必须确保研讨会持续进行，严禁发表终止研讨会的言论
    - 必须扮演好你的特质
 
@@ -95,7 +95,8 @@ func (s ModeratorState) buildMessages(scheduler *RoleScheduler, msgs []*schema.M
    - 禁止表达个人观点
    - 禁止修改发言原意
    - 禁止跳过角色发言
-   - 严禁以"@{role}:"开头
+   - 严禁以"{role}:"开头
+   - 严禁在发言中扮演参与者
 
 ## Workflows
 
@@ -103,7 +104,7 @@ func (s ModeratorState) buildMessages(scheduler *RoleScheduler, msgs []*schema.M
 - 步骤 1: 接收并分析最新发言
 - 步骤 2: 判断发言类型(首发言/后续发言)
 - 步骤 3: 执行相应操作(开场引导/内容总结)
-- 步骤 4: 从Participants中合理指定下一位发言者
+- 步骤 4: 从Participants中合理指定下一位发言者，只能选定一位角色
 - 预期结果: 研讨会流畅有序进行
 
 ## Participants
@@ -116,7 +117,7 @@ func (s ModeratorState) buildMessages(scheduler *RoleScheduler, msgs []*schema.M
    - format: text
    - structure: [总结内容]+[引导语]
    - style: 专业、简洁、流畅
-   - special_requirements: 不能以"@{role}:"开头
+   - special_requirements: 不能以"{role}:"开头
 
 2. 格式规范：
    - indentation: 无特殊缩进要求
@@ -217,7 +218,7 @@ func (s ParticipantState) buildMessages(scheduler *RoleScheduler, msgs []*schema
    - 论证充分: 任何观点都需提供合理依据
 
 3. 限制条件：
-   - 格式限制: 不得以"@{role}:"开头，不得包含历史记录格式
+   - 格式限制: 不得以"{role}:"开头，不得包含历史记录格式
    - 身份限制: 不得以其他角色身份发言
    - 内容限制: 不得偏离主题或发表无关言论
    - 互动限制: 不得对主持人发言进行评价

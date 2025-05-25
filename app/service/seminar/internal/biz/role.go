@@ -37,14 +37,20 @@ type RoleCache struct {
 }
 
 type RoleScheduler struct {
-	topicUID     string
+	topic        *Topic
 	moderator    *Role
 	participants []*Role
 	current      *Role
 	roleMap      map[string]*Role
 	roleNames    []string
 	state        RoleState
+	msgs         []*schema.Message
 	brepo        BroadcastRepo
+	tokenChan    chan *TokenMessage
+	docs         string
+	mcpTools     []tool.BaseTool
+	mcpToolsInfo []*schema.ToolInfo
+	TokenBuffer  *TokenBuffer
 }
 
 func NewRoleCache() *RoleCache {
@@ -84,7 +90,7 @@ func NewRoleScheduler(topic *Topic, moderator *Role, participants []*Role, brepo
 	}
 
 	return &RoleScheduler{
-		topicUID:     topic.UID,
+		topic:        topic,
 		moderator:    moderator,
 		participants: participants,
 		roleMap:      roleMap,
@@ -296,7 +302,7 @@ func (rs *RoleScheduler) Call(messages []*schema.Message, mcpservers []MCPServer
 	tokenBuffer := NewTokenBuffer(10, 50*time.Millisecond)
 
 	batchSender := func(sendCtx context.Context, tokens []*TokenMessage) error {
-		return rs.brepo.SendTokensToKafkaBatch(sendCtx, rs.topicUID, tokens)
+		return rs.brepo.SendTokensToKafkaBatch(sendCtx, rs.topic.UID, tokens)
 	}
 
 	tokenBuffer.Start(ctx, batchSender)
@@ -446,7 +452,7 @@ func (rs *RoleScheduler) processConversation(
 				if reasoning, ok := deepseek.GetReasoningContent(resp); ok && reasoning != "" {
 					message.Content += reasoning
 					token := &TokenMessage{
-						TopicUID:    rs.topicUID,
+						TopicUID:    rs.topic.UID,
 						RoleUID:     rs.current.Uid,
 						ContentType: "reasoning",
 						Content:     reasoning,
@@ -461,7 +467,7 @@ func (rs *RoleScheduler) processConversation(
 				if len(resp.Content) > 0 {
 					message.Content += resp.Content
 					token := &TokenMessage{
-						TopicUID:    rs.topicUID,
+						TopicUID:    rs.topic.UID,
 						RoleUID:     rs.current.Uid,
 						ContentType: "text",
 						Content:     resp.Content,

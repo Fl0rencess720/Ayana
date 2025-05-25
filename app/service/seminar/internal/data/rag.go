@@ -27,8 +27,18 @@ func NewRAGRepo(data *Data, logger log.Logger) biz.RAGRepo {
 }
 
 func (r *ragRepo) DocumentToVectorDB(ctx context.Context, uid string, docs []*schema.Document) error {
-	if err := r.data.indexer.Store(ctx, uid, docs); err != nil {
-		return err
+	l := 15
+	for i := range len(docs) / l {
+		if (i+1)*l < len(docs) {
+			if err := r.data.indexer.Store(ctx, uid, docs[i*l:(i+1)*l]); err != nil {
+				return err
+			}
+		} else {
+			if err := r.data.indexer.Store(ctx, uid, docs[i*l:]); err != nil {
+				return err
+			}
+		}
+
 	}
 	return nil
 }

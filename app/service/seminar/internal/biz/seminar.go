@@ -2,17 +2,19 @@ package biz
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io"
 	"strings"
 	"time"
 
 	roleV1 "github.com/Fl0rencess720/Ayana/api/gateway/role/v1"
 	"github.com/Fl0rencess720/Ayana/pkgs/utils"
 	"github.com/cloudwego/eino-ext/components/model/deepseek"
+	"github.com/cloudwego/eino/compose"
 	"github.com/cloudwego/eino/schema"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/google/uuid"
-	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
 
@@ -186,67 +188,64 @@ func (uc *SeminarUsecase) StartTopic(ctx context.Context, phone, topicUID string
 	}
 
 	previousMessages := []*schema.Message{{Role: schema.User, Content: "@研讨会管理员:研讨会的主题是---" + topic.Content + "。请主持人做好准备！"}}
-	for i, speech := range topic.Speeches {
+	for _, speech := range topic.Speeches {
 		content := buildMessageContent(speech)
-		if i%2 == 0 {
-			previousMessages = append(previousMessages, &schema.Message{
-				Role:    schema.User,
-				Content: content,
-			})
-		} else {
-			previousMessages = append(previousMessages, &schema.Message{
-				Role:    schema.Assistant,
-				Content: content,
-			})
-		}
+		previousMessages = append(previousMessages, &schema.Message{
+			Role:    schema.Assistant,
+			Content: content,
+		})
 	}
 	if len(topic.Speeches) > 0 {
 		roleScheduler.NextRole(topic.Speeches[len(topic.Speeches)-1].Content)
 	} else {
 		roleScheduler.NextRole("")
 	}
-
-	messages, err := roleScheduler.BuildMessages(previousMessages, docs.String())
-	if err != nil {
-		return err
-	}
-
-	tokenChan := make(chan *TokenMessage, 50)
 	// 获取MCP服务器信息
 	mcpservers, err := uc.repo.GetMCPServersFromMysql(ctx, phone)
 	if err != nil {
 		zap.L().Error("get mcp servers from mysql failed", zap.Error(err))
 	}
+	mcpBaseTools, mcpToolsInfo, err := getHealthyMCPServers(ctx, mcpservers)
+	if err != nil {
+		zap.L().Error("Error getting healthy MCP servers", zap.Error(err))
+	}
+	tokenChan := make(chan *TokenMessage, 50)
 
-	for {
-		message, signal, err := roleScheduler.Call(messages, mcpservers, topic.signalChan, tokenChan)
-		if err != nil {
-			zap.L().Error("角色调用失败", zap.Error(err))
-			return err
-		}
-		if signal == Pause {
-			uc.topicCache.SetTopic(topic)
-			break
-		}
-		newSpeech := Speech{
-			Content:  message.Content,
-			RoleUID:  roleScheduler.current.Uid,
-			RoleName: roleScheduler.current.RoleName,
-			TopicUID: topic.UID,
-			Time:     time.Now(),
-		}
-		topic.Speeches = append(topic.Speeches, newSpeech)
-		if err := uc.repo.SaveSpeech(context.Background(), &newSpeech); err != nil {
-			return err
-		}
-		if err := roleScheduler.NextRole(message.Content); err != nil {
-			return err
-		}
-		message.Content = buildMessageContent(newSpeech)
-		messages, err = roleScheduler.BuildMessages(append(messages, message)[1:], docs.String())
-		if err != nil {
-			return err
-		}
+	tokenBuffer := NewTokenBuffer(10, 50*time.Millisecond)
+
+	batchSender := func(sendCtx context.Context, tokens []*TokenMessage) error {
+		return roleScheduler.brepo.SendTokensToKafkaBatch(sendCtx, roleScheduler.topic.UID, tokens)
+	}
+
+	newCtx := context.Background()
+
+	tokenBuffer.Start(newCtx, batchSender)
+	defer tokenBuffer.Stop()
+
+	roleScheduler.msgs = previousMessages
+	roleScheduler.mcpTools = mcpBaseTools
+	roleScheduler.mcpToolsInfo = mcpToolsInfo
+	roleScheduler.docs = docs.String()
+	roleScheduler.tokenChan = tokenChan
+	roleScheduler.TokenBuffer = tokenBuffer
+
+	done := make(chan struct{})
+	defer close(done)
+
+	runner, err := uc.BuildGraph(ctx, roleScheduler, topic.signalChan)
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+		return err
+	}
+	resultChan := make(chan error, 1)
+	go func() {
+		_, err := runner.Stream(newCtx, []*schema.Message{})
+		resultChan <- err
+	}()
+
+	err = <-resultChan
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -316,111 +315,299 @@ func (uc *SeminarUsecase) DisableMCPServer(ctx context.Context, phone string, ui
 	return nil
 }
 
-func buildMessageContent(speech Speech) string {
-	return fmt.Sprintf("@%s:%s", speech.RoleName, speech.Content)
-}
-func findNextRoleNameFromMessage(msg string) (string, error) {
-	cm, err := deepseek.NewChatModel(context.Background(), &deepseek.ChatModelConfig{
-		APIKey: viper.GetString("DEEPSEEK_API_KEY"),
-		Model:  "deepseek-chat",
+func (uc *SeminarUsecase) BuildGraph(ctx context.Context, roleScheduler *RoleScheduler, signalChan <-chan StateSignal) (compose.Runnable[[]*schema.Message, *schema.Message], error) {
+	// 为每个角色创建独立的模型实例
+	moderatorModel, err := deepseek.NewChatModel(ctx, &deepseek.ChatModelConfig{
+		APIKey: roleScheduler.moderator.ApiKey,
+		Model:  roleScheduler.moderator.ModelName,
 	})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	output, err := cm.Generate(context.Background(), []*schema.Message{{
-		Role: schema.System,
-		Content: `# Role: 发言者识别专家
 
-## Profile
-- language: 中文/英文
-- description: 专门从研讨会主持发言中识别下一个发言者姓名的专业角色
-- background: 在会议记录和语音识别领域有丰富经验
-- personality: 严谨、精确、高效
-- expertise: 文本分析、模式识别
-- target_audience: 会议记录员、研讨会组织者
-
-## Skills
-
-1. 文本分析
-   - 模式识别: 准确识别@符号后的发言者姓名
-   - 上下文理解: 理解主持发言的语境
-   - 噪音过滤: 忽略不相关信息
-   - 多语言处理: 支持中英文姓名识别
-
-2. 数据处理
-   - 精确提取: 只提取目标姓名
-   - 格式处理: 适应不同姓名格式
-   - 快速响应: 实时处理输入
-   - 错误检测: 识别可能的识别错误
-
-## Rules
-
-1. 基本原则：
-   - 只输出识别到的发言者姓名
-   - 严格遵循"@后为姓名"的识别规则
-   - 不添加任何解释性文字
-   - 保持绝对简洁
-
-2. 行为准则：
-   - 一次只处理一个发言者姓名
-   - 忽略主持发言中的其他信息
-   - 不修改原始姓名格式
-   - 保持中立不解释
-
-3. 限制条件：
-   - 不处理没有@符号的文本
-   - 不输出非姓名内容
-   - 不猜测未明确指出的发言者
-   - 不添加标点符号
-
-## Workflows
-
-- 目标: 从主持发言中精确提取下一个发言者姓名
-- 步骤 1: 接收输入文本
-- 步骤 2: 扫描@符号
-- 步骤 3: 若有多个@符号，请你分析哪一个是下一位发言者
-- 预期结果: 仅输出识别到的发言者姓名
-
-## OutputFormat
-
-1. 输出格式类型：
-   - format: text/plain
-   - structure: 单行文本
-   - style: 无格式纯文本
-   - special_requirements: 绝对简洁
-
-2. 格式规范：
-   - indentation: 无缩进
-   - sections: 无分节
-   - highlighting: 无强调
-
-3. 验证规则：
-   - validation: 确认@符号存在
-   - constraints: 输出必须为单个字符串
-   - error_handling: 无匹配时输出空
-
-4. 示例说明：
-   1. 示例1：
-      - 标题: 标准识别
-      - 格式类型: text/plain
-      - 说明: 典型识别案例
-      - 示例内容: |
-          输入：接下来，请@张三发言，请@李四准备好
-          输出：张三
-   
-   2. 示例2：
-      - 标题: 无匹配案例 
-      - 格式类型: text/plain
-      - 说明: 无@符号的情况
-      - 示例内容: |
-          (空)
-
-## Initialization
-作为发言者识别专家，你必须遵守上述Rules，按照Workflows执行任务，并按照输出格式输出。`,
-	}, {Role: schema.User, Content: msg}},
-	)
+	participantModel, err := deepseek.NewChatModel(ctx, &deepseek.ChatModelConfig{
+		APIKey: roleScheduler.current.ApiKey,
+		Model:  roleScheduler.current.ModelName,
+	})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return output.Content, nil
+
+	moderatorModel.BindTools(roleScheduler.mcpToolsInfo)
+	participantModel.BindTools(roleScheduler.mcpToolsInfo)
+
+	g := compose.NewGraph[[]*schema.Message, *schema.Message](
+		compose.WithGenLocalState(func(ctx context.Context) *RoleScheduler {
+			return roleScheduler
+		}))
+
+	_ = g.AddPassthroughNode("decision")
+
+	// 添加主持人节点
+	_ = g.AddChatModelNode("moderator", moderatorModel,
+		compose.WithStatePreHandler(
+			func(ctx context.Context, input []*schema.Message, state *RoleScheduler) ([]*schema.Message, error) {
+				// 确保当前角色是主持人
+				if state.current.RoleType != MODERATOR {
+					state.current = state.moderator
+				}
+
+				messages, err := state.BuildMessages(append(state.msgs, input...), roleScheduler.docs)
+				if err != nil {
+					return nil, err
+				}
+
+				return messages, nil
+			}),
+		compose.WithNodeName("moderator"))
+
+	// 添加参与者节点
+	_ = g.AddChatModelNode("participant", participantModel,
+		compose.WithStatePreHandler(
+			func(ctx context.Context, input []*schema.Message, state *RoleScheduler) ([]*schema.Message, error) {
+
+				messages, err := state.BuildMessages(append(state.msgs, input...), roleScheduler.docs)
+				if err != nil {
+					return nil, err
+				}
+
+				return messages, nil
+			}),
+		compose.WithNodeName("participant"))
+
+	// 添加转换节点
+	_ = g.AddLambdaNode("moderatorToParticipant", compose.ToList[*schema.Message]())
+	_ = g.AddLambdaNode("participantToModerator", compose.ToList[*schema.Message]())
+
+	// 构建图的连接
+	_ = g.AddEdge(compose.START, "decision")
+
+	// 根据初始状态决定下一个节点
+	_ = g.AddBranch("decision", compose.NewGraphBranch(func(ctx context.Context, in []*schema.Message) (string, error) {
+		var next string
+		err := compose.ProcessState(ctx, func(ctx context.Context, state *RoleScheduler) error {
+			if state.current.RoleType == PARTICIPANT {
+				next = "participant"
+			} else {
+				next = "moderator"
+			}
+			return nil
+		})
+		if err != nil {
+			return "", err
+		}
+		return next, nil
+	}, map[string]bool{"moderator": true, "participant": true}))
+
+	// 连接转换节点
+	_ = g.AddEdge("moderatorToParticipant", "participant")
+	_ = g.AddEdge("participantToModerator", "moderator")
+
+	// 主持人输出后的分支
+	_ = g.AddBranch("moderator", compose.NewStreamGraphBranch(
+		func(ctx context.Context, input *schema.StreamReader[*schema.Message]) (string, error) {
+			// 收集完整输出
+			state, err := compose.GetState[*RoleScheduler](ctx)
+			if err != nil {
+				return "", err
+			}
+
+			message := &schema.Message{Role: schema.Assistant}
+			for {
+				// 在每次循环开始时检查暂停信号
+				select {
+				case signal, ok := <-signalChan:
+					if ok && signal == Pause {
+						return "", compose.InterruptAndRerun
+					}
+				default:
+					// 没有暂停信号，继续正常处理
+				}
+
+				resp, err := input.Recv()
+				if errors.Is(err, io.EOF) {
+					break
+				}
+				if err != nil {
+					fmt.Printf("err: %v\n", err)
+					return "", err
+				}
+
+				state.TokenBuffer.Add(&TokenMessage{
+					Content: resp.Content,
+					RoleUID: state.current.Uid,
+				})
+
+				// 处理 reasoning 内容
+				if reasoning, ok := deepseek.GetReasoningContent(resp); ok && reasoning != "" {
+					message.Content += reasoning
+					token := &TokenMessage{
+						TopicUID:    state.topic.UID,
+						RoleUID:     state.current.Uid,
+						ContentType: "reasoning",
+						Content:     reasoning,
+					}
+
+					if state.TokenBuffer.Add(token) {
+						state.TokenBuffer.Flush()
+					}
+				}
+
+				// 处理主要内容
+				if len(resp.Content) > 0 {
+					message.Content += resp.Content
+					token := &TokenMessage{
+						TopicUID:    state.topic.UID,
+						RoleUID:     state.current.Uid,
+						ContentType: "text",
+						Content:     resp.Content,
+					}
+
+					if state.TokenBuffer.Add(token) {
+						state.TokenBuffer.Flush()
+					}
+				}
+			}
+
+			speech := Speech{
+				TopicUID: roleScheduler.topic.UID,
+				RoleUID:  state.current.Uid,
+				Content:  message.Content,
+				RoleName: state.current.RoleName,
+				Time:     time.Now(),
+			}
+			if err = uc.repo.SaveSpeech(ctx, &speech); err != nil {
+				return "", err
+			}
+			roleScheduler.topic.Speeches = append(roleScheduler.topic.Speeches, speech)
+			uc.topicCache.SetTopic(roleScheduler.topic)
+
+			// 更新状态
+			var next string
+			err = compose.ProcessState(ctx, func(ctx context.Context, state *RoleScheduler) error {
+				// 添加主持人的回复到消息历史
+				state.msgs = append(state.msgs, &schema.Message{
+					Role:    schema.Assistant,
+					Content: message.Content,
+				})
+
+				// 切换到参与者
+				err := state.NextRole(message.Content)
+				if err != nil {
+					return err
+				}
+
+				next = "moderatorToParticipant"
+				return nil
+			})
+
+			return next, err
+		},
+		map[string]bool{compose.END: true, "moderatorToParticipant": true}))
+
+	// 参与者输出后的分支
+	_ = g.AddBranch("participant", compose.NewStreamGraphBranch(
+		func(ctx context.Context, input *schema.StreamReader[*schema.Message]) (string, error) {
+			// 收集完整输出
+			state, err := compose.GetState[*RoleScheduler](ctx)
+			if err != nil {
+				return "", err
+			}
+
+			message := &schema.Message{Role: schema.Assistant}
+			for {
+				select {
+				case signal, ok := <-signalChan:
+					if ok && signal == Pause {
+
+						return "", compose.InterruptAndRerun
+					}
+				default:
+					// 没有暂停信号，继续正常处理
+				}
+				resp, err := input.Recv()
+				if errors.Is(err, io.EOF) {
+					break
+				}
+				if err != nil {
+					return "", err
+				}
+				state.TokenBuffer.Add(&TokenMessage{
+					Content: resp.Content,
+					RoleUID: state.current.Uid,
+				})
+				// 处理 reasoning 内容
+				if reasoning, ok := deepseek.GetReasoningContent(resp); ok && reasoning != "" {
+					message.Content += reasoning
+					token := &TokenMessage{
+						TopicUID:    state.topic.UID,
+						RoleUID:     state.current.Uid,
+						ContentType: "reasoning",
+						Content:     reasoning,
+					}
+
+					if state.TokenBuffer.Add(token) {
+						state.TokenBuffer.Flush()
+					}
+				}
+
+				// 处理主要内容
+				if len(resp.Content) > 0 {
+					message.Content += resp.Content
+					token := &TokenMessage{
+						TopicUID:    state.topic.UID,
+						RoleUID:     state.current.Uid,
+						ContentType: "text",
+						Content:     resp.Content,
+					}
+
+					if state.TokenBuffer.Add(token) {
+						state.TokenBuffer.Flush()
+					}
+				}
+
+			}
+			speech := Speech{
+				TopicUID: roleScheduler.topic.UID,
+				RoleUID:  state.current.Uid,
+				Content:  message.Content,
+				RoleName: state.current.RoleName,
+				Time:     time.Now(),
+			}
+			if err = uc.repo.SaveSpeech(ctx, &speech); err != nil {
+				return "", err
+			}
+			roleScheduler.topic.Speeches = append(roleScheduler.topic.Speeches, speech)
+			uc.topicCache.SetTopic(roleScheduler.topic)
+			// 更新状态
+			var next string
+			err = compose.ProcessState(ctx, func(ctx context.Context, state *RoleScheduler) error {
+				// 添加参与者的回复到消息历史
+				state.msgs = append(state.msgs, &schema.Message{
+					Role:    schema.Assistant,
+					Content: message.Content,
+				})
+
+				// 切换到主持人
+				err := state.NextRole(message.Content)
+				if err != nil {
+					return err
+				}
+
+				// 检查是否应该结束对话
+
+				next = "participantToModerator"
+
+				return nil
+			})
+
+			return next, err
+		},
+		map[string]bool{compose.END: true, "participantToModerator": true}))
+
+	runner, err := g.Compile(ctx, compose.WithMaxRunSteps(100))
+	if err != nil {
+		return nil, err
+	}
+	return runner, nil
 }
