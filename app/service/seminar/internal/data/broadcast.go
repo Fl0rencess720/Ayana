@@ -17,6 +17,8 @@ type broadcastRepo struct {
 	log  *log.Helper
 }
 
+// test
+
 func NewBroadcastRepo(data *Data, logger log.Logger) biz.BroadcastRepo {
 	return &broadcastRepo{
 		data: data,
