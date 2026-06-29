@@ -62,7 +62,7 @@ services:
       "--host-cache-size=0",  
     ]
   kafka:
-    image: 'bitnami/kafka:4.0.0'
+    image: 'soldevelo/kafka:4.0.0'
     container_name: kafka
     restart: always
     ulimits:
